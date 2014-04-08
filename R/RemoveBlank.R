@@ -30,15 +30,25 @@ Data=setClass(
   )
 )
 
+#setMethod("initialize", signature(self= "RemoveBlank"), function(self, column=NULL, identifier=NULL){
+setMethod("initialize", "RemoveBlank", function(.Object, column=NULL, identifier=NULL){
+#   test <- callNextMethod(self, ...)
+  .Object@.blankIdentifierColumn = column
+  .Object@.blankIdentifierName = identifier
+  
+  return(.Object)
+})
+ 
+
 
 #' execute
 #'
 #' implementation of Operation's execute()
-setGeneric("execute", function(self) standardGeneric("execute")) 
-setMethod("execute", signature(self = "Operation"), function(self){
-  self=removeBlank(self,data=self@.data,column=self@.blankIdentifierColumn,identifier=self@.blankIdentifierName)
+setGeneric("execute", function(self,data) standardGeneric("execute")) 
+setMethod("execute", signature(self = "RemoveBlank"), function(self,data){
+  data=removeBlank(self,data,column=self@.blankIdentifierColumn,identifier=self@.blankIdentifierName)
   
-  return(self)
+  return(data)
 })
 
 
@@ -48,26 +58,45 @@ setMethod("execute", signature(self = "Operation"), function(self){
 #' maybe move this to execute?
 #' @export
 setGeneric("removeBlank", function(self,data=NULL ,column=NULL, identifier=NULL) standardGeneric("removeBlank")) 
-setMethod("removeBlank", signature(self = "Operation"), function(self,data=NULL, column=NULL, identifier=NULL){
+setMethod("removeBlank", signature(self = "RemoveBlank"), function(self, data=NULL, column=NULL, identifier=NULL){
   # for now keep it simple
-  # what todo with sd?
   
-  # here or someplace else??
-  self@.data=data # mmmmh this can be problametic
+  # for now try:
+  df=getDataAsDF(data)
   self@.blankIdentifierColumn = column
   self@.blankIdentifierName = identifier
   
-  print(self@.data)
-  print(self@.blankIdentifierColumn)
-  print(self@.blankIdentifierName)
-  
-  meanBlank=mean(self@.data["value"][self@.data[self@.blankIdentifierColumn]==self@.blankIdentifierName])
-#   meanBlank=aggregate(value~content,df,mean)
-#   meanBlank=aggregate(value~content,df,mean)
-#     mean(self@.data[self@.]
+#   print(self@.data)
+#   typeof(self@.data)
+#   print(self@.blankIdentifierColumn)
+#   print(self@.blankIdentifierName)
+
+  # i should make it easy to do it over time and stuff...
+  # but for now:
+  #
+  # 
+  meanBlank=mean(df["value"][df[self@.blankIdentifierColumn]==self@.blankIdentifierName])
+  sdBlank=sd(df["value"][df[self@.blankIdentifierColumn]==self@.blankIdentifierName])
   print(meanBlank)
+  print(sdBlank)
+  print("what todo with the SD here?")
   
-  return(self)
+  
+#   print(df["value"])
+  
+  df["value"]=df["value"]-meanBlank
+  # print(df["value"])
+#   print(df)
+
+  # does this need a set method??? why no pointers??? 
+  # Q: does R suck y/y?
+#   print(typeof(df))
+#   print(typeof(data))
+#   print(typeof(data@.data))
+  data@.data=df
+  
+  
+  return(data)
 })
 
 

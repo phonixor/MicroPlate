@@ -17,7 +17,7 @@ Data=setClass(
   representation = representation( 
     .mainData = "Data",
     .views = "list", # with more Data :)
-    .operations="list" # with operations??
+    .operations="list" # with operations?? how to enforce?
   )
 )
 
@@ -29,12 +29,15 @@ Data=setClass(
 #' 
 #' 
 #' 
+#' 
 #' @export
 setGeneric("setData", function(self,data=NULL) standardGeneric("setData")) 
 setMethod("setData", signature(self = "MicroplateExperiment"), function(self,data=NULL){
   self@.mainData=data 
   return(self)
 })
+
+
 
 
 #' getData
@@ -57,11 +60,37 @@ setMethod("getData", signature(self = "MicroplateExperiment"), function(self){
 #' @export
 setGeneric("addOperation", function(self,operation=NULL) standardGeneric("addOperation")) 
 setMethod("addOperation", signature(self = "MicroplateExperiment"), function(self, operation=NULL){
-  self@.operations=self@.operations+operation
+#   print(typeof(operation))
+#   print(class(operation))
+  # where do you go list on me???
+  # i dont wants that!!!
+  self@.operations=append(self@.operations,operation)
+#   print(length(self@.operations))
+#   print(typeof(self@.operations[[1]]))
+#   print(class(self@.operations[[1]]))
+#   print(self@.operations)
+#   
   
   return(self)
 })
 
 
-
-
+#' runAll
+#' 
+#' @export
+setGeneric("runAll", function(self) standardGeneric("runAll")) 
+setMethod("runAll", signature(self = "MicroplateExperiment"), function(self){
+  # always start with original data as source
+  data=getData(self)
+  #
+  # then execute all data 
+  for(i in 1:length(self@.operations)){
+    operation=self@.operations[[i]]
+#     print(class(operation))
+#     print(typeof(operation))
+#     print(operation@.blankIdentifierName) # should only work for RemoveBlank operation...
+    data=execute(operation,data)
+  }
+  # and cookies!!!
+  return(self)
+})

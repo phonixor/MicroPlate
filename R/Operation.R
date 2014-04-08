@@ -27,9 +27,9 @@
 #' @export
 Data=setClass(
   Class = "Operation",
-  representation = representation( 
-    .data="Data"
-  )
+#   representation = representation( 
+#     .data="Data"
+#   )
 )
 
 
@@ -40,12 +40,12 @@ Data=setClass(
 #' needs to be implemented...  don't really know how to do that in R... 
 #' so we will try this :)
 #' 
-#' should start with a view, and given a view
+#' should start with a view, and return a view
 #' 
 #' 
 #' @export
-setGeneric("execute", function(self) standardGeneric("execute")) 
-setMethod("execute", signature(self = "Operation"), function(self){
+setGeneric("execute", function(self, data) standardGeneric("execute")) 
+setMethod("execute", signature(self = "Operation"), function(self, data){
   print("execute() in Operation, YOU SHOULD NEVER SEE ME!, I SHOULD BE OVERWRITTEN!!!")
   return(self)
 })

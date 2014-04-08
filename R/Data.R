@@ -8,6 +8,11 @@ library(gtools)
 #' 
 #' This class stores data
 #' 
+#' the addData should keep it abstract -- while still allowing data.frames for import
+#' however for now the data.frame is also the only thing that is added...
+#' 
+#' 
+#' 
 #' @export
 Data=setClass(
   Class = "Data", 
@@ -18,6 +23,11 @@ Data=setClass(
 
 
 #' addData
+#' 
+#' stores data in the class instance
+#' if no data excist the data imported becomes the data
+#' else smartbind is used to add the data
+#' 
 #' 
 #' @export
 setGeneric("addData", function(self,newData=NULL) standardGeneric("addData")) 
@@ -41,6 +51,17 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL){
   return(self)
 })
 
+
+
+#' getDataAsDF
+#' 
+#' 
+#' 
+#' @export
+setGeneric("getDataAsDF", function(self) standardGeneric("getDataAsDF")) 
+setMethod("getDataAsDF", signature(self = "Data"), function(self){
+  return(self@.data)
+})
 
 
 
