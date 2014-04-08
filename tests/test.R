@@ -19,9 +19,6 @@ currentExperiment=setData(currentExperiment,testData)
 
 # rb=new("RemoveBlank")
 rb=new("RemoveBlank", column="content", identifier="B")
-# rb@.blankIdentifierName 
-# typeof(rb)
-# class(rb)
 # removeBlank(rb, data=testData, column="content", identifier="B")
 
 

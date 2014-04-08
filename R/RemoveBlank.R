@@ -33,8 +33,10 @@ Data=setClass(
 #setMethod("initialize", signature(self= "RemoveBlank"), function(self, column=NULL, identifier=NULL){
 setMethod("initialize", "RemoveBlank", function(.Object, column=NULL, identifier=NULL){
 #   test <- callNextMethod(self, ...)
-  .Object@.blankIdentifierColumn = column
-  .Object@.blankIdentifierName = identifier
+  if(!is.null(column))
+    .Object@.blankIdentifierColumn = column
+  if(!is.null(identifier))
+    .Object@.blankIdentifierName = identifier
   
   return(.Object)
 })

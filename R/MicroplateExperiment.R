@@ -57,19 +57,13 @@ setMethod("getData", signature(self = "MicroplateExperiment"), function(self){
 #' 
 #' adds an operation to the operation list... for now on the back of it...
 #' 
+#' TODO GENERATE VIEW!
+#' 
 #' @export
 setGeneric("addOperation", function(self,operation=NULL) standardGeneric("addOperation")) 
 setMethod("addOperation", signature(self = "MicroplateExperiment"), function(self, operation=NULL){
-#   print(typeof(operation))
-#   print(class(operation))
-  # where do you go list on me???
-  # i dont wants that!!!
   self@.operations=append(self@.operations,operation)
-#   print(length(self@.operations))
-#   print(typeof(self@.operations[[1]]))
-#   print(class(self@.operations[[1]]))
-#   print(self@.operations)
-#   
+  #TODO GENERATE VIEW!
   
   return(self)
 })
