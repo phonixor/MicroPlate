@@ -1,0 +1,72 @@
+#	1	2	3	4	5	6	7	8	9	10	11	12	13	14	15	16	17	18	19	20	21	22	23	24
+>	basic																							
+A	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+B	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+C	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+D	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+E	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+F	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+G	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+H	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+I	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+J	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+K	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+L	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+M	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+N	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+O	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+P	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+#	1	2	3	4	5	6	7	8	9	10	11	12	13	14	15	16	17	18	19	20	21	22	23	24
+>	medium																							
+A	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17
+B	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17
+C	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17
+D	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17
+E	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17
+F	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17
+G	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17
+H	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17
+I	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17
+J	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17
+K	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17
+L	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17	GM17
+M	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet
+N	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet
+O	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet
+P	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet	GM17-2.5 tet
+#	1	2	3	4	5	6	7	8	9	10	11	12	13	14	15	16	17	18	19	20	21	22	23	24
+>	strain																							
+A	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000
+B	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000
+C	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000
+D	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000	NZ9000
+E	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010
+F	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010
+G	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010
+H	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010	NZ9010
+I	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020
+J	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020
+K	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020
+L	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020	NZ9020
+M	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m
+N	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m
+O	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m
+P	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m	NZ9020+tet.i.m
+#	1	2	3	4	5	6	7	8	9	10	11	12	13	14	15	16	17	18	19	20	21	22	23	24
+>	background																							
+A	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+B	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+C	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+D	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+E	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+F	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+G	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+H	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+I	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+J	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+K	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+L	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+M	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+N	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+O	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12
+P	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12

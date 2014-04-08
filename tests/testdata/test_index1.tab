@@ -1,0 +1,4 @@
+directory	file	layout	extension	format	interpreter
+	novostardbf\3263.dbf	plateformats\test_layout_384_wells.tab		384	novostar.dbf
+	novostardbf\3264.dbf	plateformats\test_layout_384_wells.tab		384	novostar.dbf
+novostardbf		plateformats\test_layout_384_wells.tab	dbf	384	novostar.dbf
