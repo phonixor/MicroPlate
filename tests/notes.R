@@ -1,3 +1,20 @@
+
+
+
+
+
+
+# default shiney does localhost
+# you need to change it to your own ip if you want to change that
+ip="192.168.178.10"
+runApp("../microplate",host=ip)
+
+
+
+
+
+
+
 # example on how the data will be stored!
 library(gtools)
 test=data.frame(a=1:5,b=2:6,c=3:7)

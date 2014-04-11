@@ -12,7 +12,7 @@
 #' TODO: maybe turn this into a singleton??
 #' 
 #' @export
-Data=setClass(
+MicroplateExperiment=setClass(
   Class = "MicroplateExperiment", 
   representation = representation( 
     .mainData = "Data",

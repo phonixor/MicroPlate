@@ -17,7 +17,7 @@
 #' 
 #' 
 #' @export
-Data=setClass(
+RemoveBlank=setClass(
   Class = "RemoveBlank",
   contains = "Operation",
   representation = representation( 

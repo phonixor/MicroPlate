@@ -25,7 +25,7 @@
 #' 
 #' 
 #' @export
-Data=setClass(
+setClass(
   Class = "Operation",
 #   representation = representation( 
 #     .data="Data"
