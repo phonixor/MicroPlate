@@ -8,5 +8,17 @@ Maintainer: Who to complain to <yourfault@somewhere.net>
 Description: More about what it does (maybe more than one line)
 Depends:
     foreign,
-    gtools
+    gtools,
+    shiny
 License: GPL-3
+Collate:
+    'Operation.R'
+    'CustomOperation.R'
+    'Data.R'
+    'MicroplateExperiment.R'
+    'MyClass.R'
+    'OperationsBackups.R'
+    'RemoveBlank.R'
+    'microplate.R'
+    'parsers-Novostar.R'
+    'parsers-Spectramax.R'

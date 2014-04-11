@@ -11,6 +11,8 @@
 #' 
 #' TODO: maybe turn this into a singleton??
 #' 
+#' @include Data.R
+#' @include Operation.R
 #' @export
 MicroplateExperiment=setClass(
   Class = "MicroplateExperiment", 
@@ -20,6 +22,7 @@ MicroplateExperiment=setClass(
     .operations="list" # with operations?? how to enforce?
   )
 )
+
 
 
 #' setData

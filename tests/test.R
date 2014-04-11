@@ -27,3 +27,6 @@ currentExperiment=addOperation(currentExperiment,rb)
 currentExperiment=runAll(currentExperiment)
 
 
+co=new("CustomOperation", novostar.dbf, file)
+
+

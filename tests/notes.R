@@ -9,6 +9,7 @@
 ip="192.168.178.10"
 runApp("../microplate",host=ip)
 
+runApp("../microplate")
 
 
 
