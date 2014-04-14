@@ -4,6 +4,38 @@
 
 
 
+# setGeneric("foo", function(a, b) standardGeneric("foo")) 
+# setMethod("foo", signature("A1", "A2"), function(a, b) "1-2")
+#
+
+
+
+# $ test... how to turn it into EUR!
+test=data.frame(a=1:5,b=2:6,c=3:7)
+test   $   a #i never thougth about it before.. but this makes sense :)
+test
+rownames(test)
+rownames(test)=c("r1","r2","r3","r4","r5")
+rownames(test)
+test$r1 #does not work!
+# i wonder if there even is a row version of $
+
+
+
+
+setClass("string", contains="character")
+string <- function(obj) new("string", as.character(obj))
+
+## this works
+setMethod("+", signature(e1 = "character", e2 = "ANY"),
+            function (e1, e2) string(paste(e1, as.character(e2), sep = "")))
+## this doesnt!
+setMethod("+", signature(aaa = "character", e2 = "ANY"),
+            function (aaa, e2) string(paste(aaa, as.character(e2), sep = "")))
+## check with
+getGeneric("+")
+
+
 # default shiney does localhost
 # you need to change it to your own ip if you want to change that
 ip="192.168.178.10"
