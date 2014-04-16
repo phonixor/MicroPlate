@@ -12,7 +12,8 @@ library(gtools)
 # nrow, colnames, head, names etc
 # 
 # may also need the assignment variables like "$<-"... but i don't know if i want to give users that much access.
-#
+# 
+# ok... maybe make the data lockable???
 #
 # overwritting/defining +/-*operators
 # https://stat.ethz.ch/pipermail/r-help/2011-March/273554.html
@@ -30,20 +31,35 @@ library(gtools)
 #' 
 #' This class stores data
 #' 
-#' the addData should keep it abstract -- while still allowing data.frames for import
-#' however for now the data.frame is also the only thing that is added...
-#' 
+#' for memory reasons everything is to be stored in an enviroment .data
+#' all behaviour to acces the .data is overwritten to work with it...
+#' this means that once you have created an instance of a class you can copy it 
+#' and the data is still sotred at only 1 location
 #' 
 #' 
 #' @export
 Data=setClass(
   Class = "Data", 
   representation = representation(
-#     .data = "data.frame"
-    .data="list"
-    .colList="data.frame"
+    .data="environment" # only i may touch me!
   )
-)
+#   ,
+#   prototype = prototype(
+#     .data=new.env() # make sure it has its own little space
+#   )
+)  
+#' initialize
+setMethod("initialize", "Data", function(.Object){
+  # initialize the love!
+  .Object@.data=new.env() # make sure it has its own little space
+  .Object@.data$data=list() # stores all data!
+  .Object@.data$colnames=NULL # stores the colnames!
+  # rownames are ignored...
+  
+  return(.Object)
+})
+
+
 
 
 
@@ -59,8 +75,9 @@ setMethod("createFromDataFrame", signature(self = "Data"), function(self,df=NULL
   colNames=colnames(df)
   uniquesPerCol=data.frame()
   for(col in lenght(colNames)){
-    uniqesPerCol[colNames[col]]=
+    uniqesPerCol[colNames[col]]=length(table(df[colNames[col]]))
   }
+  print(uniqesPerCol)
     
   
   
@@ -144,6 +161,7 @@ setMethod("getDataAsDF", signature(self = "Data"), function(self){
 #   self@.data[i]
 # })
 
+#' $
 # overwrite the $ function..
 #
 # the variable names are important! they need to be the same as in the R source... else i get:
@@ -165,11 +183,49 @@ setMethod("getDataAsDF", signature(self = "Data"), function(self){
 setMethod("$", signature(x = "Data"), function(x, name) {
 #   print("if i could get a $ each time this was used... i would have made this into a recursive algorithm!")
 #   x$.data[name] ## lol!!! this actually does exactly that... eeuhm... ... damn still not rich..
-  x@.data[name] # works!
+#   x@.data[name] # works!
+  # ok the data is stored in an enviroment now... that complicates things...
+  x@.data$data[name] 
 })
 
 
+#' $<-
+#' overwrite the $<- function
+setMethod("$<-", signature(x = "Data"), function(x, name, value) {
+  # TODO test if its valid data???
+  
+  # test if its new
+  if(is.null(x@.data$data[name]) || is.na(x@.data$data[name])){
+    x@.data$colnames=append(x@.data$colnames,name)
+  }
+  x@.data$data[name]=value
+  return(x)
+})
 
+
+#' overwrite colnames()
+setMethod("colnames", signature(x = "Data"), function(x) {
+  return(x@.data$colnames)
+})
+#' overwrite colnames<-
+setMethod("colnames<-", signature(x = "Data"), function(x, value) {
+  # TODO add checks! if its the same size as data... and you probably dont want to change this anyways...
+  warning("you are adviced not to do this!... but you already did...")
+  x@.data$colnames=append(x@.data$colnames,value)
+#   colnames(x@.data$data)=value
+  
+  #   return(x@.data$colnames)
+  return(x) # for some reason i have to do this, else the instance of the class transforms into the value passed...
+})
+
+
+#' overwrite print()
+setMethod("print", signature(x = "Data"), function(x) {
+#   print("oooh you want to know my secrets???... well they are secret!!!")
+#   x@.data
+  print(x@.data$data)
+  return(x)
+})
 
 
 # setMethod("+",

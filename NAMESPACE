@@ -1,6 +1,7 @@
 export(addData)
 export(addOperation)
 export(calculateAvarage)
+export(createFromDataFrame)
 export(execute)
 export(getData)
 export(getDataAsDF)

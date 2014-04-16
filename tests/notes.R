@@ -1,6 +1,101 @@
+test=new.env()
+test
+test[1]=1 # ok that doesnt work....
+test[[1]]=1 # ok that doesnt work either....
+test$test=1 # so this is the only way to acces....
+test
+test$test[2]
+##################
+
+# the love works!!!
+test=new("Data")
+colnames(test)
+colnames(test)=1
+colnames(test)
+test2=new("Data")
+colnames(test2)
+test2=test
+colnames(test)
+colnames(test)=2
+colnames(test2)
+
+## 
+
+test=new("Data")
+print(test)
+test$data
+colnames(test)
+test$test=1:3
+test$test2=1:5
+colnames(test)
+colnames(test)="cookies"
+colnames(test)
+test@.data$colnames
+test@.data$data
+
+typeof(test@.data$data["test2"])
+
+if(is.na(test@.data$data["test2"])){
+  print("cookies!!!")
+}else{print("crumble!!!")}
 
 
 
+test=new.env()
+test$data
+test$data=NULL
+test$data
+test$data[test]=1:5
+test$data
+
+
+### testing environment
+test=data.frame(a=1:5,b=2:6,c=3:7)
+test2=data.frame(b=7:8,a=6:7,d=1:2)
+test=smartbind(test,test2)
+test
+
+testData=new.env()
+testData$Data=new("Data") # add magic..
+testData2=testData
+testData$Data
+testData2$Data
+
+# now change one
+testData$Data@.data=test
+testData$Data
+testData2$Data
+# magic! both have changed!!!
+
+# now test if its a class with an "environment" instead of an enviroment witha class with a "data.frame"/"List"...
+test=new.env()
+test$a=1:5
+test$b=2:6
+test$c=3:7
+test$a
+
+testData=new("Data")
+testData2=testData
+testData@.data$a
+testData2@.data$a
+testData@.data=test
+testData@.data$a
+testData2@.data$a
+# no magic! only one is changed!!!
+testData2=testData
+testData@.data$a=1
+testData@.data$a
+testData2@.data$a
+# and magic again!!!
+testData
+testData2
+
+## ok we learned that if you put an environment in a class and copy the class... it kinda works
+## put if you change anything else in the class... you are screwed again!!! 
+## 
+## if working with this make sure to 
+## never overwrite the environment! but rewrite the data inside the environment!!!...
+##
 
 
 
