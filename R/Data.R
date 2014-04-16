@@ -41,8 +41,32 @@ Data=setClass(
   representation = representation(
 #     .data = "data.frame"
     .data="list"
+    .colList="data.frame"
   )
 )
+
+
+
+#' createFromDataFrame
+#' 
+#' @export
+setGeneric("createFromDataFrame", function(self,df=NULL) standardGeneric("createFromDataFrame")) 
+setMethod("createFromDataFrame", signature(self = "Data"), function(self,df=NULL){
+  # check if the object is a data.frame
+  if(class(df)!="data.frame") stop("not a data frame")
+  
+  
+  colNames=colnames(df)
+  uniquesPerCol=data.frame()
+  for(col in lenght(colNames)){
+    uniqesPerCol[colNames[col]]=
+  }
+    
+  
+  
+  
+  return(self)
+})
 
 
 #' addData
