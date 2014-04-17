@@ -1,3 +1,9 @@
+##
+# this should contains a *real* experiment
+# it should also act as like a mini tutorial
+# 
+
+#
 # load the package
 library(microplate)
 

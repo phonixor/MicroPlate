@@ -10,6 +10,7 @@ library(gtools)
 # Compate = == != < > etc... ???
 # $ [ [[
 # nrow, colnames, head, names etc
+# copy <----!!!!!
 # 
 # may also need the assignment variables like "$<-"... but i don't know if i want to give users that much access.
 # 
@@ -52,8 +53,11 @@ Data=setClass(
 setMethod("initialize", "Data", function(.Object){
   # initialize the love!
   .Object@.data=new.env() # make sure it has its own little space
-  .Object@.data$data=list() # stores all data!
+  .Object@.data$data=NULL # stores all data!
   .Object@.data$colnames=NULL # stores the colnames!
+  .Object@.data$collevel=NULL # contains a number for the level
+  .Object@.data$levels=NULL # contains the name of the level which corresponds to a column name of the level above
+  # maybe add coltype????
   # rownames are ignored...
   
   return(.Object)
@@ -99,19 +103,100 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL){
   # check newData names and compare them with the names currently in use
   # add new columns to existing data
   # fill those with NA for existing data
-
+  if(is.null(self@.data$data)){ # is there already any data?
+    # no! use data as new data!
+    self@.data$data=newData
+    
+  }else{
+    # yes! add data to excisting data!
+    print("adding extra data not implemented yet!")
+  }
+  #
+  # update colnames
+  updateColnames(self)
+  
+  
+  
   #
   # adding stuff to and empty data.frame with smartbind creates a row with NA's....
-  # ...so it's not actually that smart :P
-  if(nrow(self@.data)==0){
-#     print("empty .data, .data=newData")
-#     print(newData)
-    self@.data=newData
-  }else{
-    smartbind(self@.data, newData)
-  }
+  # ...so it's not actually that smart :P 
+#   
+#   if(nrow(self@.data)==0){
+# #     print("empty .data, .data=newData")
+# #     print(newData)
+#     self@.data=newData
+#   }else{
+#     smartbind(self@.data, newData)
+#   }
   return(self)
 })
+
+#' updateColnames()
+#'
+#' update colnames based on the data available
+#' 
+#' @export
+setGeneric("updateColnames", function(self) standardGeneric("updateColnames")) 
+setMethod("updateColnames", signature(self = "Data"), function(self){
+  # validate data first?
+  #
+  # TODO what if multiple list per level..
+  #
+  # reset
+  self@.data$colnames=NULL
+  self@.data$collevel=NULL
+  self@.data$levels=NULL
+  
+  currentLevel=1
+  currentLevelNames=names(self@.data$data)
+  
+  
+  # use eval so that i dont have to unlist!!!
+  # http://stackoverflow.com/questions/9449542/access-list-element-in-r-using-get
+  # eval(parse(text="testData@.data$data[['measurement']][[1]]"))
+  continue=T # keep looping while true
+  
+  while continue {
+    continue=F
+    
+    for(i in 1:length(currentLevelNames)){
+      if(typeof(self@.data$data[[currentLevelNames[i]]])!="list"){
+        else
+      }
+      
+    }
+    
+    
+  }
+  
+#   # Semi recursive loop...
+#   # how to acces lists in lists??? wihtout unlist
+#   # gonna ask douwe...
+#   while continue
+#     continue=F
+#     for(i in 1:length(currentLevelNames)){
+#       
+#       if(typeof(self@.data$data[[currentLevelNames[i]]])!="list"){
+#         # column has data
+#         self@.data$colnames=append(self@.data$colnames,currentLevelNames[i])
+#         self@.data$collevel=append(self@.data$collevel,1)
+#       } else {
+#         # column is a list
+#         continue=T # make sure you also check that level.
+#         self@.data$levels=append(self@.data$levels,currentLevelNames[i])
+#         
+#         # how to acces lists in lists???
+#         # gonna ask douwe...
+#         
+#         unlist(testData@.data$data[["measurement"]][1])
+#         
+#       }
+#     }
+#   
+})
+
+
+
 
 
 # #' addData
@@ -162,8 +247,8 @@ setMethod("getDataAsDF", signature(self = "Data"), function(self){
 # })
 
 #' $
-# overwrite the $ function..
-#
+#' overwrite the $ function..
+#' 
 # the variable names are important! they need to be the same as in the R source... else i get:
 ### Error in match.call(definition, call, expand.dots) : 
 ###  unused arguments (self = c("Data", ""), name = c("ANY", ""))
@@ -180,22 +265,26 @@ setMethod("getDataAsDF", signature(self = "Data"), function(self){
 #
 # only x may be defined, so "name" may not be in the signature...
 # but may still be in function.... right... like a unique key thingy...
+#'
+#'
+#' @export
 setMethod("$", signature(x = "Data"), function(x, name) {
 #   print("if i could get a $ each time this was used... i would have made this into a recursive algorithm!")
 #   x$.data[name] ## lol!!! this actually does exactly that... eeuhm... ... damn still not rich..
 #   x@.data[name] # works!
   # ok the data is stored in an enviroment now... that complicates things...
-  x@.data$data[name] 
+  x@.data$data[[name]]
 })
 
 
 #' $<-
 #' overwrite the $<- function
+#' @export
 setMethod("$<-", signature(x = "Data"), function(x, name, value) {
   # TODO test if its valid data???
   
   # test if its new
-  if(is.null(x@.data$data[name]) || is.na(x@.data$data[name])){
+  if(is.null(x@.data$data[[name]]) || is.na(x@.data$data[[name]])){
     x@.data$colnames=append(x@.data$colnames,name)
   }
   x@.data$data[name]=value
@@ -204,15 +293,17 @@ setMethod("$<-", signature(x = "Data"), function(x, name, value) {
 
 
 #' overwrite colnames()
+#' @export
 setMethod("colnames", signature(x = "Data"), function(x) {
   return(x@.data$colnames)
 })
 #' overwrite colnames<-
+#' @export
 setMethod("colnames<-", signature(x = "Data"), function(x, value) {
   # TODO add checks! if its the same size as data... and you probably dont want to change this anyways...
   warning("you are adviced not to do this!... but you already did...")
-  x@.data$colnames=append(x@.data$colnames,value)
-#   colnames(x@.data$data)=value
+  x@.data$colnames=value
+  names(x@.data$data)=value
   
   #   return(x@.data$colnames)
   return(x) # for some reason i have to do this, else the instance of the class transforms into the value passed...
@@ -220,6 +311,7 @@ setMethod("colnames<-", signature(x = "Data"), function(x, value) {
 
 
 #' overwrite print()
+#' @export
 setMethod("print", signature(x = "Data"), function(x) {
 #   print("oooh you want to know my secrets???... well they are secret!!!")
 #   x@.data

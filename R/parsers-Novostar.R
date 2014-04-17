@@ -26,12 +26,96 @@
 ## Functions for reading dbf files created by Novostar readers
 library(foreign)
 
+
+
+
+
+
+
 #' a parser for the novostar platereader's dbf files
 #' 
 #' TODO better plate identification
 #' 
 #'  @export
 "novostar.dbf"=function(path=NULL,name=Null){
+#   print(path)
+  # extract data (with function from the foreign package)
+  # Suppress lots of warnings: because novostar dbf seem to have a wrong 
+  # column type annotation
+  # TODO: make tryCatch construct around read.dbf
+  buffer <- suppressWarnings(read.dbf(path))
+  # TODO: Build in check for valid Novostar dbf structure
+  #
+  # everything is now in a big data frame  
+  #
+  # Measurement column names have the format M\d+ 
+  measurements <- grep("^M[[:digit:]]+$", colnames(buffer))
+  
+  # CH column indicates data channels(?)
+  # Rows with CH=[numeric] represent wells
+  # Rows with CH=t represent time (only measurement columns)
+  # Rows with CH=C represent temperature (only measurement colums)
+  channels <- buffer[,"CH"]
+  # WELLNUM column contains well names
+  wellNames <- as.character(buffer[channels=="1", "WELLNUM"]) # is the channel always 1 for data???
+  content=as.character(buffer[channels=="1", "CONTENT"])
+  nofWells <- length(wellNames)
+  wellData <- buffer[channels=="1", measurements] # is the channel always 1 for data???
+  timePoints <- as.numeric(buffer[channels=="t", measurements])
+  temperature <- as.numeric(buffer[channels=="C", measurements])
+  #
+  #
+  #
+#   df=data.frame(row=numeric(0),column=numeric(0),temp=numeric(0),time=numeric(0),value=numeric(0),content=str(0)) # create the df
+#   l=list(row=numeric(0),column=numeric(0),content=str(0),measurement=NULL)
+  l=list()
+  for (i in 1:length(wellNames)) { # for each well
+    coordinates=extractPlateCoordinates(wellNames[i])
+    
+    l$row[i]=coordinates[1]
+    l$column[i]=coordinates[2]
+    l$content[i]=content[i]
+#     print(l)
+#     print(i)
+#     l[["measurement"]][1]=list()
+    temp=list()
+    for (j in 1:length(measurements)){ # for each measurement
+      temp$value=wellData[i,j]
+      temp$time=timePoints[j]
+      temp$temp=temperature[j] 
+    } 
+    l[["measurement"]][[i]]=temp
+  }
+  
+  return(l)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#' a parser for the novostar platereader's dbf files
+#' 
+#' TODO better plate identification
+#' 
+#'  @export
+"novostar.dbf_gjsdfold"=function(path=NULL,name=Null){
   print(path)
   # extract data (with function from the foreign package)
   # Suppress lots of warnings: because novostar dbf seem to have a wrong 
@@ -88,6 +172,7 @@ library(foreign)
 #' and puts both in a list
 #' return(c(row,column))
 #' 
+#' @export
 extractPlateCoordinates=function(wellName){
   # exmple B11
   column=regmatches(wellName,regexpr("[[:digit:]]+", wellName)) # extract 11

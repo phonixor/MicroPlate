@@ -33,6 +33,9 @@ colnames(test)
 test@.data$colnames
 test@.data$data
 
+
+typeof(test@.data)
+typeof(test@.data$data)
 typeof(test@.data$data["test2"])
 
 if(is.na(test@.data$data["test2"])){
