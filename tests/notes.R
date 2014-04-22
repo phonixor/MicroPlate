@@ -1,3 +1,30 @@
+### test DF inheritence
+# http://stackoverflow.com/questions/2497111/r-how-can-i-use-apply-on-rows-of-a-data-frame-and-get-out-column-name
+df<-data.frame(a=c("x","x","y","y"),b=c(1,2,3,4))
+df
+df$a
+typeof(df$a)
+class(df$a)
+# ok it does not return a data.frame :P ... mmmh
+library(plyr)
+adply(df, 1, function (data.frame_in) print(data.frame_in$a))
+
+# now on my Data instance
+workspace = getwd()
+testdir=file.path(workspace, "tests/testdata/enzymeAssays")
+file=file.path(testdir, "3263.dbf")
+test=novostar.dbf(path=file)
+testData=new("Data")
+# testData=addData(testData,newData=test)
+testData=addData(testData,newData=df)
+testData$a
+adply(testData, 1, function (data.frame_in) print(data.frame_in$row))
+
+
+
+
+################################################
+
 test=new.env()
 test
 test[1]=1 # ok that doesnt work....

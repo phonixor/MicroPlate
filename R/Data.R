@@ -41,6 +41,7 @@ library(gtools)
 #' @export
 Data=setClass(
   Class = "Data", 
+#   contains = "data.frame", # S3 s4 conflicts??? it kinda doesnt work :P
   representation = representation(
     .data="environment" # only i may touch me!
   )
@@ -131,6 +132,7 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL){
   return(self)
 })
 
+
 #' updateColnames()
 #'
 #' update colnames based on the data available
@@ -149,26 +151,37 @@ setMethod("updateColnames", signature(self = "Data"), function(self){
   
   currentLevel=1
   currentLevelNames=names(self@.data$data)
-  
+  currentListNr=1
+  currentPath="self@.data$data"
   
   # use eval so that i dont have to unlist!!!
   # http://stackoverflow.com/questions/9449542/access-list-element-in-r-using-get
   # eval(parse(text="testData@.data$data[['measurement']][[1]]"))
   continue=T # keep looping while true
   
-  while continue {
+  
+  
+  while(continue){
     continue=F
     
     for(i in 1:length(currentLevelNames)){
-      if(typeof(self@.data$data[[currentLevelNames[i]]])!="list"){
-        else
+      # use eval here to get into list within list without using unlist
+      text=paste("typeof(",currentPath,"[['",currentLevelNames,"']][",i,"])!='list'")
+      print(text)
+      if(eval(parse(text=text))){
+        typeof(self@.data$data[[currentLevelNames[i]]])!="list"
+        print("list!")
+        
+      } 
+      else {
+        print("not a list!")
       }
       
-    }
-    
-    
+    } 
   }
   
+})
+
 #   # Semi recursive loop...
 #   # how to acces lists in lists??? wihtout unlist
 #   # gonna ask douwe...
@@ -193,7 +206,7 @@ setMethod("updateColnames", signature(self = "Data"), function(self){
 #       }
 #     }
 #   
-})
+
 
 
 
@@ -273,7 +286,13 @@ setMethod("$", signature(x = "Data"), function(x, name) {
 #   x$.data[name] ## lol!!! this actually does exactly that... eeuhm... ... damn still not rich..
 #   x@.data[name] # works!
   # ok the data is stored in an enviroment now... that complicates things...
-  x@.data$data[[name]]
+  
+  return(x@.data$data[[name]])
+#   print("coookies!!")
+#   temp=as.data.frame(x@.data$data)
+#   print(temp[name])
+#   return(temp[[name]]) # attempt to mimic a data.frame
+  
 })
 
 
