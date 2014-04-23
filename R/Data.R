@@ -37,6 +37,9 @@ library(gtools)
 #' this means that once you have created an instance of a class you can copy it 
 #' and the data is still sotred at only 1 location
 #' 
+#' columns 
+#' columns with list are recorded in their own lists
+#' 
 #' 
 #' @export
 Data=setClass(
@@ -56,9 +59,11 @@ setMethod("initialize", "Data", function(.Object){
   .Object@.data=new.env() # make sure it has its own little space
   .Object@.data$data=NULL # stores all data!
   .Object@.data$colnames=NULL # stores the colnames!
-  .Object@.data$collevel=NULL # contains a number for the level
-  .Object@.data$levels=NULL # contains the name of the level which corresponds to a column name of the level above
-  # maybe add coltype????
+  .Object@.data$coltype=NULL
+  
+  .Object@.data$colLevel=NULL # contains the name of the level above NA if at top level
+  .Object@.data$level=NULL # contains the name of the level which corresponds to a column name of the level above
+  # need to get a way to get to the right level.... and back???
   # rownames are ignored...
   
   return(.Object)
@@ -132,55 +137,101 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL){
   return(self)
 })
 
+# 
+# #' updateColnames()
+# #'
+# #' update colnames based on the data available
+# #' 
+# #' @export
+# setGeneric("updateColnames", function(self) standardGeneric("updateColnames")) 
+# setMethod("updateColnames", signature(self = "Data"), function(self){
+#   # validate data first?
+#   #
+#   # TODO what if multiple list per level..
+#   #
+#   # reset
+#   self@.data$colnames=NULL
+#   self@.data$collevel=NULL
+#   self@.data$levels=NULL
+#   self@.data$coltype=NULL
+#     
+#   currentLevel=1
+#   currentLevelNames=names(self@.data$data)
+#   currentListNr=1
+#   currentPath="self@.data$data"
+#   nextPath=""
+#   
+#   # use eval so that i dont have to unlist!!!
+#   # http://stackoverflow.com/questions/9449542/access-list-element-in-r-using-get
+#   # eval(parse(text="testData@.data$data[['measurement']][[1]]"))
+#   continue=T # keep looping while true
+#   
+#   
+#   
+#   while(continue){
+#     continue=F
+# 
+#     
+#     for(i in 1:length(currentLevelNames)){
+#       # use eval here to get into list within list without using unlist
+#       dataType=eval(parse(text=paste("typeof(",currentPath,"[['",currentLevelNames[i],"']][",i,"])",sep="")))
+#       if(dataType=="list"){
+#         print("list!")
+#         
+#         nextPath=currentPath
+#         
+#         
+#       } 
+#       else {
+#         print("not a list!")
+#         self@.data$coltype=append(coltype,dataType)
+#       }
+#       print("wwwwwwwwwwwwwwwwwww")
+#     } 
+#   }
+#   
+# })
 
-#' updateColnames()
+#'updateColnames
 #'
-#' update colnames based on the data available
-#' 
-#' @export
-setGeneric("updateColnames", function(self) standardGeneric("updateColnames")) 
-setMethod("updateColnames", signature(self = "Data"), function(self){
-  # validate data first?
-  #
-  # TODO what if multiple list per level..
-  #
-  # reset
-  self@.data$colnames=NULL
-  self@.data$collevel=NULL
-  self@.data$levels=NULL
+#' recursive loop to update colnames and other column/meta data
+#'
+setGeneric("updateColnames", function(self, path=NULL, level=NULL) standardGeneric("updateColnames")) 
+setMethod("updateColnames", signature(self = "Data"), function(self, path=NULL, level=NULL){
+  print("recursive curse!")
+  print(path)
   
-  currentLevel=1
-  currentLevelNames=names(self@.data$data)
-  currentListNr=1
-  currentPath="self@.data$data"
+  currentPath=path
+  currentLevel=level
   
-  # use eval so that i dont have to unlist!!!
-  # http://stackoverflow.com/questions/9449542/access-list-element-in-r-using-get
-  # eval(parse(text="testData@.data$data[['measurement']][[1]]"))
-  continue=T # keep looping while true
+  if(is.null(path)){
+    currentPath="self@.data$data"
+    currentLevel=NA
+  } 
   
+  currentLevelNames=names(eval(parse(currentPath)))
   
-  
-  while(continue){
-    continue=F
-    
-    for(i in 1:length(currentLevelNames)){
-      # use eval here to get into list within list without using unlist
-      text=paste("typeof(",currentPath,"[['",currentLevelNames,"']][",i,"])!='list'")
-      print(text)
-      if(eval(parse(text=text))){
-        typeof(self@.data$data[[currentLevelNames[i]]])!="list"
-        print("list!")
-        
-      } 
-      else {
-        print("not a list!")
-      }
+  for(i in 1:length(currentLevelNames)){
       
+    dataType=eval(parse(text=paste("typeof(",currentPath,"[['",currentLevelNames[i],"']][",i,"])",sep="")))
+    if(dataType=="list"){
+      print("list!")
+      nextPath=paste(currentPath,sep="")
+      
+      self@.data$level=append(self@.data$level,currentLevelNames[i])
+      
+      updateColnamesRec(self,nextPath, currentLevelNames[i])
     } 
-  }
+    else {
+      print("not a list!")
+      self@.data$coltype=append(coltype,dataType)
+    }
+    
+  }  
+  
   
 })
+
 
 #   # Semi recursive loop...
 #   # how to acces lists in lists??? wihtout unlist
