@@ -144,8 +144,7 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL){
 # #' updateColnames()
 # #'
 # #' update colnames based on the data available
-# #' 
-# #' @export
+
 # setGeneric("updateColnames", function(self) standardGeneric("updateColnames")) 
 # setMethod("updateColnames", signature(self = "Data"), function(self){
 #   # validate data first?
@@ -195,10 +194,10 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL){
 #   
 # })
 
-# ' updateColnames
-# ' 
-# ' recursive loop to update colnames and other column/meta data
-# ' @export
+#' updateColnames
+#' 
+#' recursive loop to update colnames and other column/meta data
+#' @export
 setGeneric("updateColnames", function(self, path=NULL, level=NULL) standardGeneric("updateColnames")) 
 setMethod("updateColnames", signature(self = "Data"), function(self, path=NULL, level=NULL){
 #   print("recursive curse!")
@@ -255,65 +254,6 @@ setMethod("updateColnames", signature(self = "Data"), function(self, path=NULL, 
 })
 
 
-#   # Semi recursive loop...
-#   # how to acces lists in lists??? wihtout unlist
-#   # gonna ask douwe...
-#   while continue
-#     continue=F
-#     for(i in 1:length(currentLevelNames)){
-#       
-#       if(typeof(self@.data$data[[currentLevelNames[i]]])!="list"){
-#         # column has data
-#         self@.data$colnames=append(self@.data$colnames,currentLevelNames[i])
-#         self@.data$collevel=append(self@.data$collevel,1)
-#       } else {
-#         # column is a list
-#         continue=T # make sure you also check that level.
-#         self@.data$levels=append(self@.data$levels,currentLevelNames[i])
-#         
-#         # how to acces lists in lists???
-#         # gonna ask douwe...
-#         
-#         unlist(testData@.data$data[["measurement"]][1])
-#         
-#       }
-#     }
-#   
-
-
-
-
-
-
-# #' addData
-# #' 
-# #' stores data in the class instance
-# #' if no data excist the data imported becomes the data
-# #' else smartbind is used to add the data
-# #' 
-# #' 
-# #' @export
-# setGeneric("addData", function(self,newData=NULL) standardGeneric("addData")) 
-# setMethod("addData", signature(self = "Data"), function(self,newData=NULL){
-#   # check newData names and compare them with the names currently in use
-#   # add new columns to existing data
-#   # fill those with NA for existing data
-#   # add the new row
-# #   print(self@.data)
-#   #
-#   #
-#   # adding stuff to and empty data.frame with smartbind creates a row with NA's....
-#   # ...so it's not actually that smart :P
-#   if(nrow(self@.data)==0){
-# #     print("empty .data, .data=newData")
-# #     print(newData)
-#     self@.data=newData
-#   }else{
-#     smartbind(self@.data, newData)
-#   }
-#   return(self)
-# })
-
 
 
 #' getDataAsDF
@@ -361,69 +301,78 @@ setMethod("$", signature(x = "Data"), function(x, name) {
   
   level=x@.data$colLevel[x@.data$colNames==name]
   if (is.null(level)){
-    print("ok this shouldnt happen... but it did!") # change in a warning later...
+    # remove this once i implemented $= properly
+    print("ok this shouldn't happen... but it did!") # change in a warning later...
     return(x@.data$data[[name]])
   }
+  
   
   if (is.na(level)){
     # data at top level
     return(x@.data$data[[name]])
-  } else{
-    # data is hidden in lists in lists in ...
+  } else if(level=="measurement"){
+    # data is hidden in lists in the column measurement
     returnValue=NULL
-    returnValue=recursiveFetch(self=x, returnValue=returnValue, goalName=name)
+    for(i in 1:length(x@.data$data$measurement)){
+      returnValue=append(returnValue,x@.data$data$measurement[[i]][[name]])
+    }        
     return(returnValue)
-  }
-})
-
-#' recursiveFetch
-#' 
-#' @export
-setGeneric("recursiveFetch", function(self,returnValue=NULL,path=NULL,goalName=NULL,level=NULL) standardGeneric("recursiveFetch")) 
-setMethod("recursiveFetch", signature(self = "Data"), function(self,returnValue=NULL,path=NULL,goalName=NULL,level=NULL){
-#   print("recursive curse!")
-#   print(path)
-  
-  currentPath=path
-  currentLevel=level
-  
-  if(is.null(path)){
-    # first time this method is called (root/top/main level)
-    #     print("first time!")
-    #
-    # update 
-    currentPath="self@.data$data"
-    currentLevel=x@.data$colLevel[x@.data$colNames==goalName]
-    returnValue=NULL
-  } 
-  #   self@.data$data$measurement
-  goalLevel=x@.data$colLevel[x@.data$colNames==goalName]
-  
-  #self@.data$data[currentLevel]
-  text=paste(currentPath,"[['",currentLevel,"']]",sep="")
-#   print(text)
-  len=length(eval(parse(text=text)))
-#   print(len)
-  for(i in 1:len){
-    if (currentLevel==goalLevel){
-      # at this level there is acces to the data!
-      #
-      #self@.data$data$measurement[[i]]$value
-      text=paste(currentPath,"$",goalLevel,"[[",i,"]]","$",goalName,sep="")
-      newValue=eval(parse(text=text))
-      returnValue=append(returnValue,newValue)
-                         
-    }else{
-      print("ok no real recursive stuff yet :P")
-    }
+  } else {
+    warning("data at unknown level")
   }
   
- 
-  
-  
-  return(returnValue)
 })
 
+
+# 
+# #' recursiveFetch
+# #' 
+
+# setGeneric("recursiveFetch", function(self,returnValue=NULL,path=NULL,goalName=NULL,level=NULL) standardGeneric("recursiveFetch")) 
+# setMethod("recursiveFetch", signature(self = "Data"), function(self,returnValue=NULL,path=NULL,goalName=NULL,level=NULL){
+# #   print("recursive curse!")
+# #   print(path)
+#   
+#   currentPath=path
+#   currentLevel=level
+#   
+#   if(is.null(path)){
+#     # first time this method is called (root/top/main level)
+#     #     print("first time!")
+#     #
+#     # update 
+#     currentPath="self@.data$data"
+#     currentLevel=x@.data$colLevel[x@.data$colNames==goalName]
+#     returnValue=NULL
+#   } 
+#   #   self@.data$data$measurement
+#   goalLevel=x@.data$colLevel[x@.data$colNames==goalName]
+#   
+#   #self@.data$data[currentLevel]
+#   text=paste(currentPath,"[['",currentLevel,"']]",sep="")
+# #   print(text)
+#   len=length(eval(parse(text=text)))
+# #   print(len)
+#   for(i in 1:len){
+#     if (currentLevel==goalLevel){
+#       # at this level there is acces to the data!
+#       #
+#       #self@.data$data$measurement[[i]]$value
+#       text=paste(currentPath,"$",goalLevel,"[[",i,"]]","$",goalName,sep="")
+#       newValue=eval(parse(text=text))
+#       returnValue=append(returnValue,newValue)
+#                          
+#     }else{
+#       print("ok no real recursive stuff yet :P")
+#     }
+#   }
+#   
+#  
+#   
+#   
+#   return(returnValue)
+# })
+# 
 
 
 

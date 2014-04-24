@@ -53,10 +53,13 @@ test_that("Data.R_ novastar",{
 
   system.time(length(testData$value))
   ttt=NULL
-  ttt$test=1:500/500
+  ttt$test=1:600
   ttt
   system.time(replicate(100000,length(ttt$test))) # 0.123 sec
-  system.time(replicate(100000,length(testData$value))) # 274 sec?-- 5 min...
+  system.time(replicate(100000,length(testData$value)))
 #   system.time(length(testData$value))
   
+  system.time(replicate(100000,length(1:600/600))) # 0.123 sec
+
+
 })
