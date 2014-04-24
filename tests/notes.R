@@ -1,10 +1,28 @@
+
+
+
+B=setClass("new-data.frame", representation("data.frame")) 
+a=new("new-data.frame")
+a
+
+
+
 ### test DF inheritence
 # http://stackoverflow.com/questions/2497111/r-how-can-i-use-apply-on-rows-of-a-data-frame-and-get-out-column-name
 df<-data.frame(a=c("x","x","y","y"),b=c(1,2,3,4))
+df<-data.frame(a=c("x","x","y","y","z","z"),b=c(1,2,3,4,1,2))
+
 df
 df$a
+df$b
 typeof(df$a)
 class(df$a)
+
+df$a==c("x","x","y","y","z","z")
+(df$a==c("x","x","y","y","z","z"))&&T # ... eeeugh
+
+factor(c("x","x","y","y"))
+
 # ok it does not return a data.frame :P ... mmmh
 library(plyr)
 adply(df, 1, function (data.frame_in) print(data.frame_in$a))

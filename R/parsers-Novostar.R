@@ -80,13 +80,14 @@ library(foreign)
 #     l[["measurement"]][1]=list()
     temp=list()
     for (j in 1:length(measurements)){ # for each measurement
-      temp$value=wellData[i,j]
-      temp$time=timePoints[j]
-      temp$temp=temperature[j] 
+      temp$value=append(temp$value,wellData[i,j])
+      temp$time=append(temp$time,timePoints[j])
+      temp$temp=append(temp$temp,temperature[j])
     } 
+    print("here")
     l[["measurement"]][[i]]=temp
+    print("there")
   }
-  
   return(l)
 }
 

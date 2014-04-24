@@ -11,7 +11,9 @@ library(gtools)
 # $ [ [[
 # nrow, colnames, head, names etc
 # copy <----!!!!!
-# 
+# stringsAsFactors,  check.names... if i want to inherent data.frame -- make.names...
+# http://stackoverflow.com/questions/8691812/get-object-methods-r
+#
 # may also need the assignment variables like "$<-"... but i don't know if i want to give users that much access.
 # 
 # ok... maybe make the data lockable???
@@ -26,7 +28,7 @@ library(gtools)
 #
 # maybe useful:
 # http://web.njit.edu/all_topics/Prog_Lang_Docs/html/library/methods/html/GenericFunctions.html
-#
+# 
 #
 #' Data
 #' 
@@ -44,7 +46,7 @@ library(gtools)
 #' @export
 Data=setClass(
   Class = "Data", 
-#   contains = "data.frame", # S3 s4 conflicts??? it kinda doesnt work :P
+  contains = "data.frame", # S3 s4 conflicts??? it kinda doesnt work :P
   representation = representation(
     .data="environment" # only i may touch me!
   )
@@ -58,10 +60,11 @@ setMethod("initialize", "Data", function(.Object){
   # initialize the love!
   .Object@.data=new.env() # make sure it has its own little space
   .Object@.data$data=NULL # stores all data!
-  .Object@.data$colnames=NULL # stores the colnames!
-  .Object@.data$coltype=NULL
-  
+  # per column
+  .Object@.data$colNames=NULL # stores the colnames!
+  .Object@.data$colType=NULL
   .Object@.data$colLevel=NULL # contains the name of the level above NA if at top level
+  # per level
   .Object@.data$level=NULL # contains the name of the level which corresponds to a column name of the level above
   # need to get a way to get to the right level.... and back???
   # rownames are ignored...
@@ -192,44 +195,63 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL){
 #   
 # })
 
-#'updateColnames
-#'
-#' recursive loop to update colnames and other column/meta data
-#'
+# ' updateColnames
+# ' 
+# ' recursive loop to update colnames and other column/meta data
+# ' @export
 setGeneric("updateColnames", function(self, path=NULL, level=NULL) standardGeneric("updateColnames")) 
 setMethod("updateColnames", signature(self = "Data"), function(self, path=NULL, level=NULL){
-  print("recursive curse!")
-  print(path)
+#   print("recursive curse!")
+#   print(path)
   
   currentPath=path
   currentLevel=level
   
   if(is.null(path)){
+    # first time this method is called (root/top/main level)
+#     print("first time!")
+    #
+    # update 
     currentPath="self@.data$data"
     currentLevel=NA
+    #
+    # reset mete data
+    self@.data$colNames=NULL
+    self@.data$colLevel=NULL
+    self@.data$colType=NULL
+    self@.data$level=NULL
+    
   } 
   
-  currentLevelNames=names(eval(parse(currentPath)))
+  currentLevelNames=names(eval(parse(text=currentPath)))
   
   for(i in 1:length(currentLevelNames)){
       
     dataType=eval(parse(text=paste("typeof(",currentPath,"[['",currentLevelNames[i],"']][",i,"])",sep="")))
+    
+#     print(currentLevelNames[i])
+    
     if(dataType=="list"){
-      print("list!")
-      nextPath=paste(currentPath,sep="")
+#       print("list!")
+      nextPath=paste(currentPath,"$",currentLevelNames[i],"[[1]]",sep="") # the firest nested list
       
+      # add to level
       self@.data$level=append(self@.data$level,currentLevelNames[i])
-      
-      updateColnamesRec(self,nextPath, currentLevelNames[i])
+        
+      # recursively call this
+      updateColnames(self,nextPath, currentLevelNames[i])
     } 
     else {
-      print("not a list!")
-      self@.data$coltype=append(coltype,dataType)
+#       print("not a list!")
+      # add to metadata
+      self@.data$colNames=append(self@.data$colNames,currentLevelNames[i])
+      self@.data$colType=append(self@.data$colType,dataType)
+      self@.data$colLevel=append(self@.data$colLevel,currentLevel)
     }
     
   }  
   
-  
+  return(self)
 })
 
 
@@ -333,18 +355,77 @@ setMethod("getDataAsDF", signature(self = "Data"), function(self){
 #'
 #' @export
 setMethod("$", signature(x = "Data"), function(x, name) {
-#   print("if i could get a $ each time this was used... i would have made this into a recursive algorithm!")
-#   x$.data[name] ## lol!!! this actually does exactly that... eeuhm... ... damn still not rich..
-#   x@.data[name] # works!
-  # ok the data is stored in an enviroment now... that complicates things...
   
-  return(x@.data$data[[name]])
-#   print("coookies!!")
-#   temp=as.data.frame(x@.data$data)
-#   print(temp[name])
-#   return(temp[[name]]) # attempt to mimic a data.frame
+  # 
+  # x@.data$colLevel[x@.data$colNames==name]
   
+  level=x@.data$colLevel[x@.data$colNames==name]
+  if (is.null(level)){
+    print("ok this shouldnt happen... but it did!") # change in a warning later...
+    return(x@.data$data[[name]])
+  }
+  
+  if (is.na(level)){
+    # data at top level
+    return(x@.data$data[[name]])
+  } else{
+    # data is hidden in lists in lists in ...
+    returnValue=NULL
+    returnValue=recursiveFetch(self=x, returnValue=returnValue, goalName=name)
+    return(returnValue)
+  }
 })
+
+#' recursiveFetch
+#' 
+#' @export
+setGeneric("recursiveFetch", function(self,returnValue=NULL,path=NULL,goalName=NULL,level=NULL) standardGeneric("recursiveFetch")) 
+setMethod("recursiveFetch", signature(self = "Data"), function(self,returnValue=NULL,path=NULL,goalName=NULL,level=NULL){
+#   print("recursive curse!")
+#   print(path)
+  
+  currentPath=path
+  currentLevel=level
+  
+  if(is.null(path)){
+    # first time this method is called (root/top/main level)
+    #     print("first time!")
+    #
+    # update 
+    currentPath="self@.data$data"
+    currentLevel=x@.data$colLevel[x@.data$colNames==goalName]
+    returnValue=NULL
+  } 
+  #   self@.data$data$measurement
+  goalLevel=x@.data$colLevel[x@.data$colNames==goalName]
+  
+  #self@.data$data[currentLevel]
+  text=paste(currentPath,"[['",currentLevel,"']]",sep="")
+#   print(text)
+  len=length(eval(parse(text=text)))
+#   print(len)
+  for(i in 1:len){
+    if (currentLevel==goalLevel){
+      # at this level there is acces to the data!
+      #
+      #self@.data$data$measurement[[i]]$value
+      text=paste(currentPath,"$",goalLevel,"[[",i,"]]","$",goalName,sep="")
+      newValue=eval(parse(text=text))
+      returnValue=append(returnValue,newValue)
+                         
+    }else{
+      print("ok no real recursive stuff yet :P")
+    }
+  }
+  
+ 
+  
+  
+  return(returnValue)
+})
+
+
+
 
 
 #' $<-
@@ -355,7 +436,7 @@ setMethod("$<-", signature(x = "Data"), function(x, name, value) {
   
   # test if its new
   if(is.null(x@.data$data[[name]]) || is.na(x@.data$data[[name]])){
-    x@.data$colnames=append(x@.data$colnames,name)
+    x@.data$colNames=append(x@.data$colNames,name)
   }
   x@.data$data[name]=value
   return(x)
@@ -365,14 +446,14 @@ setMethod("$<-", signature(x = "Data"), function(x, name, value) {
 #' overwrite colnames()
 #' @export
 setMethod("colnames", signature(x = "Data"), function(x) {
-  return(x@.data$colnames)
+  return(x@.data$colNames)
 })
 #' overwrite colnames<-
 #' @export
 setMethod("colnames<-", signature(x = "Data"), function(x, value) {
   # TODO add checks! if its the same size as data... and you probably dont want to change this anyways...
   warning("you are adviced not to do this!... but you already did...")
-  x@.data$colnames=value
+  x@.data$colNames=value
   names(x@.data$data)=value
   
   #   return(x@.data$colnames)
