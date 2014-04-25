@@ -40,22 +40,39 @@ test_that("Data.R_ novastar",{
   testData=addData(testData,newData=test)
   # begin the tests
   expect_equal(colnames(testData),c("row","column","content","value","time","temp"))
-  
-  
+  expect_equal(testData@.data$level,c("well","measurement"))
+  expect_equal(600,length(testData$value))
+  expect_equal(600,length(testData$content))
+
+   
   testData@.data$colLevel
   testData@.data$colNames
   testData@.data$colType
   testData@.data$level
+  testData@.data$levelSize
+  
+  
+  
+  testData[] # everything
+  testData[1] # first col
+  testData[1,] # first row
+  testData[,1] # first col
+  testData[1,2] # first row 2nd col
+  testData[,] # everything
+  
+  
   
   testData$content
   testData$value
   length(testData$value)
 
   system.time(length(testData$value))
+  system.time(length(testData$content))
   ttt=NULL
   ttt$test=1:600
   ttt
   system.time(replicate(100000,length(ttt$test))) # 0.123 sec
+  system.time(replicate(100000,length(testData$content)))
   system.time(replicate(100000,length(testData$value)))
 #   system.time(length(testData$value))
   

@@ -84,9 +84,7 @@ library(foreign)
       temp$time=append(temp$time,timePoints[j])
       temp$temp=append(temp$temp,temperature[j])
     } 
-    print("here")
     l[["measurement"]][[i]]=temp
-    print("there")
   }
   return(l)
 }

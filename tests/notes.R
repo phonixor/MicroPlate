@@ -1,4 +1,34 @@
 
+# checking df behaviour
+df<-data.frame(a=c("x","x","y","y"),b=c(1,2,3,4),c=c(555,5,5,183447))
+df[c(1,3),]
+df[c(1,3)]
+df[c("a","c")]
+
+df$c
+df$c(1,3)
+
+# indexing is kinda weird...
+df[] # everything
+df[1] # first col
+df[1,] # first row
+df[,1] # first col
+df[1,2] # first row 2nd col
+df[,] # everything
+# multi arg
+df[c(1,3)] # returns first and 3th column
+df[c(1,3),] # returns first and 3th row so its consistent...
+df[c(),]
+#
+dim(df) # returns nr of row,col
+length(df) # returns nr of col
+
+class(df) # returns "data.frame"
+class(df[]) # returns "data.frame"
+
+
+#####################################
+
 
 
 B=setClass("new-data.frame", representation("data.frame")) 
