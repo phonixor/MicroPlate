@@ -18,6 +18,7 @@ library(gtools)
 # 
 # ok... maybe make the data lockable???
 #
+#
 # overwritting/defining +/-*operators
 # https://stat.ethz.ch/pipermail/r-help/2011-March/273554.html
 # http://stackoverflow.com/questions/4730551/making-a-string-concatenation-operator-in-r -- nice example
@@ -82,6 +83,9 @@ setMethod("initialize", "Data", function(.Object){
 
 #' createFromDataFrame
 #' 
+#' doesnt work!
+#' 
+#' 
 #' @export
 setGeneric("createFromDataFrame", function(self,df=NULL) standardGeneric("createFromDataFrame")) 
 setMethod("createFromDataFrame", signature(self = "Data"), function(self,df=NULL){
@@ -91,7 +95,7 @@ setMethod("createFromDataFrame", signature(self = "Data"), function(self,df=NULL
   
   colNames=colnames(df)
   uniquesPerCol=data.frame()
-  for(col in lenght(colNames)){
+  for(col in length(colNames)){
     uniqesPerCol[colNames[col]]=length(table(df[colNames[col]]))
   }
   print(uniqesPerCol)
@@ -103,7 +107,7 @@ setMethod("createFromDataFrame", signature(self = "Data"), function(self,df=NULL
 #' addData
 #' 
 #' stores data in the class instance
-#' if no data excist the data imported becomes the data
+#' if no data exist the data imported becomes the data
 #' else smartbind is used to add the data
 #' 
 #' 
@@ -167,7 +171,7 @@ setMethod("updateColnames", signature(self = "Data"), function(self, path=NULL, 
     currentPath="self@.data$data"
     currentLevel="well" # default top level!
     #
-    # reset mete data
+    # reset meta data
     self@.data$colNames=NULL
     self@.data$colLevel=NULL
     self@.data$colType=NULL
@@ -217,14 +221,14 @@ setMethod("updateColnames", signature(self = "Data"), function(self, path=NULL, 
 
 
 
-#' getDataAsDF
+#' as.data.frame()
 #' 
 #' 
 #' 
 #' @export
-setGeneric("getDataAsDF", function(self) standardGeneric("getDataAsDF")) 
-setMethod("getDataAsDF", signature(self = "Data"), function(self){
-  return(self@.data)
+setGeneric("as.data.frame", function(self) standardGeneric("as.data.frame")) 
+setMethod("as.data.frame", signature(self = "Data"), function(self){
+  return(self[])
 })
 
 #' []
@@ -233,101 +237,335 @@ setMethod("getDataAsDF", signature(self = "Data"), function(self){
 #' data.frame also has a DUMP slot... no clue what this does... or how to call it...
 #' its probably not called... but instead filled when called... don't know its function though...
 #' 
+#' TODO if no measurement level??!?!?
+#' 
+#' 
 #' @export 
 setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, ...) {
   # without "..." nargs() does not work!
   # even if df[] you still get 2 args...
 #   print(nargs())
+#   print(proc.time())
   col=NULL
   row=NULL
   nrOfRows=x@.data$levelSize[x@.data$level=="measurement"]
-  nrOfCol=lenght(x@.data$colNames)
+  nrOfCol=length(x@.data$colNames)
   #
   # data.frame has some special behaviour
   if(missing(i) & missing(j)){
     # df[] and df[,]
-    # return object
-    return(x)
+#     print("df[] or df[,]")
+    # return everything
+    row=NULL
+    col=1:nrOfCol
+#     might want to return it in its original form...
+#     return(x)
   } else if(missing(i)){
     # df[,1]
-    row=1:nrOfRows
+#     print("df[,1]")
+    row=NULL
     col=j
   } else if(missing(j) & nargs()==2) {
     # df[1]
+#     print("df[1]")
     # data.frame special case
     # should return column instead of row!
-    row=1:nrOfRows
+    row=NULL
     col=i
   } else if(missing(j)) {
     # df[1,]
+#     print("df[1,]")
     row=i
     col=1:nrOfCol
   } else {
     # df[1,2]
+#     print("df[1,2]")
     row=i
     col=j
   }
   
   # validate input
-  if(class(row)!="numeric"){
-    stop(paste("row index should be a number, not a: ",class(row)))
-  } 
-  if(nrOfRows<row){
-    stop(paste("Data only has ",nrOfRows," rows, you asked for row(s):",row))
+  if(!is.null(row)){
+    if(!(class(row)=="numeric"|class(row)=="integer")){
+      stop(paste("row index should be a number, not a: ",class(row)))
+    } 
+    if(nrOfRows<row){
+      stop(paste("Data only has ",nrOfRows," rows, you asked for row(s):",row))
+    }
   }
-  if(class(col)!="numeric" | class(col)!="character"){
-    stop(paste("col index should be a number or char, not a: ",class(col)))
+  if(!is.null(col)){
+    if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character")){
+      stop(paste("col index should be a number or char, not a: ",class(col)))
+    }
+    if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
+      stop(paste("columns given that do not exist:", paste(wcol, collapse=", ")))
+    }
   }
-  if(class(col)=="character" & (lenght(intersect(x@.data$colNames,col))<length(unique(col))) ) {
-    stop(paste("columns given that are not specified..."))
-    #TODO which?!?!??!?!
-  }
+  # todo add col number check..
   
   
-  ###########old
-  level=x@.data$colLevel[x@.data$colNames==name]
-  if (is.null(level)){
-    # remove this once i implemented $= properly
-    print("ok this shouldn't happen... but it did!") # change in a warning later...
-    return(x@.data$data[[name]])
+  # make sure you don't fetch dubplicates
+  col=unique(col)
+  row=unique(row)
+  # also change to names if numbers
+  if(class(col)!="character"){ 
+    col=x@.data$colNames[col]
   }
   
-  
-  if (level=="well"){
-    # data at top level
-    # assume well data for now
-    #     return(x@.data$data[[name]])
-    #
-    # data has to be repeated for each measurement
-    returnValue=NULL
-    #     index=1
-    #     for (i in 1:length(x@.data$data$measurement)){ # for each measurement
-    #       # check the ammount of measurements
-    #       numberOfMeasurement=length(x@.data$data$measurement[[i]][[1]])
-    #       returnValue[index:(index+numberOfMeasurement-1)]=x@.data$data[[name]][[i]]
-    #       index=index+numberOfMeasurement
-    #     }
-    for (i in 1:length(x@.data$data$measurement)){ # for each measurement
-      returnValue=append(returnValue,rep(x@.data$data[[name]][[i]],length(x@.data$data$measurement[[i]][[1]])))
-    }    
-    return(returnValue)
-  } else if(level=="measurement"){
-    # data is hidden in lists in the column measurement
-    returnValue=NULL
-    for(i in 1:length(x@.data$data$measurement)){
-      returnValue=append(returnValue,x@.data$data$measurement[[i]][[name]])
-    }        
-    return(returnValue)
+#   print(proc.time())
+  #
+  # fetch the requested data
+  returnValue=data.frame(matrix(nrow=if(!is.null(row)){length(row)}else{nrOfRows},ncol=length(col)))
+  colnames(returnValue)=col
+  for(colnr in 1:length(col)){ # for each column
+    
+    level=x@.data$colLevel[x@.data$colNames==col[colnr]]    
+#     print(level)
+#     print(col[colnr])
+    tempData=NULL
+    if (level=="well"){
+      # data at top level
+      #
+      # data has to be repeated for each measurement
+      for (i in 1:length(x@.data$data$measurement)){ # for each measurement
+        tempData=append(tempData,rep(x@.data$data[[col[colnr]]][[i]],length(x@.data$data$measurement[[i]][[1]])))
+      }
+    } else if(level=="measurement"){
+      # get whole column
+      for(i in 1:length(x@.data$data$measurement)){
+        tempData=append(tempData, x@.data$data$measurement[[i]][[col[colnr]]])
+      }
+    } else {
+      stop("data at unknown level... this error means a coding error as it should have been cought above!")
+    }
+
+    if(is.null(row)){
+      # whole column
+      returnValue[,colnr]=tempData
+    } else {
+      # specific rows
+      returnValue[,colnr]=tempData[row]
+    }
+  }
+#   print(proc.time())
+  return(returnValue)
+})  
+
+#' [[]]
+#' overwrite the [[]] function..
+#' 
+#' data.frame also has a DUMP slot... no clue what this does... or how to call it...
+#' its probably not called... but instead filled when called... don't know its function though...
+#' 
+#' STILL VERY BUGGY!!!
+#' 
+#' @export 
+setMethod("[[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, ...) {
+  if(missing(i) & missing(j)){
+    # df[] and df[,]
+    stop("df[[]] or df[[,]] CRASH!")
+  } else if(missing(i)){
+    # df[,1]
+    stop("df[,1] CRASH!")
+  } else if(missing(j) & nargs()==2) {
+    # df[1]
+    temp=x[i]
+    return(temp[[dim(temp)[2]]])
+  } else if(missing(j)) {
+    # df[1,]
+    stop("df[1,] CRASH!")
   } else {
-    warning("data at unknown level")
+    # df[1,2]
+    temp=x[i,j]
+#     print(temp)
+    return(temp[[dim(temp)]])
+  }
+  stop("I should never get here. CRASH!")
+})
+
+#' [<-
+#' overwrite the []<- function..
+#' 
+#' 
+#' todo add idea of adding data also on well level.. only if no rows are given? (so all rows)
+#' 
+#' 
+#' @export 
+setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), function(x, i, j, ..., value) {
+  col=NULL
+  row=NULL
+  data=value
+  nrOfRows=x@.data$levelSize[x@.data$level=="measurement"]
+  nrOfCol=length(x@.data$colNames)
+  #
+  # data.frame has some special behaviour
+  if(missing(i) & missing(j)){
+    # df[]<- and df[,]<-
+    #     print("df[] or df[,]")
+    # return everything
+    row=NULL
+    col=1:nrOfCol
+  } else if(missing(i)){
+    # df[,1]<-
+    #     print("df[,1]")
+    row=NULL
+    col=j
+  } else if(missing(j) & nargs()==2) {
+    # df[1]<-
+    #     print("df[1]")
+    # data.frame special case
+    # should return column instead of row!
+    row=NULL
+    col=i
+  } else if(missing(j)) {
+    # df[1,]<-
+    #     print("df[1,]")
+    row=i
+    col=1:nrOfCol
+  } else {
+    # df[1,2]<-
+    #     print("df[1,2]")
+    row=i
+    col=j
   }
   
- 
   
 
   
-  return(x)
+  # validate row and col...
+  
+  
+  # analyse new input
+  # the way data.frame seems to handle data that 
+  # does not match the size of the rows and columns selected
+  # is by if its smaller then copy it ... but only if it can be devided without rest
+  # if its more... ignore the more...
+  # data is filled by column, so first all rows of a column are added, then the next column...
+  #
+  #
+  
+  # adding data.frames (and matrices??) need the right amount of rows and cols
+  # what about lists???
+  # if you use df[] and you add something way bigger, 
+  # it will keep the df the same size, and throw a bunch of warnings
+  if(class(value)=="data.frame"){
+    if( is.null(row) && (nrOfRows%%dim(value)[1]>0) ){
+      stop(paste("Data only has: ",nrOfRows," but new data has: ", dim(value)[1]," rows.", sep=""))
+    }
+    
+    if((length(row)%%dim(value)[1])>0 ){
+      stop(paste("incorrect nr of rows, asked for ",length(row),"rows, while the size of data is: ",dim(value)[1],"",,sep=""))
+    }
+    if((length(col)%%dim(value)[2])>0 ){
+      stop(paste("incorrect nr of columns, asked for ",length(row),"cols, while the size of data is: ",dim(value)[1],"",,sep=""))
+    }
+    
+    # change data into a big as vector to handle it uniformly down below
+    data=c(value, recursive=TRUE)
+  }
+  
+  
+#   also change to names if numbers
+#   do this above!!! when checking... also add col>collen+1 stop col==collen+1 add
+#   if(class(col)!="character"){ 
+#     temp=x@.data$colNames[col]
+#     
+#   } #todo add 1 more...
+#   
+  
+  
+  currentDataIndex=1
+  for(colnr in 1:length(col)){ # for each column
+    # check if new
+    new=is.element(col[colnr],x@.data$colNames)
+    if (!new){
+      level=x@.data$colLevel[x@.data$colNames==col[colnr]]    
+    } else {
+      # new data column!!!
+      # TODO add smarter selection here!!!
+      level="measurement"
+    }
+    
+#     print(level)
+#     print(col[colnr])
+    tempData=NULL
+    if (level=="well"){
+      # data at top level
+      #
+      # check if data is similar for each measurement in a well...
+#       for (i in 1:length(x@.data$data$measurement)){ # for each measurement
+#         tempData=append(tempData,rep(x@.data$data[[col[colnr]]][[i]],length(x@.data$data$measurement[[i]][[1]])))
+#       }
+    } else if(level=="measurement"){
+      # set whole column
+      for(i in 1:length(x@.data$data$measurement)){
+        tempData=append(tempData, x@.data$data$measurement[[i]][[col[colnr]]])
+      }
+    } else {
+      stop("data at unknown level... this error means a coding error as it should have been cought above!")
+    }
+    
+    if(is.null(row)){
+      # whole column
+      returnValue[,colnr]=tempData
+    } else {
+      # specific rows
+      returnValue[,colnr]=tempData[row]
+    }
+    
+    
+    
+  }
+
+ 
+  return(x) 
 })
+#   
+#   
+#   
+#   ###########old
+#   level=x@.data$colLevel[x@.data$colNames==name]
+#   if (is.null(level)){
+#     # remove this once i implemented $= properly
+#     print("ok this shouldn't happen... but it did!") # change in a warning later...
+#     return(x@.data$data[[name]])
+#   }
+#   
+#   
+#   if (level=="well"){
+#     # data at top level
+#     # assume well data for now
+#     #     return(x@.data$data[[name]])
+#     #
+#     # data has to be repeated for each measurement
+#     returnValue=NULL
+#     #     index=1
+#     #     for (i in 1:length(x@.data$data$measurement)){ # for each measurement
+#     #       # check the ammount of measurements
+#     #       numberOfMeasurement=length(x@.data$data$measurement[[i]][[1]])
+#     #       returnValue[index:(index+numberOfMeasurement-1)]=x@.data$data[[name]][[i]]
+#     #       index=index+numberOfMeasurement
+#     #     }
+#     for (i in 1:length(x@.data$data$measurement)){ # for each measurement
+#       returnValue=append(returnValue,rep(x@.data$data[[name]][[i]],length(x@.data$data$measurement[[i]][[1]])))
+#     }    
+#     return(returnValue)
+#   } else if(level=="measurement"){
+#     # data is hidden in lists in the column measurement
+#     returnValue=NULL
+#     for(i in 1:length(x@.data$data$measurement)){
+#       returnValue=append(returnValue,x@.data$data$measurement[[i]][[name]])
+#     }        
+#     return(returnValue)
+#   } else {
+#     warning("data at unknown level")
+#   }
+#   
+#  
+#   
+
+
+
 
 # 
 # `[.data.frame` <-
@@ -576,59 +814,6 @@ setMethod("$", signature(x = "Data"), function(x, name) {
   }
   
 })
-
-
-# 
-# #' recursiveFetch
-# #' 
-
-# setGeneric("recursiveFetch", function(self,returnValue=NULL,path=NULL,goalName=NULL,level=NULL) standardGeneric("recursiveFetch")) 
-# setMethod("recursiveFetch", signature(self = "Data"), function(self,returnValue=NULL,path=NULL,goalName=NULL,level=NULL){
-# #   print("recursive curse!")
-# #   print(path)
-#   
-#   currentPath=path
-#   currentLevel=level
-#   
-#   if(is.null(path)){
-#     # first time this method is called (root/top/main level)
-#     #     print("first time!")
-#     #
-#     # update 
-#     currentPath="self@.data$data"
-#     currentLevel=x@.data$colLevel[x@.data$colNames==goalName]
-#     returnValue=NULL
-#   } 
-#   #   self@.data$data$measurement
-#   goalLevel=x@.data$colLevel[x@.data$colNames==goalName]
-#   
-#   #self@.data$data[currentLevel]
-#   text=paste(currentPath,"[['",currentLevel,"']]",sep="")
-# #   print(text)
-#   len=length(eval(parse(text=text)))
-# #   print(len)
-#   for(i in 1:len){
-#     if (currentLevel==goalLevel){
-#       # at this level there is acces to the data!
-#       #
-#       #self@.data$data$measurement[[i]]$value
-#       text=paste(currentPath,"$",goalLevel,"[[",i,"]]","$",goalName,sep="")
-#       newValue=eval(parse(text=text))
-#       returnValue=append(returnValue,newValue)
-#                          
-#     }else{
-#       print("ok no real recursive stuff yet :P")
-#     }
-#   }
-#   
-#  
-#   
-#   
-#   return(returnValue)
-# })
-# 
-
-
 
 
 #' $<-

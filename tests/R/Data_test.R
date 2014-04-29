@@ -44,7 +44,7 @@ test_that("Data.R_ novastar",{
   expect_equal(600,length(testData$value))
   expect_equal(600,length(testData$content))
 
-   
+  
   testData@.data$colLevel
   testData@.data$colNames
   testData@.data$colType
@@ -60,12 +60,39 @@ test_that("Data.R_ novastar",{
   testData[1,2] # first row 2nd col
   testData[,] # everything
   
-  
+  expect_error(testData["a",1]) # not a row number
+  expect_error(testData[1000000000,1]) # to many rows
+  # TODO test if you give multiple rows... starting with a valid one
+  # TODO test half a row???
+  expect_error(testData[testData]) # column not num or char
+  expect_error(testData[1,"col"]) # unspecified column name
+  testData[1,c("row","col","test")]
+  testData[1,"column"]
+  testData["column"]
   
   testData$content
   testData$value
   length(testData$value)
-
+  
+  tdf=testData[]
+  
+  testData[[]]
+  
+  
+  system.time(length(testData[1:6]))
+  system.time(length(tdf[1:6]))
+  
+  system.time(replicate(10000,testData[1:6]))
+  system.time(replicate(10000,tdf[1:6]))
+  
+  system.time(testData["value"])
+  system.time(testData$value)
+  
+  
+  system.time(replicate(10000,testData["content"]))
+  system.time(replicate(10000,testData$content))
+  system.time(replicate(10000,tdf$content))
+  
   system.time(length(testData$value))
   system.time(length(testData$content))
   ttt=NULL

@@ -1,4 +1,95 @@
 
+workspace = getwd()
+testdir=file.path(workspace, "tests/testdata/enzymeAssays")
+file=file.path(testdir, "3263.dbf")
+test=novostar.dbf(path=file)
+testData=new("Data")
+testData=addData(testData,newData=test)
+tdf=testData[]
+
+tapply(tdf$value ,tdf$content, mean)
+tapply(testData$value ,testData$content, mean)
+
+tapply(tdf$value, tdf$content, mean)
+
+
+
+
+
+require(stats)
+by(warpbreaks, warpbreaks[,"tension"],   function(x) lm(breaks ~ wool, data = x))
+
+
+###########
+#memtest
+g=1:1000000 # 3.8 Mb
+g=1:10000000 # 38.1 Mb
+g=1:100000000 # 381 Mb
+g=1:300000000 # 1.1 Gb
+
+
+
+
+
+g=1:10000000 # 38.1 Mb
+temp=list()
+for (i in 1:10){
+  temp2=list()
+  temp2$values=g
+  temp2$temp=g
+  temp=append(temp, c(experiment=letters[i],plate=1, measurement=list(temp2)))
+} # 762 Mb
+head(temp) # FUGLY!
+
+
+
+# vs
+g=1:10000000 # 38.1 Mb
+temp=data.frame(values=rep(g,10)) # doesnt work anymore??? why???
+temp$temp=rep(g,10)
+experiment=NULL
+for(i in 1:10){
+  experiment=append(experiment,rep(letters[i], length(g)))
+}
+temp$experiment=experiment # doesnt work!
+temp$plate=1 # also doesnt work!
+#
+head(temp)
+dim(temp)
+
+#
+#
+g=1:10000000 # 38.1 Mb
+temp=list()
+temp$value=rep(g,10)
+temp2=temp
+temp3=temp
+temp4=temp
+head(temp[["value"]])
+temp[["value"]][1:100]=1
+head(temp[["value"]])
+temp[["value"]][1:10000]=1
+temp
+temp2
+temp3
+temp4
+temp2[["value"]][1:10000]=2
+rm(temp3)
+rm(temp4)
+temp2[["value"]][1:10000]=2
+
+h=g # add more!
+rm(h) # its removed from global... but comp still claims ram! :(
+rm(g)
+
+#################################################3
+
+a=c("a","b","c")
+b=c("c","d")
+is.element(a,b)
+
+#########################################################
+
 # checking df behaviour
 df<-data.frame(a=c("x","x","y","y"),b=c(1,2,3,4),c=c(555,5,5,183447))
 df[c(1,3),]
@@ -19,6 +110,10 @@ df[,] # everything
 df[c(1,3)] # returns first and 3th column
 df[c(1,3),] # returns first and 3th row so its consistent...
 df[c(),]
+#
+df[c("a","b")] 
+df[c(1,2)]
+df[c("a",2)] # does not work!
 #
 dim(df) # returns nr of row,col
 length(df) # returns nr of col
