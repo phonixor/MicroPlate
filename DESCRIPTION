@@ -8,7 +8,8 @@ Maintainer: Who to complain to <yourfault@somewhere.net>
 Description: More about what it does (maybe more than one line)
 Depends:
     foreign,
-    gtools
+    gtools,
+    plyr
 License: GPL-3
 Collate:
     'Operation.R'

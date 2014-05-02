@@ -39,16 +39,27 @@ test_that("Data.R_ novastar",{
   testData=new("Data")
   testData=addData(testData,newData=test)
   # begin the tests
-  expect_equal(colnames(testData),c("row","column","content","value","time","temp"))
-  expect_equal(testData@.data$level,c("well","measurement"))
-  expect_equal(600,length(testData$value))
-  expect_equal(600,length(testData$content))
-
   
+  # test meta data
+  expect_equal(testData@.data$colLevel,c("plate","well","well","well","measurement","measurement","measurement"))
+  expect_equal(testData@.data$colNames,c("plateName", "row", "column", "content", "value", "time", "temp"))
+  expect_equal(testData@.data$colLevelNr,c(3, 2, 2, 2, 1, 1, 1))
+  expect_equal(testData@.data$level,c("plate","well","measurement"))
+  expect_equal(testData@.data$levelNr,c(3,2,1))
+  expect_equal(testData@.data$levelSize,c(1,12,600))
+  
+  # other tests
+  expect_equal(colnames(testData),c("plateName","row","column","content","value","time","temp"))
+  expect_equal(600,length(testData$value))
+  expect_equal(12,length(testData$content))
+  
+
+
   testData@.data$colLevel
   testData@.data$colNames
-  testData@.data$colType
+  testData@.data$colLevelNr
   testData@.data$level
+  testData@.data$levelNr
   testData@.data$levelSize
   
   
@@ -70,6 +81,12 @@ test_that("Data.R_ novastar",{
   testData[1,"column"]
   testData["column"]
   
+  testData["plateName"]
+  testData[c("plateName","column")]
+  testData[c("plateName","content","value")]
+  
+  testData[level=3] # everything
+
   testData$content
   testData$value
   length(testData$value)
@@ -89,9 +106,18 @@ test_that("Data.R_ novastar",{
   system.time(testData$value)
   
   
-  system.time(replicate(10000,testData["content"]))
-  system.time(replicate(10000,testData$content))
-  system.time(replicate(10000,tdf$content))
+  system.time(replicate(10000,testData["content"])) # 4.864 sec
+  system.time(replicate(10000,testData$content)) # 1.367 sec
+  
+  system.time(replicate(10000,testData["value"])) # 5.671 sec
+  system.time(replicate(10000,testData$value)) # 0.948 sec
+  tft=testData[] #put it in a data.frame
+  system.time(replicate(10000,tft["value"])) # 0.505 sec
+  system.time(replicate(10000,tft$value)) # 0.201 sec
+  
+
+  
+  system.time(replicate(10000,tdf$content)) # 0.011
   
   system.time(length(testData$value))
   system.time(length(testData$content))

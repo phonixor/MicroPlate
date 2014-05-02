@@ -1,3 +1,10 @@
+###########################
+# ...
+boo=function(...)print(paste(...))
+boo("b","O",0)
+
+###########################
+
 
 workspace = getwd()
 testdir=file.path(workspace, "tests/testdata/enzymeAssays")
@@ -114,6 +121,7 @@ df[c(),]
 df[c("a","b")] 
 df[c(1,2)]
 df[c("a",2)] # does not work!
+df[c(2,"a")] # also doesnt work!
 #
 dim(df) # returns nr of row,col
 length(df) # returns nr of col
@@ -158,10 +166,14 @@ testdir=file.path(workspace, "tests/testdata/enzymeAssays")
 file=file.path(testdir, "3263.dbf")
 test=novostar.dbf(path=file)
 testData=new("Data")
-# testData=addData(testData,newData=test)
-testData=addData(testData,newData=df)
-testData$a
+testData=addData(testData,newData=test)
+# testData=addData(testData,newData=df)
+testData
+
+tdf=testData[]
+adply(tdf, 1, function (data.frame_in) print(data.frame_in$row))
 adply(testData, 1, function (data.frame_in) print(data.frame_in$row))
+
 
 
 

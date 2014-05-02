@@ -1,4 +1,5 @@
 library(gtools)
+library(plyr)
 #
 # Data stores everything!
 # hopefully on different levels...
@@ -34,6 +35,25 @@ library(gtools)
 # https://github.com/SurajGupta/r-source/blob/91aaa43312da6b0e6906ef221fd7756dc0459843/src/library/base/R/dataframe.R
 #
 #
+#
+#
+# adding contains data.frame changes:
+# > testData
+# An object of class "Data"
+# Slot ".data":
+#   <environment: 0x5f248f0>
+# to:
+# > testData
+# Object of class "Data"
+# data frame with 0 columns and 0 rows
+# Slot ".data":
+#   <environment: 0x537d728>
+#
+#
+#
+
+
+#
 #' Data
 #' 
 #' This class stores data
@@ -52,31 +72,34 @@ Data=setClass(
   Class = "Data", 
   contains = "data.frame", # S3 s4 conflicts??? it kinda doesnt work :P
   representation = representation(
+#     x="list", # data.frame has this???
     .data="environment" # only i may touch me!
   )
 #   ,
 #   prototype = prototype(
 #     .data=new.env() # make sure it has its own little space
 #   )
-)  
+)
 #' initialize
 setMethod("initialize", "Data", function(.Object){
   # initialize the love!
   .Object@.data=new.env() # make sure it has its own little space
-  .Object@.data$data=NULL # stores all data!
+  .Object@.data$data=NULL # stores all well and measurement data!
+  .Object@.data$plate=NULL # stores all plate data!
   # per column
   .Object@.data$colNames=NULL # stores the colnames!
-  .Object@.data$colType=NULL
-  .Object@.data$colLevel=NULL # contains the name of the level above NA if at top level
+  .Object@.data$colLevel=NULL # contains the name of the level
+  .Object@.data$colLevelNr=NULL
   # per level
   .Object@.data$level=NULL # contains the name of the level which corresponds to a column name of the level above
+  .Object@.data$levelNr=NULL # contains the level 1 = measurement, 2 = well etc...
   .Object@.data$levelSize=NULL # number of rows per level
   # need to get a way to get to the right level.... and back???
   # rownames are ignored...
+  .Object@.data$reservedNames=c("plate","well","measurement")
   
   return(.Object)
 })
-
 
 
 
@@ -110,20 +133,36 @@ setMethod("createFromDataFrame", signature(self = "Data"), function(self,df=NULL
 #' if no data exist the data imported becomes the data
 #' else smartbind is used to add the data
 #' 
+#' TODO add more plate data...
 #' 
 #' @export
-setGeneric("addData", function(self,newData=NULL) standardGeneric("addData")) 
-setMethod("addData", signature(self = "Data"), function(self,newData=NULL){
+setGeneric("addData", function(self,newData=NULL, plateName=NULL, ...) standardGeneric("addData")) 
+setMethod("addData", signature(self = "Data"), function(self,newData=NULL, plateName=NULL, ...){
   # check newData names and compare them with the names currently in use
   # add new columns to existing data
   # fill those with NA for existing data
   if(is.null(self@.data$data)){ # is there already any data?
     # no! use data as new data!
-    self@.data$data=newData
     
+    self@.data$data=newData
+    self@.data$data$plate=rep(1,length(newData[[1]])) # create foreign keys
+    
+    if( is.null(plateName) ){
+      # generate platename  --> plate number=row number
+      self@.data$plate=data.frame(plateName=1)
+    } else {
+      # use plateName.... however plate still has
+      self@.data$plate=data.frame(plateName=plateName)
+    }
   }else{
     # yes! add data to excisting data!
     print("adding extra data not implemented yet!")
+    if( is.null(plateName) ){
+      # generate platename
+      
+    } else {
+      # 
+    }
   }
   #
   # update colnames
@@ -155,8 +194,8 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL){
 #' 
 #' 
 #' @export
-setGeneric("updateColnames", function(self, path=NULL, level=NULL) standardGeneric("updateColnames")) 
-setMethod("updateColnames", signature(self = "Data"), function(self, path=NULL, level=NULL){
+setGeneric("updateColnamesOld", function(self, path=NULL, level=NULL) standardGeneric("updateColnamesOld")) 
+setMethod("updateColnamesOld", signature(self = "Data"), function(self, path=NULL, level=NULL){
 #   print("recursive curse!")
 #   print(path)
   
@@ -176,6 +215,7 @@ setMethod("updateColnames", signature(self = "Data"), function(self, path=NULL, 
     self@.data$colLevel=NULL
     self@.data$colType=NULL
     self@.data$level="well" # default top level is well
+    self@.data$levelNr=2
     self@.data$levelSize=length(self@.data$data[[1]])
     
   } 
@@ -200,11 +240,12 @@ setMethod("updateColnames", signature(self = "Data"), function(self, path=NULL, 
       }  
       # add to level
       self@.data$level=append(self@.data$level,currentLevelNames[i])
+      self@.data$levelNr=append(self@.data$levelNr,currentLevelNr[i])
       self@.data$levelSize=append(self@.data$levelSize,len)
         
       # recursively call this
       updateColnames(self,nextPath, currentLevelNames[i])
-    } 
+    }
     else {
 #       print("not a list!")
       # add to metadata
@@ -219,6 +260,44 @@ setMethod("updateColnames", signature(self = "Data"), function(self, path=NULL, 
 })
 
 
+#' updateColnames
+#' 
+#' this method is responsible for updating colnames and meta data
+#' to keep the Data from working properly
+#'
+#' @export
+setGeneric("updateColnames", function(self) standardGeneric("updateColnames")) 
+setMethod("updateColnames", signature(self = "Data"), function(self){
+  # TODO maybe add custom levels???
+  # 
+  # plate
+  self@.data$level="plate"
+  self@.data$levelNr=3 # measurement=1, well=2, plate=3
+  self@.data$levelSize=length(self@.data$plate[[1]])
+  self@.data$colNames=colnames(self@.data$plate)
+  self@.data$colLevel=rep("plate",length(self@.data$plate))
+  self@.data$colLevelNr=rep(3,length(self@.data$plate))
+  #
+  # well
+  self@.data$level=append(self@.data$level,"well")
+  self@.data$levelNr=append(self@.data$levelNr,2)
+  self@.data$levelSize=append(self@.data$levelSize,length(self@.data$data[[1]]))
+  self@.data$colNames=append(self@.data$colNames,names(self@.data$data)[!is.element(names(self@.data$data),c("measurement","plate"))])  
+  self@.data$colLevel=append(self@.data$colLevel,rep("well",length(self@.data$data)-2)) # ignore col plate and measurement
+  self@.data$colLevelNr=append(self@.data$colLevelNr,rep(2,length(self@.data$data)-2))
+  #
+  # measurement
+  self@.data$level=append(self@.data$level,"measurement")
+  self@.data$levelNr=append(self@.data$levelNr,1)
+  size=0
+  for(i in 1:length(self@.data$data$measurement)){#check each well for measurements
+    size=size+length(self@.data$data$measurement[[i]][[1]])
+  }
+  self@.data$levelSize=append(self@.data$levelSize,size)
+  self@.data$colNames=append(self@.data$colNames,names(self@.data$data$measurement[[1]]))
+  self@.data$colLevel=append(self@.data$colLevel,rep("measurement",length(self@.data$data$measurement[[1]])))
+  self@.data$colLevelNr=append(self@.data$colLevelNr,rep(1,length(self@.data$data$measurement[[1]])))
+})  
 
 
 #' as.data.frame()
@@ -231,27 +310,50 @@ setMethod("as.data.frame", signature(self = "Data"), function(self){
   return(self[])
 })
 
+
 #' []
 #' overwrite the [] function..
+#' 
+#' 
 #' 
 #' data.frame also has a DUMP slot... no clue what this does... or how to call it...
 #' its probably not called... but instead filled when called... don't know its function though...
 #' 
 #' TODO if no measurement level??!?!?
 #' 
+#' Returns data as if it was a data.frame (so in many cases it returns a data.frame)
+#' Unlike a date.frame this function wont repeat cols and rows, if the same row/col is requested multiple times
+#' 
+#' this function gives the data at the appropiate level "plate","well" or "measurement"
+#' collumns of a higher level will be repeated
+#' 
+#' @slot x - Data
+#' @slot i - row - number only
+#' @slot j - column - use column number or column name
+#' @slot level - use this to force the data to be repeated for the appropiate level: "plate","well","measurement" 
+#'  
 #' 
 #' @export 
 setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, ...) {
-  # without "..." nargs() does not work!
-  # even if df[] you still get 2 args...
-#   print(nargs())
-#   print(proc.time())
+  # without "..." nargs() does not work! 
+  # even if df[] you still get 2 args...  
+  args <- list(...)
+  level=NULL
   col=NULL
   row=NULL
-  nrOfRows=x@.data$levelSize[x@.data$level=="measurement"]
-  nrOfCol=length(x@.data$colNames)
+  
+  # check for level in input
+  if(!length(args)==0){
+    if(length(args)==1 & !is.null(args$level)){
+      level=args$level
+    } else {
+      stop("invalid args given, only accepts i,j,level")
+    } 
+  }
+
   #
   # data.frame has some special behaviour
+  nrOfCol=length(x@.data$colNames) 
   if(missing(i) & missing(j)){
     # df[] and df[,]
 #     print("df[] or df[,]")
@@ -265,9 +367,9 @@ setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, .
 #     print("df[,1]")
     row=NULL
     col=j
-  } else if(missing(j) & nargs()==2) {
-    # df[1]
-#     print("df[1]")
+  } else if( (missing(j) & nargs()==2) | (missing(j) & nargs()==3 & !is.null(level)) ){
+    # df[1], df[1,level=...]
+#     print("df[1] or df[1,level=...]")
     # data.frame special case
     # should return column instead of row!
     row=NULL
@@ -284,72 +386,174 @@ setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, .
     col=j
   }
   
-  # validate input
-  if(!is.null(row)){
-    if(!(class(row)=="numeric"|class(row)=="integer")){
-      stop(paste("row index should be a number, not a: ",class(row)))
-    } 
-    if(nrOfRows<row){
-      stop(paste("Data only has ",nrOfRows," rows, you asked for row(s):",row))
-    }
+
+  # check col
+  if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character")){
+    stop(paste("col index should be a number or char, not a: ",class(col)))
   }
-  if(!is.null(col)){
-    if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character")){
-      stop(paste("col index should be a number or char, not a: ",class(col)))
-    }
-    if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
-      stop(paste("columns given that do not exist:", paste(wcol, collapse=", ")))
-    }
+  if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
+    stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
+  }
+  if((class(col)=="numeric" | class(col)=="integer") & !all(is.element(col,1:nrOfCol))  ) {
+    stop(paste("column number(s) given that does not exist!\n number(s) given:",paste(col,collapse=", "),"\n max col number in data:",nrOfCol, sep=""))
   }
   # todo add col number check..
-  
-  
+
   # make sure you don't fetch dubplicates
   col=unique(col)
-  row=unique(row)
   # also change to names if numbers
   if(class(col)!="character"){ 
     col=x@.data$colNames[col]
   }
-  
-#   print(proc.time())
-  #
-  # fetch the requested data
-  returnValue=data.frame(matrix(nrow=if(!is.null(row)){length(row)}else{nrOfRows},ncol=length(col)))
-  colnames(returnValue)=col
-  for(colnr in 1:length(col)){ # for each column
-    
-    level=x@.data$colLevel[x@.data$colNames==col[colnr]]    
-#     print(level)
-#     print(col[colnr])
-    tempData=NULL
-    if (level=="well"){
-      # data at top level
-      #
-      # data has to be repeated for each measurement
-      for (i in 1:length(x@.data$data$measurement)){ # for each measurement
-        tempData=append(tempData,rep(x@.data$data[[col[colnr]]][[i]],length(x@.data$data$measurement[[i]][[1]])))
-      }
-    } else if(level=="measurement"){
-      # get whole column
-      for(i in 1:length(x@.data$data$measurement)){
-        tempData=append(tempData, x@.data$data$measurement[[i]][[col[colnr]]])
-      }
-    } else {
-      stop("data at unknown level... this error means a coding error as it should have been cought above!")
-    }
+  # check lowest level
+  requestedColLevels=x@.data$colLevel[is.element(x@.data$colNames,col)]
+  lowestLevel=min(x@.data$levelNr[is.element(x@.data$level,requestedColLevels)])
 
-    if(is.null(row)){
-      # whole column
-      returnValue[,colnr]=tempData
+  if (!is.null(level)){
+    
+    highestLevel=max(x@.data$levelNr[is.element(x@.data$level,requestedColLevels)])
+    
+    if(class(level)=="character"){
+      # check if its a valid level name
+      if(any(is.element(x@.data$level,level)))
+        lowestLevel=x@.data$levelNr[x@.data$level==level]
+      else{
+        stop(paste("level given not in: ",paste(x@.data$level,collapse=" ")," given level: ",level,sep=""))
+      }
+    } else if(class(level)=="numeric"| class(level)=="integer"){
+      # check if its a valid level
+      if(any(is.element(x@.data$levelNr,level)))
+        lowestLevel=level
+      else{
+        stop(paste("level given not in: ",paste(x@.data$levelNr,collapse=" ")," given level: ",level,sep=""))
+      }
     } else {
-      # specific rows
-      returnValue[,colnr]=tempData[row]
+      stop(paste("level is of invalid class expected level name: ",paste(x@.data$level, collapse=" "),"\n or level number: ",paste(x@.data$levelNr,collapse=" "),"\n but got data of class: ",class(level),sep=""))
+    }    
+    
+    if(missing(i)){
+      # df[level=...]
+      # return all data at that level anyways
+      lowestLevel=level
+      # make sure to only return the columns that are higher then then lowest level
+      col=x@.data$colNames[x@.data$colLevelNr>=lowestLevel]
+      print(col)
+      print("HERE!!!")
+    }else if (highestLevel<level){
+      stop(paste("data requested at a level higher then the colums allow"))
+    } else if (T){
+      
     }
   }
-#   print(proc.time())
+
+
+  # check row
+  nrOfRows=x@.data$levelSize[x@.data$levelNr==lowestLevel]
+  if(!is.null(row)){
+    if(!(class(row)=="numeric"|class(row)=="integer")){
+      stop(paste("row index should be a number, not a: ",class(row)))
+    }
+    
+    if(nrOfRows<row){
+      stop(paste("Data only has ",nrOfRows," rows, you asked for row(s):",row))
+    }
+  }
+  row=unique(row)
+  
+  print(paste("returning data at min column level:",x@.data$level[x@.data$levelNr==lowestLevel]))
+    
+  if(lowestLevel==3){ # plate
+    if(is.null(row)){
+      # whole column
+      # TODO return as true data frame...
+      return(x@.data$plate[,col])
+    } else {
+      # specific rows
+      return(x@.data$plate[row,col])
+    }
+    
+  }else if (lowestLevel==2){ # well
+    # repeat plate for each well
+    #
+    # reserve space
+    returnValue=data.frame(matrix(nrow=if(!is.null(row)){length(row)}else{x@.data$levelSize[x@.data$levelNr==lowestLevel]},ncol=length(col)))
+    colnames(returnValue)=col
+    for(colnr in 1:length(col)){ # for each column
+      tempData=NULL
+      if(requestedColLevels[colnr]=="plate"){
+        # repeat for each well
+        for(i in 1:length(x@.data$plate[[1]])){
+          tempData=append(tempData,rep(x@.data$plate[col[colnr]],count(x@.data$data$plate,i)[[2]]))
+        }
+#         tempData=lapply(x@.data$data, function(x)returnValue=append(returnValue,x[[name]]))
+        tempData=c(tempData,recursive=T)        
+      }else if(requestedColLevels[colnr]=="well"){
+        tempData=x@.data$data[[col[colnr]]]
+      }else{
+        stop("WEIRD ERROR !@#!")
+      }
+      
+      if(is.null(row)){
+        # whole column
+        returnValue[,colnr]=tempData
+      } else {
+        # specific rows
+        returnValue[,colnr]=tempData[row]
+      }
+      
+    }
+    return(returnValue)
+    
+  }else if(lowestLevel==1){ # measurement
+
+  #   print(proc.time())
+    #
+    # fetch the requested data
+    returnValue=data.frame(matrix(nrow=if(!is.null(row)){length(row)}else{nrOfRows},ncol=length(col)))
+    colnames(returnValue)=col
+    for(colnr in 1:length(col)){ # for each column
+      # always first fill tempdata with the whole column (at measurement level)
+      # then do the row select
+      level=x@.data$colLevel[x@.data$colNames==col[colnr]]
+      tempData=NULL
+      if (level=="well"){
+        # data at top level
+        #
+        # data has to be repeated for each measurement
+        for (i in 1:length(x@.data$data$measurement)){ # for each measurement
+          tempData=append(tempData,rep(x@.data$data[[col[colnr]]][[i]],length(x@.data$data$measurement[[i]][[1]])))
+        }
+      } else if(level=="measurement"){
+        # get whole column
+        for(i in 1:length(x@.data$data$measurement)){
+          tempData=append(tempData, x@.data$data$measurement[[i]][[col[colnr]]])
+        }
+      } else if(level=="plate"){
+        # repeat for each well*each measurement
+        for(i in 1:length(x@.data$data[[1]])){ # for each well
+          # get the corresponding plate values
+          data=x@.data$plate[x@.data$data$plate[[i]],col[colnr]]
+          tempData=append(tempData,rep(data,length(x@.data$data$measurement[[i]][[1]]))) # for each measurement
+        }
+        #         tempData=lapply(x@.data$data, function(x)returnValue=append(returnValue,x[[name]]))
+        tempData=c(tempData,recursive=T)
+      } else {
+        stop("data at unknown level... this error means a coding error as it should have been cought above!")
+      }
+  
+      if(is.null(row)){
+        # whole column
+        returnValue[,colnr]=tempData
+      } else {
+        # specific rows
+        returnValue[,colnr]=tempData[row]
+      }
+    }
   return(returnValue)
-})  
+  }
+
+})
+
 
 #' [[]]
 #' overwrite the [[]] function..
@@ -382,6 +586,7 @@ setMethod("[[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, 
   }
   stop("I should never get here. CRASH!")
 })
+
 
 #' [<-
 #' overwrite the []<- function..
@@ -431,8 +636,12 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
   
   
 
-  
   # validate row and col...
+  
+  
+  if (any(is.element(col,x@.data$reservedNames))){
+    stop(paste("The following names are reserved for other purposes!: ",paste(x@.data$reservedNames,sep=", "), sep=""))
+  }
   
   
   # analyse new input
@@ -520,234 +729,6 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
  
   return(x) 
 })
-#   
-#   
-#   
-#   ###########old
-#   level=x@.data$colLevel[x@.data$colNames==name]
-#   if (is.null(level)){
-#     # remove this once i implemented $= properly
-#     print("ok this shouldn't happen... but it did!") # change in a warning later...
-#     return(x@.data$data[[name]])
-#   }
-#   
-#   
-#   if (level=="well"){
-#     # data at top level
-#     # assume well data for now
-#     #     return(x@.data$data[[name]])
-#     #
-#     # data has to be repeated for each measurement
-#     returnValue=NULL
-#     #     index=1
-#     #     for (i in 1:length(x@.data$data$measurement)){ # for each measurement
-#     #       # check the ammount of measurements
-#     #       numberOfMeasurement=length(x@.data$data$measurement[[i]][[1]])
-#     #       returnValue[index:(index+numberOfMeasurement-1)]=x@.data$data[[name]][[i]]
-#     #       index=index+numberOfMeasurement
-#     #     }
-#     for (i in 1:length(x@.data$data$measurement)){ # for each measurement
-#       returnValue=append(returnValue,rep(x@.data$data[[name]][[i]],length(x@.data$data$measurement[[i]][[1]])))
-#     }    
-#     return(returnValue)
-#   } else if(level=="measurement"){
-#     # data is hidden in lists in the column measurement
-#     returnValue=NULL
-#     for(i in 1:length(x@.data$data$measurement)){
-#       returnValue=append(returnValue,x@.data$data$measurement[[i]][[name]])
-#     }        
-#     return(returnValue)
-#   } else {
-#     warning("data at unknown level")
-#   }
-#   
-#  
-#   
-
-
-
-
-# 
-# `[.data.frame` <-
-#   function(x, i, j, drop = if(missing(i)) TRUE else length(cols) == 1)
-#   {
-#     mdrop <- missing(drop)
-#     Narg <- nargs() - !mdrop  # number of arg from x,i,j that were specified
-#     has.j <- !missing(j)
-#     if(!all(names(sys.call()) %in% c("", "drop"))
-#        && !isS4(x)) # at least don't warn for callNextMethod!
-#       warning("named arguments other than 'drop' are discouraged")
-#     
-#     if(Narg < 3L) {  # list-like indexing or matrix indexing
-#       if(!mdrop) warning("'drop' argument will be ignored")
-#       if(missing(i)) return(x)
-#       if(is.matrix(i))
-#         return(as.matrix(x)[i])  # desperate measures
-#       ## zero-column data frames prior to 2.4.0 had no names.
-#       nm <- names(x); if(is.null(nm)) nm <- character()
-#       ## if we have NA names, character indexing should always fail
-#       ## (for positive index length)
-#       if(!is.character(i) && anyNA(nm)) { # less efficient version
-#         names(nm) <- names(x) <- seq_along(x)
-#         y <- NextMethod("[")
-#         cols <- names(y)
-#         if(anyNA(cols)) stop("undefined columns selected")
-#         cols <- names(y) <- nm[cols]
-#       } else {
-#         y <- NextMethod("[")
-#         cols <- names(y)
-#         if(!is.null(cols) && anyNA(cols))
-#           stop("undefined columns selected")
-#       }
-#       ## added in 1.8.0
-#       if(anyDuplicated(cols)) names(y) <- make.unique(cols)
-#       ## since we have not touched the rows, copy over the raw row.names
-#       ## Claimed at one time at least one fewer copies: PR#15274
-#       attr(y, "row.names") <- .row_names_info(x, 0L)
-#       attr(y, "class") <- oldClass(x)
-#       return(y)
-#     }
-#     
-#     if(missing(i)) { # df[, j] or df[ , ]
-#       ## not quite the same as the 1/2-arg case, as 'drop' is used.
-#       if(drop && !has.j && length(x) == 1L) return(.subset2(x, 1L))
-#       nm <- names(x); if(is.null(nm)) nm <- character()
-#       if(has.j && !is.character(j) && anyNA(nm)) {
-#         ## less efficient version
-#         names(nm) <- names(x) <- seq_along(x)
-#         y <- .subset(x, j)
-#         cols <- names(y)
-#         if(anyNA(cols)) stop("undefined columns selected")
-#         cols <- names(y) <- nm[cols]
-#       } else {
-#         y <- if(has.j) .subset(x, j) else x
-#         cols <- names(y)
-#         if(anyNA(cols)) stop("undefined columns selected")
-#       }
-#       if(drop && length(y) == 1L) return(.subset2(y, 1L))
-#       if(anyDuplicated(cols)) names(y) <- make.unique(cols)
-#       nrow <- .row_names_info(x, 2L)
-#       if(drop && !mdrop && nrow == 1L)
-#         return(structure(y, class = NULL, row.names = NULL))
-#       else {
-#         ## Claimed at one time at least one fewer copies: PR#15274
-#         attr(y, "class") <- oldClass(x)
-#         attr(y, "row.names") <- .row_names_info(x, 0L)
-#         return(y)
-#       }
-#     }
-#     
-#     ### df[i, j] or df[i , ]
-#     ## rewritten for R 2.5.0 to avoid duplicating x.
-#     xx <- x
-#     cols <- names(xx)  # needed for computation of 'drop' arg
-#     ## make a shallow copy
-#     x <- vector("list", length(x))
-#     ## attributes(x) <- attributes(xx) expands row names
-#     x <- .Internal(copyDFattr(xx, x))
-#     oldClass(x) <- attr(x, "row.names") <- NULL
-#     
-#     if(has.j) { # df[i, j]
-#       nm <- names(x); if(is.null(nm)) nm <- character()
-#       if(!is.character(j) && anyNA(nm))
-#         names(nm) <- names(x) <- seq_along(x)
-#       x <- x[j]
-#       cols <- names(x)  # needed for 'drop'
-#       if(drop && length(x) == 1L) {
-#         ## for consistency with [, <length-1>]
-#         if(is.character(i)) {
-#           rows <- attr(xx, "row.names")
-#           i <- pmatch(i, rows, duplicates.ok = TRUE)
-#         }
-#         ## need to figure which col was selected:
-#         ## cannot use .subset2 directly as that may
-#         ## use recursive selection for a logical index.
-#         xj <- .subset2(.subset(xx, j), 1L)
-#         return(if(length(dim(xj)) != 2L) xj[i] else xj[i, , drop = FALSE])
-#       }
-#       if(anyNA(cols)) stop("undefined columns selected")
-#       ## fix up names if we altered them.
-#       if(!is.null(names(nm))) cols <- names(x) <- nm[cols]
-#       ## sxx <- match(cols, names(xx)) fails with duplicate names
-#       nxx <- structure(seq_along(xx), names=names(xx))
-#       sxx <- match(nxx[j], seq_along(xx))
-#     } else sxx <- seq_along(x)
-#     
-#     rows <- NULL # placeholder: only create row names when needed
-#     # as this can be expensive.
-#     if(is.character(i)) {
-#       rows <- attr(xx, "row.names")
-#       i <- pmatch(i, rows, duplicates.ok = TRUE)
-#     }
-#     for(j in seq_along(x)) {
-#       xj <- xx[[ sxx[j] ]]
-#       ## had drop = drop prior to 1.8.0
-#       x[[j]] <- if(length(dim(xj)) != 2L) xj[i] else xj[i, , drop = FALSE]
-#     }
-#     
-#     if(drop) {
-#       n <- length(x)
-#       if(n == 1L) return(x[[1L]]) # drops attributes
-#       if(n > 1L) {
-#         xj <- x[[1L]]
-#         nrow <- if(length(dim(xj)) == 2L) dim(xj)[1L] else length(xj)
-#         ## for consistency with S: don't drop (to a list)
-#         ## if only one row, unless explicitly asked for
-#         drop <- !mdrop && nrow == 1L
-#       } else drop <- FALSE ## for n == 0
-#     }
-#     
-#     if(!drop) { # not else as previous section might reset drop
-#       ## row names might have NAs.
-#       if(is.null(rows)) rows <- attr(xx, "row.names")
-#       rows <- rows[i]
-#       if((ina <- anyNA(rows)) | (dup <- anyDuplicated(rows))) {
-#         ## both will coerce integer 'rows' to character:
-#         if (!dup && is.character(rows)) dup <- "NA" %in% rows
-#         if(ina)
-#           rows[is.na(rows)] <- "NA"
-#         if(dup)
-#           rows <- make.unique(as.character(rows))
-#       }
-#       ## new in 1.8.0  -- might have duplicate columns
-#       if(has.j && anyDuplicated(nm <- names(x)))
-#         names(x) <- make.unique(nm)
-#       if(is.null(rows)) rows <- attr(xx, "row.names")[i]
-#       attr(x, "row.names") <- rows
-#       oldClass(x) <- oldClass(xx)
-#     }
-#     x
-#   }
-
-# 
-# `[[.data.frame` <- function(x, ..., exact=TRUE)
-# {
-#   ## use in-line functions to refer to the 1st and 2nd ... arguments
-#   ## explicitly. Also will check for wrong number or empty args
-#   na <- nargs() - !missing(exact)
-#   if(!all(names(sys.call()) %in% c("", "exact")))
-#     warning("named arguments other than 'exact' are discouraged")
-#   
-#   if(na < 3L)
-#     (function(x, i, exact)
-#       if(is.matrix(i)) as.matrix(x)[[i]]
-#      else .subset2(x, i, exact=exact))(x, ..., exact=exact)
-#   else {
-#     col <- .subset2(x, ..2, exact=exact)
-#     i <- if(is.character(..1))
-#       pmatch(..1, row.names(x), duplicates.ok = TRUE)
-#     else ..1
-#     ## we do want to dispatch on methods for a column.
-#     ## .subset2(col, i, exact=exact)
-#     col[[i, exact = exact]]
-#   }
-# }
-# 
-# 
-# 
-
-
-
 
 
 #' $
@@ -770,12 +751,18 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
 # only x may be defined, so "name" may not be in the signature...
 # but may still be in function.... right... like a unique key thingy...
 #'
+#' this function automatically determines the data level based on row number...
+#' as a consequence data is not automatically repeated if its not of the right length for new colums
+#'
 #'
 #' @export
 setMethod("$", signature(x = "Data"), function(x, name) {
   # 
-  # x@.data$colLevel[x@.data$colNames==name]
-  
+  # check if the col name is valid
+  if(!any(x@.data$colNames==name)){
+    warning(paste("not a valid colname given, valid colnames are: ",paste(x@.data$colNames,collapse=", ")))
+    return(NULL)
+  }
   level=x@.data$colLevel[x@.data$colNames==name]
   if (is.null(level)){
     # remove this once i implemented $= properly
@@ -785,30 +772,20 @@ setMethod("$", signature(x = "Data"), function(x, name) {
   
   
   if (level=="well"){
-    # data at top level
-    # assume well data for now
-#     return(x@.data$data[[name]])
-    #
-    # data has to be repeated for each measurement
-    returnValue=NULL
-#     index=1
-#     for (i in 1:length(x@.data$data$measurement)){ # for each measurement
-#       # check the ammount of measurements
-#       numberOfMeasurement=length(x@.data$data$measurement[[i]][[1]])
-#       returnValue[index:(index+numberOfMeasurement-1)]=x@.data$data[[name]][[i]]
-#       index=index+numberOfMeasurement
-#     }
-    for (i in 1:length(x@.data$data$measurement)){ # for each measurement
-      returnValue=append(returnValue,rep(x@.data$data[[name]][[i]],length(x@.data$data$measurement[[i]][[1]])))
-    }    
-    return(returnValue)
+    return(x@.data$data[[name]])
   } else if(level=="measurement"){
     # data is hidden in lists in the column measurement
     returnValue=NULL
-    for(i in 1:length(x@.data$data$measurement)){
-      returnValue=append(returnValue,x@.data$data$measurement[[i]][[name]])
-    }        
+    returnValue=lapply(x@.data$data$measurement, function(x)returnValue=append(returnValue,x[[name]]))
+    returnValue=c(returnValue,recursive=T)
+     
+#     returnValue=NULL
+#     for(i in 1:length(x@.data$data$measurement)){
+#       returnValue=append(returnValue,x@.data$data$measurement[[i]][[name]])
+#     }  
     return(returnValue)
+  } else if(level=="plate") {
+    return(x@.data$plate[[name]])
   } else {
     warning("data at unknown level")
   }
@@ -818,15 +795,44 @@ setMethod("$", signature(x = "Data"), function(x, name) {
 
 #' $<-
 #' overwrite the $<- function
+#' 
+#' if given a new column name, the data will use row number to determine the level
+#' 
+#' 
 #' @export
 setMethod("$<-", signature(x = "Data"), function(x, name, value) {
-  # TODO test if its valid data???
-  
-  # test if its new
-  if(is.null(x@.data$data[[name]]) || is.na(x@.data$data[[name]])){
-    x@.data$colNames=append(x@.data$colNames,name)
+  # check if its a valid colname
+  if (any(x@.data$reservedNames==name)){
+    stop(paste("The following names are reserved for other purposes!: ",paste(x@.data$reservedNames,sep=", "), sep=""))
   }
-  x@.data$data[name]=value
+    
+  if(!any(x@.data$levelSize==length(value))){
+    stop(paste("given rows do not match any of the levels!"))
+  }
+  level=x@.data$level[x@.data$levelSize==length(value)]
+  
+  if (level=="plate") {
+    x@.data$plate[name]=value
+  } else if (level=="well") {
+    x@.data$data[[name]]=value
+  } else if (level=="measurement") {
+    index=1
+    for(i in 1:length(x@.data$data$measurement)){#for each well
+      len=length(x@.data$data$measurement[[i]][[name]])
+      print(len)
+      x@.data$data$measurement[[i]][[name]]=value[index:(index+len-1)]
+      index=index+len
+    }
+  } else {
+    stop("unknown level!!!")
+  }
+  
+  # check if was an existing colname
+  if(!any(x@.data$colNames==name)){
+    updateColnames(x)
+    print(paste("new column:",name," added at level:",level,sep=""))
+  }
+
   return(x)
 })
 
@@ -846,6 +852,24 @@ setMethod("colnames<-", signature(x = "Data"), function(x, value) {
   
   #   return(x@.data$colnames)
   return(x) # for some reason i have to do this, else the instance of the class transforms into the value passed...
+})
+
+#' overwrite show()
+#' 
+#' slot needs to be named "object"
+#'
+#' still gives error:
+#' > testData
+#' Object of class "Data"
+#' Error in S3Part(object, strictS3 = TRUE) : 
+#'  S3Part() is only defined for classes set up by setOldCLass(), basic classes or subclasses of these:  not true of class “Data”
+#' 
+#' 
+#' @export
+setMethod("show", signature(object = "Data"), function(object) {
+  print("steal the show!!!")
+  print(object@.data$data)
+  return(object)
 })
 
 
