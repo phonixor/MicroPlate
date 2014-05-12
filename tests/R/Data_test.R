@@ -7,6 +7,7 @@ library(testthat)
 #
 #
 test_that("Data.R_ basic tests",{
+  # TODO CHANGE!!!!
   # add data test
   test=new("Data")
   test$test=1234567
@@ -53,7 +54,7 @@ test_that("Data.R_ novastar",{
   expect_equal(600,length(testData$value))
   expect_equal(12,length(testData$content))
   
-
+  
 
   testData@.data$colLevel
   testData@.data$colNames
@@ -62,7 +63,8 @@ test_that("Data.R_ novastar",{
   testData@.data$levelNr
   testData@.data$levelSize
   
-  
+  plotPerWell(testData)
+  plotPerPlate(testData)
   
   testData[] # everything
   testData[1] # first col

@@ -1,3 +1,74 @@
+# WTF AM I DOING WRONG??!?!?!
+
+currentName="a"
+data=NULL
+data[[currentName]]=append(data[[currentName]],"sss")
+data[[currentName]]=append(data[[currentName]],"sss")
+
+
+currentName="a"
+data=NULL
+data[currentName]=append(data[currentName],"sss")
+data[currentName]=append(data[currentName],"sss")
+data
+
+currentName="a"
+data=NULL
+data[[currentName]]=append(data[currentName],"sss")
+data[[currentName]]=append(data[currentName],"sss")
+data
+
+
+currentName="a"
+data=NULL
+data[currentName]=append(data[[currentName]],"sss")
+data[currentName]=append(data[[currentName]],"sss")
+data
+
+currentName="a"
+data=list()
+data[currentName]=append(data[currentName],"sss")
+data[currentName]=append(data[currentName],"sss")
+data
+
+
+currentName="a"
+data=list()
+data[[currentName]]=append(data[[currentName]],"sss")
+data[[currentName]]=append(data[[currentName]],"sss")
+data
+
+
+
+data=NULL
+data[["test"]]=append(data[["test"]],c(1,2,3))
+data
+
+data2=list(c("axxbc","xxdef","xxghi"))
+
+data=NULL
+data[["test"]]=append(data[["test"]],c("abc","def","ghi"))
+data[["test"]]=append(data[["test"]],data2[[1]])
+data
+
+
+
+##########################
+
+workspace = getwd()
+testdir=file.path(workspace, "tests/testdata/enzymeAssays")
+file=file.path(testdir, "GJS_layout3263.tab")
+layoutData=readLayoutFile(file=file)
+file2=file.path(testdir, "3263.dbf")
+newData=novostar.dbf(path=file2)
+
+
+
+
+
+
+
+
 ###########################
 # ...
 boo=function(...)print(paste(...))

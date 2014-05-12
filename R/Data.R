@@ -13,8 +13,8 @@ library(plyr)
 # nrow, colnames, head, names etc
 # copy <----!!!!!
 # stringsAsFactors,  check.names... if i want to inherent data.frame -- make.names...
+# also factors may safe memory!!!
 # http://stackoverflow.com/questions/8691812/get-object-methods-r
-#
 # may also need the assignment variables like "$<-"... but i don't know if i want to give users that much access.
 # 
 # ok... maybe make the data lockable???
@@ -89,7 +89,7 @@ setMethod("initialize", "Data", function(.Object){
   # per column
   .Object@.data$colNames=NULL # stores the colnames!
   .Object@.data$colLevel=NULL # contains the name of the level
-  .Object@.data$colLevelNr=NULL
+  .Object@.data$colLevelNr=NULL # contains the level number
   # per level
   .Object@.data$level=NULL # contains the name of the level which corresponds to a column name of the level above
   .Object@.data$levelNr=NULL # contains the level 1 = measurement, 2 = well etc...
@@ -143,6 +143,7 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL, plate
   # fill those with NA for existing data
   if(is.null(self@.data$data)){ # is there already any data?
     # no! use data as new data!
+    print("new Data")
     
     self@.data$data=newData
     self@.data$data$plate=rep(1,length(newData[[1]])) # create foreign keys
@@ -156,13 +157,17 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL, plate
     }
   }else{
     # yes! add data to excisting data!
-    print("adding extra data not implemented yet!")
+    print("adding to Data")
     if( is.null(plateName) ){
       # generate platename
-      
+      # why does this one take my own smartbind.... i dont give it a Data, i give it a data.frame....
+      self@.data$plate=smartbind(self@.data$plate, data.frame(plateName=(self@.data$levelSize[self@.data$level=="plate"]+1)))
     } else {
-      # 
+      # use plateName....
+      # todo check if plateName is unique..
+      self@.data$plate=smartbind(data.frame(plateName=plateName))
     }
+    bindParsedData(self,newData)
   }
   #
   # update colnames
@@ -183,6 +188,85 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL, plate
 #   }
   return(self)
 })
+
+#' addData2
+#' 
+#' same as addData but now with experimental file
+#' 
+#' @export
+#' 
+setGeneric("addData2", function(self,newData=NULL, plateName=NULL, ...) standardGeneric("addData2")) 
+setMethod("addData2", signature(self = "Data"), function(self,newData=NULL, layoutData=NULL, plateName=NULL, ...){
+  # check newData names and compare them with the names currently in use
+  # add new columns to existing data
+  # fill those with NA for existing data
+  if(is.null(self@.data$data)){ # is there already any data?
+    # no! use data as new data!
+    print("new Data")
+    
+    self@.data$data=newData
+    self@.data$data$plate=rep(1,length(newData[[1]])) # create foreign keys
+    
+    if( is.null(plateName) ){
+      # generate platename  --> plate number=row number
+      self@.data$plate=data.frame(plateName=1)
+    } else {
+      # use plateName.... however plate still has
+      self@.data$plate=data.frame(plateName=plateName)
+    }
+  }else{
+    # yes! add data to excisting data!
+    print("adding to Data")
+    if( is.null(plateName) ){
+      # generate platename
+      # why does this one take my own smartbind.... i dont give it a Data, i give it a data.frame....
+      self@.data$plate=smartbind(self@.data$plate, data.frame(plateName=(self@.data$levelSize[self@.data$level=="plate"]+1)))
+    } else {
+      # use plateName....
+      # todo check if plateName is unique..
+      self@.data$plate=smartbind(data.frame(plateName=plateName))
+    }
+    bindParsedData(self,newData)
+  }
+  # update colnames
+  updateColnames(self)
+  
+  # 
+  if(is.null(layoutData)){
+    # check length
+    if(length(newData)==dim(layoutData)[1]){
+      # files are equal in length, nice!
+    }else if(length(newData)==length(which(layoutData$basic!="empty"))[1]){
+      # files are not equal in length, but they are if you remove the empty stuff
+      print("removing empty elements")
+      layoutData=layoutData[which(layoutData$basic!="empty"),]
+    } else {
+      stop("layout data does not match the reader data")
+    }
+    #
+    for(i in 1:dim(layoutData)[1]){
+      # check if the data is for the same wells
+      index=which(newData$column==layoutData$column[i] & newData$row==layoutData$row[i])
+      if(length(index)==1){
+        # add the data to the correct row...
+        
+      } else {
+        stop("row and columns of layout file and microplate data did not match")
+      }
+    }
+    #
+    # update colnames
+    updateColnames(self)
+  }
+  
+
+  
+
+  return(self)
+})
+
+
+
 
 #' updateColnames
 #' 
@@ -266,7 +350,7 @@ setMethod("updateColnamesOld", signature(self = "Data"), function(self, path=NUL
 #' to keep the Data from working properly
 #'
 #' @export
-setGeneric("updateColnames", function(self) standardGeneric("updateColnames")) 
+setGeneric("updateColnames", function(self) standardGeneric("updateColnames"))
 setMethod("updateColnames", signature(self = "Data"), function(self){
   # TODO maybe add custom levels???
   # 
@@ -297,7 +381,88 @@ setMethod("updateColnames", signature(self = "Data"), function(self){
   self@.data$colNames=append(self@.data$colNames,names(self@.data$data$measurement[[1]]))
   self@.data$colLevel=append(self@.data$colLevel,rep("measurement",length(self@.data$data$measurement[[1]])))
   self@.data$colLevelNr=append(self@.data$colLevelNr,rep(1,length(self@.data$data$measurement[[1]])))
-})  
+})
+
+
+#' bindParsedData
+#'
+#' similar as plyr's smart bind, only then for the thing that the parsers provide...
+#' typing this kinda makes me realize that this might not be very functional... mmmmh...
+#'
+#' needs a new name as i don't bind 2 Data objects...
+#'
+#' @export
+setGeneric("bindParsedData", function(self,newData=NULL) standardGeneric("bindParsedData"))
+setMethod("bindParsedData", signature(self = "Data"), function(self, newData=NULL){
+  # TODO what about other plate info?
+  # add a lot of checks!
+  # what if one deletes column and the new column only has NA as length? instead of the true vector length?
+  #
+  # TODO check what if columns at different level? move to smallest?
+  
+  nrOfNewWells=length(newData[[1]])
+  nrOfWells=self@.data$levelSize[self@.data$level=="well"]
+  plateNumber=length(self@.data$levelSize[self@.data$level=="plate"])+1 #this needs change
+  
+  colsWell=names(newData)
+  colsMeasurement=names(newData$measurement[[1]])
+  newColsWell=colsWell[!is.element(colsWell,self@.data$colNames[self@.data$colLevel=="well"])]
+  newColsMeasurement=colsMeasurement[!is.element(colsMeasurement,self@.data$colNames[self@.data$colLevel=="measurement"])]
+  missingColsWell=self@.data$colNames[!is.element(self@.data$colNames[self@.data$colLevel=="well"],colsWell)]
+  missingColsMeasurement=self@.data$colNames[!is.element(self@.data$colNames[self@.data$colLevel=="measurement"],colsMeasurement)]
+  existingColsWell=colsWell[is.element(colsWell,self@.data$colNames[self@.data$colLevel=="well"])]
+#   existingColsMeasurement=colsMeasurement[is.element(colsMeasurement,self@.data$colNames)] # this one is kinda useless
+  
+  # Well
+  self@.data$data$plate=append(self@.data$data$plate, rep(x=plateNumber,nrOfNewWells)) # generate foreign key
+  for(i in 1:length(newColsWell)){
+    # create new column
+    # fill the existing wells with NA and add the new data
+    
+    # note that: newColsWell contains measurement!
+    if(newColsWell[i]=="measurement"){
+      # combine the measurement columns in at the well level
+      self@.data$data$measurement=append(self@.data$data$measurement,newData$measurement)
+    } else {
+      self@.data$data[[newColsWell[i]]]=append(rep(x=NA,nrOfWells),newData[[newColsWell[i]]])
+    }
+  }
+  if(length(missingColsWell)>0){
+    for(i in 1:length(missingColsWell)){
+      # fill the existing columns for which the newData has no data with NA
+      self@.data$data[[missingColsWell[i]]]=append(self@.data$data[[missingColsWell[i]]],rep(x=NA,nrOfNewWells))
+    }
+  }
+  if(length(existingColsWell)>0){ # this should always be the case as row and column are mandatory...
+    for(i in 1:length(existingColsWell)){
+      # add newData to existing columns
+      self@.data$data[[existingColsWell[i]]]=append(self@.data$data[[existingColsWell[i]]],newData[[existingColsWell[i]]])
+    }
+  }
+  # adding NA to empty spaces
+  # update existing wells measurements with NA for new columns
+  if(length(newColsMeasurement)>0){
+    for(i in 1:nrOfWells){ # for each well
+      nrOfMeasurements=length(self@.data$data$measurement[[i]][[1]])
+      for(j in 1:length(newColsMeasurement)){
+        # give it a name, but give it no values... as that would just be a waste of memory
+        # TODO change $ and [ ... to deal with this!
+        self@.data$data$measurement[[i]][[newColsMeasurement[j]]]=NA
+      }
+    }
+  }
+  # add NA's to the newData
+  if(length(missingColsMeasurement)>0){
+    for(i in nrOfWells:(nrOfWells+nrOfNewWells)){
+      nrOfMeasurements=length(self@.data$data$measurement[[i]][[1]])
+      for(j in 1:length(missingColsMeasurement)){
+        self@.data$data$measurement[[i]][[missingColsMeasurement[j]]]=NA
+      }
+    }
+  }
+  updateColnames(self)
+  
+})
 
 
 #' as.data.frame()
@@ -881,6 +1046,66 @@ setMethod("print", signature(x = "Data"), function(x) {
   print(x@.data$data)
   return(x)
 })
+
+#' plotPerWell
+#' 
+#' TODO: add huge amounts of checks and stuff
+#' @export
+setGeneric("plotPerWell", function(self) standardGeneric("plotPerWell")) 
+setMethod("plotPerWell", signature(self = "Data"), function(self){
+  nrOfWells=self@.data$levelSize[self@.data$level=="well"]
+  
+  for(i in 1:nrOfWells){
+    data=self@.data$data$measurement[[i]]
+    plot(x=data$time,y=data$value,main=self@.data$data$content[[i]]) 
+  }
+})
+
+#' plotPerPlate
+#' 
+#' TODO: add huge amounts of checks and stuff
+#' @export
+setGeneric("plotPerPlate", function(self) standardGeneric("plotPerPlate")) 
+setMethod("plotPerPlate", signature(self = "Data"), function(self){
+  origenalPar=par() # backup plotting pars
+  nrOfPlates=self@.data$levelSize[self@.data$level=="plate"]
+  nrOfWells=self@.data$levelSize[self@.data$level=="well"]
+  for(i in 1:nrOfPlates){
+    wells=(1:nrOfWells)[self@.data$data$plate==i]
+#     print(wells)
+    #get amount of row/columns
+    nrRows=max(self@.data$data$row[wells])
+    nrColumns=max(self@.data$data$column[wells])
+    
+    # create a NA grid
+#     par(mfcol=c(nrRows,nrColumns))
+    layoutMatrix=matrix(data=0,nrow=nrRows,ncol=nrColumns)
+    for(i in 1:length(wells)){
+      layoutMatrix[self@.data$data$row[wells[i]],self@.data$data$column[wells[i]]]=i
+    }
+    print(layoutMatrix)
+    print(nrRows)
+    print(nrColumns)
+    layout(mat=layoutMatrix,nrRows,nrColumns)
+  
+    layout.show(length(wells)) # this takes a while
+    
+    par(oma=c(1,1,0,0), mar=c(1,1,1,0), tcl=-0.1, mgp=c(0,0,0))#test
+    for(i in wells){
+      data=self@.data$data$measurement[[i]]
+      plot(x=data$time,y=data$value,main=self@.data$data$content[[i]]) 
+    }
+    
+    par(origenalPar) # restore pars...
+  }
+})
+
+
+
+
+
+
+
 
 
 # setMethod("+",

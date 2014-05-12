@@ -173,7 +173,7 @@ library(foreign)
 #' 
 #' @export
 extractPlateCoordinates=function(wellName){
-  # exmple B11
+  # example B11
   column=regmatches(wellName,regexpr("[[:digit:]]+", wellName)) # extract 11
   column=as.numeric(column)
   row=regmatches(wellName,regexpr("[[:alpha:]]+", wellName)) # ectraxt B
