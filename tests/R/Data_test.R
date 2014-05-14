@@ -41,6 +41,9 @@ test_that("Data.R_ novastar",{
   testData=addData(testData,newData=test)
   # begin the tests
   
+  testData["content"]=1:12
+  
+  
   # test meta data
   expect_equal(testData@.data$colLevel,c("plate","well","well","well","measurement","measurement","measurement"))
   expect_equal(testData@.data$colNames,c("plateName", "row", "column", "content", "value", "time", "temp"))
@@ -72,6 +75,9 @@ test_that("Data.R_ novastar",{
   testData[,1] # first col
   testData[1,2] # first row 2nd col
   testData[,] # everything
+  
+  testData["content"]=1:12
+  
   
   expect_error(testData["a",1]) # not a row number
   expect_error(testData[1000000000,1]) # to many rows

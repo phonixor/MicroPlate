@@ -50,7 +50,7 @@ library(plyr)
 #   <environment: 0x537d728>
 #
 #
-#
+# TODO change data$levelNr from 3,2,1 to 1,2,3... this would allow me to remove code...
 
 
 #
@@ -447,6 +447,7 @@ setMethod("bindParsedData", signature(self = "Data"), function(self, newData=NUL
       for(j in 1:length(newColsMeasurement)){
         # give it a name, but give it no values... as that would just be a waste of memory
         # TODO change $ and [ ... to deal with this!
+        # TODO do i really want this???
         self@.data$data$measurement[[i]][[newColsMeasurement[j]]]=NA
       }
     }
@@ -532,7 +533,7 @@ setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, .
 #     print("df[,1]")
     row=NULL
     col=j
-  } else if( (missing(j) & nargs()==2) | (missing(j) & nargs()==3 & !is.null(level)) ){
+  } else if( ( missing(j) & nargs()==2 ) | ( missing(j) & nargs()==3 & !is.null(level) ) ){
     # df[1], df[1,level=...]
 #     print("df[1] or df[1,level=...]")
     # data.frame special case
@@ -550,6 +551,8 @@ setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, .
     row=i
     col=j
   }
+  col=unique(col)
+  row=unique(row)
   
 
   # check col
@@ -564,8 +567,6 @@ setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, .
   }
   # todo add col number check..
 
-  # make sure you don't fetch dubplicates
-  col=unique(col)
   # also change to names if numbers
   if(class(col)!="character"){ 
     col=x@.data$colNames[col]
@@ -756,16 +757,74 @@ setMethod("[[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, 
 #' [<-
 #' overwrite the []<- function..
 #' 
+#' NOTES:
+#' only allows data of the same level to be added (so no adding well and measurement level data in one go)
+#' this means no new rows can be created!!!! for now...
+#' maybe an exception will be made if all variables of the row are given (need at least platenr/name)
 #' 
-#' todo add idea of adding data also on well level.. only if no rows are given? (so all rows)
+#' differences with data.frame:
+#' - data given has to be of the correct size!
+#'   this function will not repeat your data!
+#' - this function does allow you to create new rows!
+#' - multiple collumns are only allowed if given a matrix or data.frame as input
+#' - it is possible to add a new column even if you do not give a value for all rows
+#'   the remaining rows will be filled with NA
+#' - new columns have to be named within the brackets!!
+#'   all names in the value slot are ignored!   
+#' - this function does not allow you to change the level of a colname
+#'   if you want this done you would need to first delete that column using df[1]=NULL
+#'  - no negative indexing (matlab version is way better anyways)
+#'  
+#' todo df[1]=NULL
+#' todo also allow rows to be deleted?
+#' 
+#' todo: testData["content"]=1:12 -- content remains character instead of number/int
+#' 
+#' todo better row check... it is now pretty much assumed that user gives proper row numbers..
+#' which is a silly thing to assume... use unique / max / min / interger
 #' 
 #' 
 #' @export 
 setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), function(x, i, j, ..., value) {
+  args <- list(...)
   col=NULL
   row=NULL
   data=value
-  nrOfRows=x@.data$levelSize[x@.data$level=="measurement"]
+  dataLength=NULL
+  level=NULL
+  
+  # check for level in input
+  if(!length(args)==0){
+    if(length(args)==1 & !is.null(args$level)){
+      level=args$level   
+    } else {
+      stop("invalid args given, only accepts i,j,level")
+    } 
+  }
+  
+  # check if the level exist and convert to number levels if they were string levels
+  if(!is.null(level)){
+    if(class(level)=="character"){
+      # check if its a valid level name
+      if(any(is.element(x@.data$level,level)))
+         level=x@.data$levelNr[x@.data$level==level]
+      else{
+        stop(paste("level given not in: ",paste(x@.data$level,collapse=" ")," given level: ",level,sep=""))
+      }
+    } else if(class(level)=="numeric"| class(level)=="integer"){
+      # check if its a valid level
+      if(any(is.element(x@.data$levelNr,level))){
+         # level=level
+      } else {
+        stop(paste("level given not in: ",paste(x@.data$levelNr,collapse=" ")," given level: ",level,sep=""))
+      }
+    } else {
+      stop(paste("level is of invalid class expected level name: ",paste(x@.data$level, collapse=" "),"\n or level number: ",paste(x@.data$levelNr,collapse=" "),"\n but got data of class: ",class(level),sep=""))
+    }
+  }
+  
+  
+#   nrOfRows=x@.data$levelSize[x@.data$level=="measurement"]
   nrOfCol=length(x@.data$colNames)
   #
   # data.frame has some special behaviour
@@ -780,7 +839,8 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
     #     print("df[,1]")
     row=NULL
     col=j
-  } else if(missing(j) & nargs()==2) {
+  } else if( ( missing(j) & nargs()==3 ) | ( missing(j) & nargs()==4 & !is.null(level) ) ){
+#   } else if(missing(j) & nargs()==2) {
     # df[1]<-
     #     print("df[1]")
     # data.frame special case
@@ -798,15 +858,33 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
     row=i
     col=j
   }
+  row=unique(row)
+  col=unique(col)
   
+  # check col
+  if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character")){
+    stop(paste("col index should be a number or char, not a: ",class(col)))
+  }
+  if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
+    stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
+  }
+  if((class(col)=="numeric" | class(col)=="integer") & !all(is.element(col,1:nrOfCol))  ) {
+    stop(paste("column number(s) given that does not exist!\n number(s) given:",paste(col,collapse=", "),"\n max col number in data:",nrOfCol, sep=""))
+  }
   
-
-  # validate row and col...
-  
+  # also change to names if numbers
+  if(class(col)!="character"){
+    col=x@.data$colNames[col]
+  }
   
   if (any(is.element(col,x@.data$reservedNames))){
     stop(paste("The following names are reserved for other purposes!: ",paste(x@.data$reservedNames,sep=", "), sep=""))
   }
+  
+  print(col)
+
+  
+  # TODO check row
   
   
   # analyse new input
@@ -821,77 +899,278 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
   # adding data.frames (and matrices??) need the right amount of rows and cols
   # what about lists???
   # if you use df[] and you add something way bigger, 
-  # it will keep the df the same size, and throw a bunch of warnings
+  # it will keep the df the same size, and throw a bunch of warning
+  if(class(value)=="matrix"){
+    value=data.frame(value) # dont want to deal with this crap seperatly!
+  }
   if(class(value)=="data.frame"){
-    if( is.null(row) && (nrOfRows%%dim(value)[1]>0) ){
-      stop(paste("Data only has: ",nrOfRows," but new data has: ", dim(value)[1]," rows.", sep=""))
+#     if( is.null(row) && (nrOfRows%%dim(value)[1]>0) ){
+#       stop(paste("Data only has: ",nrOfRows," but new data has: ", dim(value)[1]," rows.", sep=""))
+#     }
+#     
+#     if((length(row)%%dim(value)[1])>0 ){
+#       stop(paste("incorrect nr of rows, asked for ",length(row),"rows, while the size of data is: ",dim(value)[1],"",,sep=""))
+#     }
+#     if((length(col)%%dim(value)[2])>0 ){
+#       stop(paste("incorrect nr of columns, asked for ",length(row),"cols, while the size of data is: ",dim(value)[1],"",,sep=""))
+#     }
+    
+    if(!is.null(row)){
+      if((length(row)!=dim(value)[1])){
+        stop(paste("incorrect nr of rows, asked for ",length(row),"rows, while the size of data is: ",dim(value)[1],"",,sep=""))
+      }
+    }
+    if((length(col)!=dim(value)[2])){
+      stop(paste("incorrect nr of columns, asked for ",length(col),"cols, while the size of data is: ",dim(value)[2],"",,sep=""))
+    }
+    dataLength=dim(value)[1]
+        
+#     # change data into a big as vector to handle it uniformly down below
+#     data=c(value, recursive=TRUE) # this converts everything into chars?
+  } else if (any(class(value) %in% c("character","numeric","integer"))) {
+    
+    if (length(col)!=1) {
+      stop("multiple columns given, while only a single dimensional data")
+    }
+    # todo []
+    if(!is.null(row)){
+      if (length(row)!=length(value)){
+        stop("invalid number of rows")
+      }
     }
     
-    if((length(row)%%dim(value)[1])>0 ){
-      stop(paste("incorrect nr of rows, asked for ",length(row),"rows, while the size of data is: ",dim(value)[1],"",,sep=""))
-    }
-    if((length(col)%%dim(value)[2])>0 ){
-      stop(paste("incorrect nr of columns, asked for ",length(row),"cols, while the size of data is: ",dim(value)[1],"",,sep=""))
-    }
+    # vector data
+    dataLength=length(value)
     
-    # change data into a big as vector to handle it uniformly down below
-    data=c(value, recursive=TRUE)
+    
+  } else if(is.null(class(value))) {
+    # delete columns!
+    
+  } else {
+    stop(paste("data type of class: ",class(value)," not supported", sep="",collapse=""))
   }
   
-  
-#   also change to names if numbers
-#   do this above!!! when checking... also add col>collen+1 stop col==collen+1 add
-#   if(class(col)!="character"){ 
-#     temp=x@.data$colNames[col]
-#     
-#   } #todo add 1 more...
-#   
-  
-  
-  currentDataIndex=1
-  for(colnr in 1:length(col)){ # for each column
-    # check if new
-    new=is.element(col[colnr],x@.data$colNames)
-    if (!new){
-      level=x@.data$colLevel[x@.data$colNames==col[colnr]]    
-    } else {
-      # new data column!!!
-      # TODO add smarter selection here!!!
-      level="measurement"
+  # determine level
+  # check if all columns are either new or of the same level...
+  colLevel=unique(x@.data$colLevelNr[x@.data$colNames %in% col])
+  print(colLevel)
+  if(length(colLevel)>1){
+    stop("the changing of different levels of data is not allowed! ")
+  } else if (length(colLevel)==1) { # specific columns selected
+    # df["wellColumn1"]=value # min
+    # df[1:5,c("wellColumn1","wellColumn2", "newColumn"),level="well"]=value # max
+    # also with rows and stuff
+    # or its variants with or without rows/plate level and row info like:
+    # df[c("wellColumn1","wellColumn2")]=value 
+    # df[c("wellColumn1","wellColumn2"),level="well"]
+    # df[c("wellColumn1","wellColumn2", "newColumn")]
+    # df[c("wellColumn1","wellColumn2", "newColumn"),level="well"]
+    #
+    # the only way to enter multiple column data is by using data.frames / matrices
+    #
+    # if the rows were not specified, the row dim could not have been checked before
+    if( dataLength>x@.data$levelSize[x@.data$levelNr==colLevel] ){
+      stop("the data does not have the correct amount of rows for the excisting column")
     }
-    
-#     print(level)
-#     print(col[colnr])
-    tempData=NULL
-    if (level=="well"){
-      # data at top level
+    #
+    # check if there are any newColumns
+    newColumns=col[!(col %in% x@.data$colNames)]
+    if(length(newColumns)>0){
+      # there are new columns selected!
+      # this means there are atleast 2 columns
+      # df[c("wellColumn1","newColumn")]=value # min
+      # df[1:5,c("wellColumn1","wellColumn2","newColumn"),level="well"]=value # max
+      
+      #TODO ADD LEVEL STUFF HERE!!
+      
+      
+    } else {
+      # there are no new columns selected!
+      # df["wellColumn1"]=value # min
+      # df[1:5,c("wellColumn1","wellColumn2"),level="well"]=value # max
       #
-      # check if data is similar for each measurement in a well...
-#       for (i in 1:length(x@.data$data$measurement)){ # for each measurement
-#         tempData=append(tempData,rep(x@.data$data[[col[colnr]]][[i]],length(x@.data$data$measurement[[i]][[1]])))
-#       }
-    } else if(level=="measurement"){
-      # set whole column
-      for(i in 1:length(x@.data$data$measurement)){
-        tempData=append(tempData, x@.data$data$measurement[[i]][[col[colnr]]])
+      # check if the level argument was given
+      if(!is.null(level)){
+        # level argument was given
+        # df["wellColumn1",level="well"]=value # min
+        #
+        # check if level argument=wellColumn
+        if(colLevel!=level) {
+          stop(paste("selected and argument level do not match, selected: ",colLevel," level argument: ", x@.data$level[x@.data$levelNr==level] ,collapse=" ",sep=""))
+        }
+        # rows where already checked
+      } else {
+        # level argument was not given
+        # df["wellColumn1"]=value # min
+        # df[1:5,c("wellColumn1","wellColumn2")]=value # max
+        # rows where already checked
+#         level=x@.data$levelNr[x@.data$level==colLevel]
+        level=colLevel
       }
+    } # new columns? 
+  } else { # no known col names so all colnames are new
+    # df["newColumn"]=value # min
+    # df[1:5,c("newColumn","newColumn"),level="well"]=value # max
+    # note that #df[]=value would have been converted to:
+    # .. df[allColumnNamesHere] ... which would have made it a multi level operation
+    # and those would have triggered an error message above
+    # 
+    #
+    #
+    # check if a level argument is given
+    if(!is.null(level)){ # level argument given
+      # df["newColumn",level="well"]=value # min
+      # df[1:5,c("newColumn","newColumn"),level="well"]=value # max
+      #
+      #
+      # check if rows match the level
+      if( dataLength>x@.data$levelSize[x@.data$levelNr==level] ){
+        stop("you want to insert more rows into a level then there are rows in that level")
+      }
+      # TODO test more exceptions
+      
+      # else the level is already defined... so thats good...
+    } else { # no level argument given...
+      # df["newColumn"]=value # min
+      # df[1:5,c("newColumn","newColumn")]=value # max
+      #
+      # only interested in case rows were not given
+      if(is.null(row)){
+        # check if the data rows match a level and if so assign that level
+        # TODO what if multiple levels have the same size???? -- take the biggest!
+        if(length(x@.data$levelNr[x@.data$levelSize==dataLength])==1){
+          level=x@.data$levelNr[x@.data$levelSize==dataLength]
+        } else {
+          stop (paste("the amount of rows given: ", dataLength ,"  does not match any of the data level sizes: ",x@.data$levelSize ,collapse=" ",sep=""))
+        }
+      } else {
+        # no way to determine at what level the new data has to be!
+        # df[1:5,"newColumn"]=value
+        stop("data level not specified, use syntax: df[1:5,'newColname',level='well']=data")
+      } 
+    }
+    # check if level is given as an argument
+    if(is.null(level)){
+      stop("all new columns, and no level given... please use the level argument df['newColumn', level='well']")
+    }
+  }
+
+
+#   
+#   # check if level agrees with requested columns
+#   if(!is.null(level)){
+#     if(x@.data$colLevel[x@.data$colNames %in% col]){
+#       
+#     }
+#   }
+#   
+     
+
+#   #check row
+#   if(is.null(row)){
+#     # row is null so it has to be the full data length
+#     if(any(x@.data$levelSize==dataLength)){
+#       level=x@.data$level[x@.data$levelSize==dataLength]
+#     } else {
+#       stop(paste("no level found with the correct number of rows, level sizes: ",x@.data$levelSize,  " number of rows given ", dataLength , collapse=" ", sep=""))
+#     }
+#   } else {
+# 
+#   }
+
+
+#   # set level
+#   if (length(x@.data$colLevel[x@.data$colNames %in% col])==0){
+#     # all new columns!
+#     if(any(x@.data$levelSize==dataLength)){
+#       level=x@.data$level[x@.data$levelSize==dataLength]
+#     } else {
+#       stop("")
+#     }
+#   } else {
+#     
+#   }
+
+
+  print(level)
+
+
+  allRowsSelected=F
+  if (is.null(row)){
+    row=1:x@.data$levelSize[x@.data$levelNr==level]
+    allRowsSelected=T
+  }
+  notSelectedRows=(1:x@.data$levelSize[x@.data$levelNr==level])[!((1:x@.data$levelSize[x@.data$levelNr==level]) %in% row )]
+
+  # TODO check if col cannot be resorted ... i do use unique..
+  # mmmh maybe add a check and stop there...
+  # add/change the data
+  for(colnr in 1:length(col)){ # for each column
+#     # check if new
+    new=is.element(col[colnr],x@.data$colNames)
+    
+    if (level==3){ # plate 
+      if(class(data)=="data.frame"){
+        x@.data$plate[[col]][row]=data[[colnr]]
+      }else{
+        x@.data$plate[[col]][row]=data
+      }
+      if(!allRowsSelected & new){
+        x@.data$plate[[col]][row]=NA #this is repeated if needed
+      }
+    } else if (level==2){ # well
+      if(class(data)=="data.frame"){
+        x@.data$data[[col]][row]=data[[colnr]]
+      }else{
+        print("here?")
+        print(data)
+        print(row)
+        print(col)
+        print(x@.data$data[[col]][row])
+        x@.data$data[[col]][row]=data
+      }
+      if(!allRowsSelected & new){
+        x@.data$data[[col]][row]=NA #this is repeated if needed
+      }
+    } else if(level==1){ # measurement
+      # this is slow and annoying... 
+      # but shame on you for changing measurements anyways!
+      index=0
+      dataIndex=0
+      for(i in 1:length(x@.data$data$measurement)){ # for each well
+        for(j in 1:length(x@.data$data$measurement[[i]])){ # for each measurement
+          index=index+1
+          if(is.element(index,row)){
+            dataIndex=dataIndex+1
+            if(class(data)=="data.frame"){
+              x@.data$data$measurement[[i]][[j,col[colnr]]]=data[dataIndex,colnr]
+            } else {   
+              x@.data$data$measurement[[i]][[j,col[colnr]]]=data[dataIndex]
+            }
+          } else {
+            if (!new){
+              x@.data$data$measurement[[i]][[j,col[colnr]]]=NA
+            }
+          }
+        } # for each measurement
+      } # for each well
     } else {
       stop("data at unknown level... this error means a coding error as it should have been cought above!")
     }
-    
-    if(is.null(row)){
-      # whole column
-      returnValue[,colnr]=tempData
-    } else {
-      # specific rows
-      returnValue[,colnr]=tempData[row]
-    }
-    
-    
+#     
+#     if(is.null(row)){
+#       # whole column
+#       returnValue[,colnr]=tempData
+#     } else {
+#       # specific rows
+#       returnValue[,colnr]=tempData[row]
+#     }
+#     
+#     
     
   }
 
- 
+  updateColnames(x) # TODO maybe only if new cols?
   return(x) 
 })
 
@@ -1011,6 +1290,12 @@ setMethod("colnames", signature(x = "Data"), function(x) {
 #' @export
 setMethod("colnames<-", signature(x = "Data"), function(x, value) {
   # TODO add checks! if its the same size as data... and you probably dont want to change this anyways...
+  
+  if(length(value)!=length(x@.data$colNames)){
+    stop("invalid number of column names, please don't try again!")
+  }
+    
+  
   warning("you are adviced not to do this!... but you already did...")
   x@.data$colNames=value
   names(x@.data$data)=value

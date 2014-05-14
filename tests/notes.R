@@ -1,3 +1,45 @@
+
+
+# more data.frame behaviour
+df<-data.frame(a=c("x","x","y","y"),b=c(1,2,3,4),c=c(555,5,5,183447))
+df
+df[,c("a","b")]=c(1,2,3,4,5,6,7,8)
+df
+
+df<-data.frame(a=c("x","x","y","y"),b=c(1,2,3,4),c=c(555,5,5,183447))
+df[c(1,2,3)]=df
+df
+df[c(2,3,4)]=df # names arent ignored for new naming, but they are for assigning
+df
+
+df<-data.frame(a=c("x","x","y","y"),b=c(1,2,3,4),c=c(555,5,5,183447))
+df[c("a","d","e")]=df # note that the colnames of the new df are ignored here...
+df
+
+df<-data.frame(a=c("x","x","y","y"),b=c(1,2,3,4),c=c(555,5,5,183447))
+df[c(3,4)]=df # yeah this doesnt work... 
+df
+
+df<-data.frame(a=c("x","x","y","y"),b=c(1,2,3,4),c=c(555,5,5,183447))
+df[c(3,4,"5")]=df # c converts it all to chars... and since they are names abc not 123... eeugh
+df
+
+df<-data.frame(a=c("x","x","y","y"),b=c(1,2,3,4),c=c(555,5,5,183447))
+colnames(df)=c(1,2,3)
+df[c(3,4,"5")]=df # and now for the magic, yup col 3 is overwritten now... = c("3","4","5")
+df
+
+df<-data.frame(a=c("x","x","y","y"),b=c(1,2,3,4),c=c(555,5,5,183447))
+df[c(2,3)]=NULL # does not work!
+df[2]=NULL # does work!
+df
+
+df<-data.frame(a=c("x","x","y","y"),b=c(1,2,3,4),c=c(555,5,5,183447))
+df[]=c("123","456") # yeah this works... with rep() all the way... FUGLY!
+df
+
+
+################################
 # WTF AM I DOING WRONG??!?!?!
 
 currentName="a"
