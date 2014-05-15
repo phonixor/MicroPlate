@@ -7,27 +7,72 @@ library(testthat)
 #
 #
 test_that("Data.R_ basic tests",{
-  # TODO CHANGE!!!!
-  # add data test
-  test=new("Data")
-  test$test=1234567
-  expect_equal(test$test,1234567) # test the data
-  expect_equal(colnames(test),"test") # test the colname
-  expect_warning((colnames(test)="cookies"))
-  expect_equal(colnames(test),"cookies") # test if the colname was changed
-  expect_equal(test$cookies,1234567) # test if the data also changed...
+#   workspace = getwd()
+#   testdir=file.path(workspace, "tests/testdata/enzymeAssays")
+#   file=file.path(testdir, "3263.dbf")
+#   test=novostar.dbf(path=file)
+#   testData=new("Data")
+#   testData=addData(testData,newData=test)
+    
+  testData=new("Data")
+  test=list(row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )
+  testData=addData(testData,newData=test)
   
-  #
+  
+  testData$test=1234567 # at plate level
+  expect_equal(testData$test,1234567)
+  expect_true(any(colnames(testData)=="test")) # test the colname
+#   expect_error((colnames(testData)="cookies")) # only 1 element while data has 8 columns
+#   expect_warning((colnames(testData)=c(1,"cookies",3,4,5,6,7,8)))
+#   expect_true(any(colnames(testData)=="cookies")) # test if the colname was changed
+#   expect_equal(testData$cookies,1234567) # test if the data also changed...
+  
   # change in one instance effectes the other
-  test2=test
-  test$cookies=123
-  expect_equal(test2$cookies,123) # note that we changed test and check test2
+  testData2=testData
+  testData$cookies=123 # once again at plate level
+  expect_equal(testData2$cookies,123) # note that we changed test and check test2
   #
   # test that you can have multiple instances that dont influence eachother
-  test3=new("Data")
-  test3$cookies=1234
-  expect_false(test2$cookies==1234) 
+  testData3=new("Data")
+  testData3=addData(testData3,newData=test)
+  testData3$cookies=1234
+  expect_false(testData2$cookies==1234) 
+  
+  # test reading
+  expect_equal(dim(testData[]),c(2,8))   # everything
+  expect_equal(testData[1],1)            # first col # plateName
+  expect_equal(dim(testData[1,]),c(1,8)) # first row
+  expect_equal(dim(testData[,1]),c(2,1)) # first col
+  expect_equal(testData[1,2], 1234567)   # first row 2nd col # the test i just added
+  expect_equal(dim(testData[,]),c(2,8))  # everything
+
+  expect_equal(testData[level=1],testData[level="measurement"]) # test level select
+  expect_equal(testData[level=2],testData[level="well"])
+#   testData[level=2] # TODO decide what todo if levelSize well=measurement...testData[level=2] # TODO decide what todo if levelSize well=measurement...
+  expect_equal(testData[level=3],testData[level="plate"])
+  expect_equal(dim(testData[c(1,3,5)])[2],3) # test column select
+  expect_equal(dim(testData[,c(1,3,5)])[2],3) # test column select
+  expect_equal(dim(testData[c(1,2),])[1],2) # test row select 
+  
+
+
+  # TEST levels of the same size!!!
+  testData=new("Data")
+  test=list(row=1,column=1,measurement=list(value=1,temp=1,time=1))
+  testData=addData(testData,newData=test)
+  testData$test=1234567
+  testData
+  
+  
+
+
+
+
+  
+
 })
+
+
 
 #
 # some more tests
@@ -41,8 +86,7 @@ test_that("Data.R_ novastar",{
   testData=addData(testData,newData=test)
   # begin the tests
   
-  testData["content"]=1:12
-  
+ 
   
   # test meta data
   expect_equal(testData@.data$colLevel,c("plate","well","well","well","measurement","measurement","measurement"))
@@ -56,6 +100,40 @@ test_that("Data.R_ novastar",{
   expect_equal(colnames(testData),c("plateName","row","column","content","value","time","temp"))
   expect_equal(600,length(testData$value))
   expect_equal(12,length(testData$content))
+  
+  expect_error(testData["a",1]) # not a row number
+  expect_error(testData[1000000000,1]) # to many rows
+  # TODO test if you give multiple rows... starting with a valid one
+  # TODO test half a row???
+  expect_error(testData[testData]) # column not num or char
+  expect_error(testData[1,"idonotexist"]) # unspecified column name
+  
+  testData=addData(testData,newData=test) # add more data
+  expect_equal(testData@.data$levelSize,c(1,12,600)*2) # test if things got doubled
+  
+  
+  
+  # well reading
+  expect_equal(dim(testData[level=2]),c(24,4))
+
+  
+  
+  testData[level="well"]==testData[level=2]
+  
+  expect_equal(dim(testData["content"])[1])
+  
+  
+
+  
+  
+  
+  # well writing
+  testData["content"]=1:12 # this should throw an error as content has 24 rows now!
+  testData["content"]=1:24
+  testData["plateName"]="COOKIES!!!"
+  
+  
+  
   
   
 
@@ -79,12 +157,6 @@ test_that("Data.R_ novastar",{
   testData["content"]=1:12
   
   
-  expect_error(testData["a",1]) # not a row number
-  expect_error(testData[1000000000,1]) # to many rows
-  # TODO test if you give multiple rows... starting with a valid one
-  # TODO test half a row???
-  expect_error(testData[testData]) # column not num or char
-  expect_error(testData[1,"col"]) # unspecified column name
   testData[1,c("row","col","test")]
   testData[1,"column"]
   testData["column"]

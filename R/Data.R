@@ -70,7 +70,7 @@ library(plyr)
 #' @export
 Data=setClass(
   Class = "Data", 
-  contains = "data.frame", # S3 s4 conflicts??? it kinda doesnt work :P
+#   contains = "data.frame", # S3 s4 conflicts??? it kinda doesnt work :P
   representation = representation(
 #     x="list", # data.frame has this???
     .data="environment" # only i may touch me!
@@ -514,7 +514,7 @@ setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, .
       level=args$level
     } else {
       stop("invalid args given, only accepts i,j,level")
-    } 
+    }
   }
 
   #
@@ -581,16 +581,16 @@ setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, .
     
     if(class(level)=="character"){
       # check if its a valid level name
-      if(any(is.element(x@.data$level,level)))
+      if(any(is.element(x@.data$level,level))){
         lowestLevel=x@.data$levelNr[x@.data$level==level]
-      else{
+      } else {
         stop(paste("level given not in: ",paste(x@.data$level,collapse=" ")," given level: ",level,sep=""))
       }
     } else if(class(level)=="numeric"| class(level)=="integer"){
       # check if its a valid level
-      if(any(is.element(x@.data$levelNr,level)))
+      if(any(is.element(x@.data$levelNr,level))){
         lowestLevel=level
-      else{
+      } else {
         stop(paste("level given not in: ",paste(x@.data$levelNr,collapse=" ")," given level: ",level,sep=""))
       }
     } else {
@@ -599,12 +599,12 @@ setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, .
     
     if(missing(i)){
       # df[level=...]
-      # return all data at that level anyways
-      lowestLevel=level
+#       # return all data at that level anyways
+#       lowestLevel=level
       # make sure to only return the columns that are higher then then lowest level
       col=x@.data$colNames[x@.data$colLevelNr>=lowestLevel]
       print(col)
-      print("HERE!!!")
+#       print("HERE!!!")
     }else if (highestLevel<level){
       stop(paste("data requested at a level higher then the colums allow"))
     } else if (T){
@@ -619,8 +619,7 @@ setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, .
     if(!(class(row)=="numeric"|class(row)=="integer")){
       stop(paste("row index should be a number, not a: ",class(row)))
     }
-    
-    if(nrOfRows<row){
+    if(nrOfRows<length(row)){
       stop(paste("Data only has ",nrOfRows," rows, you asked for row(s):",row))
     }
   }
@@ -649,7 +648,7 @@ setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, .
       if(requestedColLevels[colnr]=="plate"){
         # repeat for each well
         for(i in 1:length(x@.data$plate[[1]])){
-          tempData=append(tempData,rep(x@.data$plate[col[colnr]],count(x@.data$data$plate,i)[[2]]))
+          tempData=append(tempData,rep(x@.data$plate[[col[colnr]]][i],count(x@.data$data$plate)[[2]][i]))
         }
 #         tempData=lapply(x@.data$data, function(x)returnValue=append(returnValue,x[[name]]))
         tempData=c(tempData,recursive=T)        
@@ -658,7 +657,6 @@ setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, .
       }else{
         stop("WEIRD ERROR !@#!")
       }
-      
       if(is.null(row)){
         # whole column
         returnValue[,colnr]=tempData
@@ -932,6 +930,7 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
     if (length(col)!=1) {
       stop("multiple columns given, while only a single dimensional data")
     }
+    
     # todo []
     if(!is.null(row)){
       if (length(row)!=length(value)){
@@ -950,6 +949,9 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
     stop(paste("data type of class: ",class(value)," not supported", sep="",collapse=""))
   }
   
+
+  #
+  #  
   # determine level
   # check if all columns are either new or of the same level...
   colLevel=unique(x@.data$colLevelNr[x@.data$colNames %in% col])
@@ -969,9 +971,14 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
     # the only way to enter multiple column data is by using data.frames / matrices
     #
     # if the rows were not specified, the row dim could not have been checked before
-    if( dataLength>x@.data$levelSize[x@.data$levelNr==colLevel] ){
-      stop("the data does not have the correct amount of rows for the excisting column")
+    if (is.null(row) & (dataLength!=x@.data$levelSize[x@.data$levelNr==colLevel]) ) {
+      stop(paste("no rows given and so rows expected to be equal to level size: ",x@.data$levelSize[x@.data$levelNr==colLevel]," rows supplied: ",dataLength,sep=""))
     }
+#     #
+#     if( dataLength>x@.data$levelSize[x@.data$levelNr==colLevel] ){
+#       stop("the data does not have the correct amount of rows for the excisting column")
+#     }
+    
     #
     # check if there are any newColumns
     newColumns=col[!(col %in% x@.data$colNames)]
@@ -1290,15 +1297,21 @@ setMethod("colnames", signature(x = "Data"), function(x) {
 #' @export
 setMethod("colnames<-", signature(x = "Data"), function(x, value) {
   # TODO add checks! if its the same size as data... and you probably dont want to change this anyways...
+  stop("no longer supported for now!")
   
   if(length(value)!=length(x@.data$colNames)){
     stop("invalid number of column names, please don't try again!")
   }
+  
     
   
   warning("you are adviced not to do this!... but you already did...")
   x@.data$colNames=value
-  names(x@.data$data)=value
+#   length(x@.data$colLevel!=2)
+  names(x@.data$plate)=value[1:length(x@.data$colLevel==3)]
+  names(x@.data$data)=value[length(x@.data$colLevel==3)+1:length(value)]
+  # all measurements...
+  
   
   #   return(x@.data$colnames)
   return(x) # for some reason i have to do this, else the instance of the class transforms into the value passed...
@@ -1319,6 +1332,7 @@ setMethod("colnames<-", signature(x = "Data"), function(x, value) {
 setMethod("show", signature(object = "Data"), function(object) {
   print("steal the show!!!")
   print(object@.data$data)
+  print(object@.data$plate)
   return(object)
 })
 
