@@ -38,3 +38,17 @@ co=new("CustomOperation", novostar.dbf, file)
 
 
 
+
+workspace = getwd()
+testdir=file.path(workspace, "tests/testdata/enzymeAssays")
+file=file.path(testdir, "GJS_layout3263.tab")
+layoutData=readLayoutFile(file=file)
+file2=file.path(testdir, "3263.dbf")
+newData=novostar.dbf(path=file2)
+testData=new("Data")
+testData=addData2(testData,newData=newData,layoutData=layoutData)
+testData=addData2(testData,newData=newData,layoutData=layoutData)
+testData[]
+testData
+
+

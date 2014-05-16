@@ -195,7 +195,7 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL, plate
 #' 
 #' @export
 #' 
-setGeneric("addData2", function(self,newData=NULL, plateName=NULL, ...) standardGeneric("addData2")) 
+setGeneric("addData2", function(self,newData=NULL, layoutData=NULL,  plateName=NULL, ...) standardGeneric("addData2")) 
 setMethod("addData2", signature(self = "Data"), function(self,newData=NULL, layoutData=NULL, plateName=NULL, ...){
   # check newData names and compare them with the names currently in use
   # add new columns to existing data
@@ -231,25 +231,42 @@ setMethod("addData2", signature(self = "Data"), function(self,newData=NULL, layo
   # update colnames
   updateColnames(self)
   
-  # 
-  if(is.null(layoutData)){
+  
+  # add experimental layout file with more information about each well
+  if(!is.null(layoutData)){
     # check length
-    if(length(newData)==dim(layoutData)[1]){
+    if(length(newData[[1]])==dim(layoutData)[1]){
       # files are equal in length, nice!
-    }else if(length(newData)==length(which(layoutData$basic!="empty"))[1]){
+    }else if( length(newData[[1]])==length(which(layoutData$basic!="empty"))[1] ){
       # files are not equal in length, but they are if you remove the empty stuff
       print("removing empty elements")
       layoutData=layoutData[which(layoutData$basic!="empty"),]
+#       print(layoutData)
     } else {
       stop("layout data does not match the reader data")
     }
     #
-    for(i in 1:dim(layoutData)[1]){
+    # find data columns
+    colNames=colnames(layoutData)[!colnames(layoutData) %in% c("row","column")]
+#     print(layoutData$row)
+#     print(layoutData$column)
+    #
+    # add experimental data to well...
+    # rewrite to check all first and then insert in one go...
+    for(i in 1:dim(layoutData)[1]){ # for each well/row
       # check if the data is for the same wells
-      index=which(newData$column==layoutData$column[i] & newData$row==layoutData$row[i])
+#       print("----")
+#       print(which(self@.data$data$column==layoutData$column[i]))
+#       print(self@.data$data$column)
+#       print(layoutData$row[i])
+#        print(layoutData$column[i])
+#       print(which(self@.data$data$row==layoutData$row[i]))
+      
+      index=which(self@.data$data$column==layoutData$column[i] & self@.data$data$row==layoutData$row[i] & self@.data$data$plate==self@.data$levelSize[self@.data$level=="plate"])
+#       print(index)
       if(length(index)==1){
         # add the data to the correct row...
-        
+        self[index,colNames,level="well"]=layoutData[i,colNames]
       } else {
         stop("row and columns of layout file and microplate data did not match")
       }
@@ -406,13 +423,37 @@ setMethod("bindParsedData", signature(self = "Data"), function(self, newData=NUL
   
   colsWell=names(newData)
   colsMeasurement=names(newData$measurement[[1]])
-  newColsWell=colsWell[!is.element(colsWell,self@.data$colNames[self@.data$colLevel=="well"])]
-  newColsMeasurement=colsMeasurement[!is.element(colsMeasurement,self@.data$colNames[self@.data$colLevel=="measurement"])]
-  missingColsWell=self@.data$colNames[!is.element(self@.data$colNames[self@.data$colLevel=="well"],colsWell)]
-  missingColsMeasurement=self@.data$colNames[!is.element(self@.data$colNames[self@.data$colLevel=="measurement"],colsMeasurement)]
-  existingColsWell=colsWell[is.element(colsWell,self@.data$colNames[self@.data$colLevel=="well"])]
+  newColsWell=colsWell[!(colsWell %in% self@.data$colNames[self@.data$colLevel=="well"])]
+  newColsMeasurement=colsMeasurement[!(colsMeasurement %in% self@.data$colNames[self@.data$colLevel=="measurement"])]
+  missingColsWell=self@.data$colNames[self@.data$colLevel=="well"][!(self@.data$colNames[self@.data$colLevel=="well"] %in% colsWell)]
+  missingColsMeasurement=self@.data$colNames[self@.data$colLevel=="measurement"][!(self@.data$colNames[self@.data$colLevel=="measurement"] %in% colsMeasurement)]
+  existingColsWell=colsWell[(colsWell %in% self@.data$colNames[self@.data$colLevel=="well"])]
 #   existingColsMeasurement=colsMeasurement[is.element(colsMeasurement,self@.data$colNames)] # this one is kinda useless
-  
+
+#   print(self@.data$colNames[self@.data$colLevel=="well"])
+#   print(self@.data$colNames[self@.data$colLevel=="measurement"])  
+#   print(self@.data$colNames)
+#   print(self@.data$colLevel)
+
+  print("colsWell")
+  print(colsWell)
+  print("colsMeasurement")
+  print(colsMeasurement)
+  print("")
+  print("newColsWell")
+  print(newColsWell)
+  print("newColsMeasurement")
+  print(newColsMeasurement)
+  print("")
+  print("missingColsWell")
+  print(missingColsWell)
+  print("missingColsMeasurement")
+  print(missingColsMeasurement)
+  print("")
+  print("existingColsWell")
+  print(existingColsWell)
+
+
   # Well
   self@.data$data$plate=append(self@.data$data$plate, rep(x=plateNumber,nrOfNewWells)) # generate foreign key
   for(i in 1:length(newColsWell)){
@@ -794,7 +835,10 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
   # check for level in input
   if(!length(args)==0){
     if(length(args)==1 & !is.null(args$level)){
-      level=args$level   
+      level=args$level
+      if(length(level)>1){
+        stop(paste("level may only contain 1 of the following values: ", x@.data$level ,sep="",collapse=" "))
+      }
     } else {
       stop("invalid args given, only accepts i,j,level")
     } 
@@ -856,19 +900,19 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
     row=i
     col=j
   }
-  row=unique(row)
+  row=unique(row) # maybe throw error if this does anything...
   col=unique(col)
-  
-  # check col
-  if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character")){
-    stop(paste("col index should be a number or char, not a: ",class(col)))
-  }
-  if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
-    stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
-  }
-  if((class(col)=="numeric" | class(col)=="integer") & !all(is.element(col,1:nrOfCol))  ) {
-    stop(paste("column number(s) given that does not exist!\n number(s) given:",paste(col,collapse=", "),"\n max col number in data:",nrOfCol, sep=""))
-  }
+#   
+#   # check col
+#   if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character")){
+#     stop(paste("col index should be a number or char, not a: ",class(col)))
+#   }
+#   if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
+#     stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
+#   }
+#   if((class(col)=="numeric" | class(col)=="integer") & !all(is.element(col,1:nrOfCol))  ) {
+#     stop(paste("column number(s) given that does not exist!\n number(s) given:",paste(col,collapse=", "),"\n max col number in data:",nrOfCol, sep=""))
+#   }
   
   # also change to names if numbers
   if(class(col)!="character"){
@@ -879,7 +923,7 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
     stop(paste("The following names are reserved for other purposes!: ",paste(x@.data$reservedNames,sep=", "), sep=""))
   }
   
-  print(col)
+#   print(col)
 
   
   # TODO check row
@@ -915,11 +959,11 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
     
     if(!is.null(row)){
       if((length(row)!=dim(value)[1])){
-        stop(paste("incorrect nr of rows, asked for ",length(row),"rows, while the size of data is: ",dim(value)[1],"",,sep=""))
+        stop(paste("incorrect nr of rows, asked for ",length(row)," rows, while the size of data is: ",dim(value)[1],"",sep=""))
       }
     }
     if((length(col)!=dim(value)[2])){
-      stop(paste("incorrect nr of columns, asked for ",length(col),"cols, while the size of data is: ",dim(value)[2],"",,sep=""))
+      stop(paste("incorrect nr of columns, asked for ",length(col)," cols, while the size of data is: ",dim(value)[2],"",sep=""))
     }
     dataLength=dim(value)[1]
         
@@ -955,7 +999,7 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
   # determine level
   # check if all columns are either new or of the same level...
   colLevel=unique(x@.data$colLevelNr[x@.data$colNames %in% col])
-  print(colLevel)
+#   print(colLevel)
   if(length(colLevel)>1){
     stop("the changing of different levels of data is not allowed! ")
   } else if (length(colLevel)==1) { # specific columns selected
@@ -1043,12 +1087,12 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
       #
       # only interested in case rows were not given
       if(is.null(row)){
-        # check if the data rows match a level and if so assign that level
-        # TODO what if multiple levels have the same size???? -- take the biggest!
-        if(length(x@.data$levelNr[x@.data$levelSize==dataLength])==1){
-          level=x@.data$levelNr[x@.data$levelSize==dataLength]
+        # check if the data rows match a level and if so assign that level    
+        if(length(x@.data$level[x@.data$levelSize==dataLength])>0){
+          # check if multiple levels have the same size???? -- take the biggest
+          level=x@.data$levelNr[x@.data$levelNr==max(x@.data$levelNr[x@.data$levelSize==dataLength])]
         } else {
-          stop (paste("the amount of rows given: ", dataLength ,"  does not match any of the data level sizes: ",x@.data$levelSize ,collapse=" ",sep=""))
+          stop (paste("the amount of rows given: ", dataLength ,"  does not match any of the data level sizes: ", paste(x@.data$levelSize,collapse="",sep="") ,collapse=" ",sep=""))
         }
       } else {
         # no way to determine at what level the new data has to be!
@@ -1099,7 +1143,7 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
 #   }
 
 
-  print(level)
+#   print(level)
 
 
   allRowsSelected=F
@@ -1114,30 +1158,26 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
   # add/change the data
   for(colnr in 1:length(col)){ # for each column
 #     # check if new
-    new=is.element(col[colnr],x@.data$colNames)
+    new=!is.element(col[colnr],x@.data$colNames)
     
     if (level==3){ # plate 
       if(class(data)=="data.frame"){
-        x@.data$plate[[col]][row]=data[[colnr]]
+        x@.data$plate[[col[colnr]]][row]=data[[col[colnr]]]
       }else{
         x@.data$plate[[col]][row]=data
       }
       if(!allRowsSelected & new){
-        x@.data$plate[[col]][row]=NA #this is repeated if needed
+        x@.data$plate[[col[colnr]]][notSelectedRows]=NA #this is repeated if needed
       }
     } else if (level==2){ # well
       if(class(data)=="data.frame"){
-        x@.data$data[[col]][row]=data[[colnr]]
+        x@.data$data[[col[colnr]]][row]=data[[col[colnr]]]
       }else{
-        print("here?")
-        print(data)
-        print(row)
-        print(col)
-        print(x@.data$data[[col]][row])
         x@.data$data[[col]][row]=data
       }
       if(!allRowsSelected & new){
-        x@.data$data[[col]][row]=NA #this is repeated if needed
+        print(notSelectedRows)
+        x@.data$data[[col[colnr]]][notSelectedRows]=NA #this is repeated if needed
       }
     } else if(level==1){ # measurement
       # this is slow and annoying... 
@@ -1261,6 +1301,12 @@ setMethod("$<-", signature(x = "Data"), function(x, name, value) {
     stop(paste("given rows do not match any of the levels!"))
   }
   level=x@.data$level[x@.data$levelSize==length(value)]
+  if(length(level)>1){
+    # multiple levels had the same sizes...
+    # add it to the highest
+    level=x@.data$level[x@.data$levelNr==max(x@.data$levelNr[x@.data$level %in% level])]
+  }
+  
   
   if (level=="plate") {
     x@.data$plate[name]=value

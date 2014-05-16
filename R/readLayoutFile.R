@@ -186,7 +186,7 @@ setMethod("readLayoutFile", signature(), function( file=NULL){
 #   data[["row"]]=rep(length(cols),rows)
   
   # convert to data.frame
-  data=data.frame(data)
+  data=data.frame(data,stringsAsFactors=FALSE)
 
   return(data)
 })

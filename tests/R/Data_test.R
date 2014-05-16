@@ -56,20 +56,22 @@ test_that("Data.R_ basic tests",{
   
 
 
-  # TEST levels of the same size!!!
+  # test levelSize of well=plate=measurement
   testData=new("Data")
-  test=list(row=1,column=1,measurement=list(value=1,temp=1,time=1))
+  test=list(row=1,column=1,measurement=list(list(value=1,temp=1,time=1)))
   testData=addData(testData,newData=test)
-  testData$test=1234567
-  testData
-  
-  
+  testData$test=1234567 # new column size=1
+  testData["test2"]="love for cookies"
+  expect_equal[]
 
-
-
-
-  
-
+  # test levelSize of well=plate
+  testData=new("Data")
+  test=list(row=1,column=1,measurement=list(list(value=1:10,temp=1:10,time=1:10)))
+  testData=addData(testData,newData=test)
+  testData$test=1234567 # new column size=1
+  testData["test2"]="love for cookies"
+  # is it possible that plate>well?? i think not...  
+  testData[]
 })
 
 

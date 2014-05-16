@@ -103,8 +103,25 @@ file=file.path(testdir, "GJS_layout3263.tab")
 layoutData=readLayoutFile(file=file)
 file2=file.path(testdir, "3263.dbf")
 newData=novostar.dbf(path=file2)
+testData=new("Data")
+testData=addData2(testData,newData=newData,layoutData=layoutData)
+testData=addData2(testData,newData=newData,layoutData=layoutData)
+testData[]
+testData
+# 2 errors 
+# 1: NA for 2nd plate
+# 2: NA for 2nd plate not detected... cause testData[] crashes...
 
 
+
+col
+testData@.data$data[["sample"]][2]="A"
+
+
+newData
+layoutData
+testData[]
+testData@.data$data
 
 
 
