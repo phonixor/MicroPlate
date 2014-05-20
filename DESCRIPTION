@@ -9,6 +9,7 @@ Description: More about what it does (maybe more than one line)
 Depends:
     foreign,
     gtools,
+    testthat,
     plyr
 License: GPL-3
 Collate:

@@ -136,8 +136,8 @@ setMethod("createFromDataFrame", signature(self = "Data"), function(self,df=NULL
 #' TODO add more plate data...
 #' 
 #' @export
-setGeneric("addData", function(self,newData=NULL, plateName=NULL, ...) standardGeneric("addData")) 
-setMethod("addData", signature(self = "Data"), function(self,newData=NULL, plateName=NULL, ...){
+setGeneric("addDataOld", function(self,newData=NULL, plateName=NULL, ...) standardGeneric("addDataOld")) 
+setMethod("addDataOld", signature(self = "Data"), function(self,newData=NULL, plateName=NULL, ...){
   # check newData names and compare them with the names currently in use
   # add new columns to existing data
   # fill those with NA for existing data
@@ -195,8 +195,8 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL, plate
 #' 
 #' @export
 #' 
-setGeneric("addData2", function(self,newData=NULL, layoutData=NULL,  plateName=NULL, ...) standardGeneric("addData2")) 
-setMethod("addData2", signature(self = "Data"), function(self,newData=NULL, layoutData=NULL, plateName=NULL, ...){
+setGeneric("addData", function(self,newData=NULL, layoutData=NULL,  plateName=NULL, ...) standardGeneric("addData")) 
+setMethod("addData", signature(self = "Data"), function(self,newData=NULL, layoutData=NULL, plateName=NULL, ...){
   # check newData names and compare them with the names currently in use
   # add new columns to existing data
   # fill those with NA for existing data
@@ -209,10 +209,10 @@ setMethod("addData2", signature(self = "Data"), function(self,newData=NULL, layo
     
     if( is.null(plateName) ){
       # generate platename  --> plate number=row number
-      self@.data$plate=data.frame(plateName=1)
+      self@.data$plate=data.frame(plateName="1", stringsAsFactors=F)
     } else {
       # use plateName.... however plate still has
-      self@.data$plate=data.frame(plateName=plateName)
+      self@.data$plate=data.frame(plateName=plateName, stringsAsFactors=F)
     }
   }else{
     # yes! add data to excisting data!
@@ -220,11 +220,11 @@ setMethod("addData2", signature(self = "Data"), function(self,newData=NULL, layo
     if( is.null(plateName) ){
       # generate platename
       # why does this one take my own smartbind.... i dont give it a Data, i give it a data.frame....
-      self@.data$plate=smartbind(self@.data$plate, data.frame(plateName=(self@.data$levelSize[self@.data$level=="plate"]+1)))
+      self@.data$plate=smartbind(self@.data$plate, data.frame(plateName=(self@.data$levelSize[self@.data$level=="plate"]+1),stringsAsFactors=F))
     } else {
       # use plateName....
       # todo check if plateName is unique..
-      self@.data$plate=smartbind(data.frame(plateName=plateName))
+      self@.data$plate=smartbind(self@.data$plate, data.frame(plateName=plateName,stringsAsFactors=F))
     }
     bindParsedData(self,newData)
   }
@@ -239,7 +239,7 @@ setMethod("addData2", signature(self = "Data"), function(self,newData=NULL, layo
       # files are equal in length, nice!
     }else if( length(newData[[1]])==length(which(layoutData$basic!="empty"))[1] ){
       # files are not equal in length, but they are if you remove the empty stuff
-      print("removing empty elements")
+      # print("removing empty elements")
       layoutData=layoutData[which(layoutData$basic!="empty"),]
 #       print(layoutData)
     } else {
@@ -261,7 +261,6 @@ setMethod("addData2", signature(self = "Data"), function(self,newData=NULL, layo
 #       print(layoutData$row[i])
 #        print(layoutData$column[i])
 #       print(which(self@.data$data$row==layoutData$row[i]))
-      
       index=which(self@.data$data$column==layoutData$column[i] & self@.data$data$row==layoutData$row[i] & self@.data$data$plate==self@.data$levelSize[self@.data$level=="plate"])
 #       print(index)
       if(length(index)==1){
@@ -419,7 +418,7 @@ setMethod("bindParsedData", signature(self = "Data"), function(self, newData=NUL
   
   nrOfNewWells=length(newData[[1]])
   nrOfWells=self@.data$levelSize[self@.data$level=="well"]
-  plateNumber=length(self@.data$levelSize[self@.data$level=="plate"])+1 #this needs change
+  plateNumber=self@.data$levelSize[self@.data$level=="plate"]+1 #this needs change
   
   colsWell=names(newData)
   colsMeasurement=names(newData$measurement[[1]])
@@ -435,23 +434,23 @@ setMethod("bindParsedData", signature(self = "Data"), function(self, newData=NUL
 #   print(self@.data$colNames)
 #   print(self@.data$colLevel)
 
-  print("colsWell")
-  print(colsWell)
-  print("colsMeasurement")
-  print(colsMeasurement)
-  print("")
-  print("newColsWell")
-  print(newColsWell)
-  print("newColsMeasurement")
-  print(newColsMeasurement)
-  print("")
-  print("missingColsWell")
-  print(missingColsWell)
-  print("missingColsMeasurement")
-  print(missingColsMeasurement)
-  print("")
-  print("existingColsWell")
-  print(existingColsWell)
+#   print("colsWell")
+#   print(colsWell)
+#   print("colsMeasurement")
+#   print(colsMeasurement)
+#   print("")
+#   print("newColsWell")
+#   print(newColsWell)
+#   print("newColsMeasurement")
+#   print(newColsMeasurement)
+#   print("")
+#   print("missingColsWell")
+#   print(missingColsWell)
+#   print("missingColsMeasurement")
+#   print(missingColsMeasurement)
+#   print("")
+#   print("existingColsWell")
+#   print(existingColsWell)
 
 
   # Well
@@ -638,15 +637,18 @@ setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, .
       stop(paste("level is of invalid class expected level name: ",paste(x@.data$level, collapse=" "),"\n or level number: ",paste(x@.data$levelNr,collapse=" "),"\n but got data of class: ",class(level),sep=""))
     }    
     
+#     print(highestLevel)
+#     print(level)
+    
     if(missing(i)){
       # df[level=...]
 #       # return all data at that level anyways
 #       lowestLevel=level
       # make sure to only return the columns that are higher then then lowest level
       col=x@.data$colNames[x@.data$colLevelNr>=lowestLevel]
-      print(col)
+#       print(col)
 #       print("HERE!!!")
-    }else if (highestLevel<level){
+    }else if (highestLevel<lowestLevel){
       stop(paste("data requested at a level higher then the colums allow"))
     } else if (T){
       
@@ -661,7 +663,10 @@ setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, .
       stop(paste("row index should be a number, not a: ",class(row)))
     }
     if(nrOfRows<length(row)){
-      stop(paste("Data only has ",nrOfRows," rows, you asked for row(s):",row))
+      stop(paste("Data only has ",paste(nrOfRows, sep="",collapse=" ")," rows, you asked for row(s):",paste(row, sep="",collapse=" ")))
+    }
+    if(max(row)>x@.data$levelSize[x@.data$levelNr==lowestLevel]){
+      stop(paste("Asked for row number ",max(row)," while the level only has ",x@.data$levelSize[x@.data$levelNr==lowestLevel]," rows",sep=""))
     }
   }
   row=unique(row)
@@ -812,7 +817,7 @@ setMethod("[[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, 
 #'   all names in the value slot are ignored!   
 #' - this function does not allow you to change the level of a colname
 #'   if you want this done you would need to first delete that column using df[1]=NULL
-#'  - no negative indexing (matlab version is way better anyways)
+#' - no negative indexing (matlab version is way better anyways)
 #'  
 #' todo df[1]=NULL
 #' todo also allow rows to be deleted?
@@ -902,17 +907,11 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
   }
   row=unique(row) # maybe throw error if this does anything...
   col=unique(col)
-#   
-#   # check col
-#   if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character")){
-#     stop(paste("col index should be a number or char, not a: ",class(col)))
-#   }
-#   if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
-#     stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
-#   }
-#   if((class(col)=="numeric" | class(col)=="integer") & !all(is.element(col,1:nrOfCol))  ) {
-#     stop(paste("column number(s) given that does not exist!\n number(s) given:",paste(col,collapse=", "),"\n max col number in data:",nrOfCol, sep=""))
-#   }
+
+  # check col
+  if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character")){
+    stop(paste("col index should be a number or char, not a: ",class(col)))
+  }
   
   # also change to names if numbers
   if(class(col)!="character"){
@@ -1105,46 +1104,7 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
       stop("all new columns, and no level given... please use the level argument df['newColumn', level='well']")
     }
   }
-
-
-#   
-#   # check if level agrees with requested columns
-#   if(!is.null(level)){
-#     if(x@.data$colLevel[x@.data$colNames %in% col]){
-#       
-#     }
-#   }
-#   
-     
-
-#   #check row
-#   if(is.null(row)){
-#     # row is null so it has to be the full data length
-#     if(any(x@.data$levelSize==dataLength)){
-#       level=x@.data$level[x@.data$levelSize==dataLength]
-#     } else {
-#       stop(paste("no level found with the correct number of rows, level sizes: ",x@.data$levelSize,  " number of rows given ", dataLength , collapse=" ", sep=""))
-#     }
-#   } else {
-# 
-#   }
-
-
-#   # set level
-#   if (length(x@.data$colLevel[x@.data$colNames %in% col])==0){
-#     # all new columns!
-#     if(any(x@.data$levelSize==dataLength)){
-#       level=x@.data$level[x@.data$levelSize==dataLength]
-#     } else {
-#       stop("")
-#     }
-#   } else {
-#     
-#   }
-
-
-#   print(level)
-
+  
 
   allRowsSelected=F
   if (is.null(row)){
@@ -1152,6 +1112,12 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
     allRowsSelected=T
   }
   notSelectedRows=(1:x@.data$levelSize[x@.data$levelNr==level])[!((1:x@.data$levelSize[x@.data$levelNr==level]) %in% row )]
+
+  # check if rows are within bounds
+  if(max(row)>x@.data$levelSize[x@.data$levelNr==level]){
+    stop(paste("Asked for row number ",max(row)," while the level only has ",x@.data$levelSize[x@.data$levelNr==level]," rows",sep=""))
+  }
+
 
   # TODO check if col cannot be resorted ... i do use unique..
   # mmmh maybe add a check and stop there...
@@ -1176,7 +1142,7 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
         x@.data$data[[col]][row]=data
       }
       if(!allRowsSelected & new){
-        print(notSelectedRows)
+#         print(notSelectedRows)
         x@.data$data[[col[colnr]]][notSelectedRows]=NA #this is repeated if needed
       }
     } else if(level==1){ # measurement
@@ -1404,6 +1370,7 @@ setMethod("plotPerWell", signature(self = "Data"), function(self){
     data=self@.data$data$measurement[[i]]
     plot(x=data$time,y=data$value,main=self@.data$data$content[[i]]) 
   }
+  return(self)
 })
 
 #' plotPerPlate
@@ -1443,11 +1410,35 @@ setMethod("plotPerPlate", signature(self = "Data"), function(self){
     
     par(origenalPar) # restore pars...
   }
+  return(self)
 })
 
 
+#' microplate apply
+#' MPApply
+#' 
+#' @export
+setGeneric("MPApply", function(self, fun, ...) standardGeneric("MPApply")) 
+setMethod("MPApply", signature(self = "Data"), function(self, fun, ...){
+#   funcall=substitute(fun(...))
+  x="time"
+  y="value"
+  
+  # for now no input... need to studie formula first....
+  
+  results=list()
+  
+  # for each well
+  for(i in 1:self@.data$levelSize[self@.data$level=="well"]){
+    x=self@.data$data$measurement[[i]][["time"]]
+    y=self@.data$data$measurement[[i]][["value"]]
+    results[i]=list(do.call(what=fun,args=list(x=x,y=y,unlist(list(...)))))
+  }
+  
+  
+  return(results)
 
-
+})
 
 
 

@@ -38,11 +38,11 @@ test_that("Data.R_ basic tests",{
   testData3$cookies=1234
   expect_false(testData2$cookies==1234) 
   
-  # test reading
+  # test reading [
   expect_equal(dim(testData[]),c(2,8))   # everything
-  expect_equal(testData[1],1)            # first col # plateName
+  expect_equal(testData[1],"1")          # first col # plateName
   expect_equal(dim(testData[1,]),c(1,8)) # first row
-  expect_equal(dim(testData[,1]),c(2,1)) # first col
+  expect_equal(testData[,1],"1") # first col
   expect_equal(testData[1,2], 1234567)   # first row 2nd col # the test i just added
   expect_equal(dim(testData[,]),c(2,8))  # everything
 
@@ -54,6 +54,26 @@ test_that("Data.R_ basic tests",{
   expect_equal(dim(testData[,c(1,3,5)])[2],3) # test column select
   expect_equal(dim(testData[c(1,2),])[1],2) # test row select 
   
+  # test writing [<- 
+  # test partial column update
+  testData=new("Data")
+  test=list(row=1:2,column=1:2,measurement=list( list(value=1:5,temp=1:5,time=1:5),list(value=2,temp=1,time=1) ) )
+  testData=addData(testData,newData=test)
+  testData=addData(testData,newData=test)
+  
+  expect_error(testData[4:7,"row"]) #  only 4 rows...
+  expect_error(testData[4:8,"row"]=4:8)
+  testData[2:3,"row"]=10:11 # should just work
+  
+#   testData[]
+#   testData["row"]
+#   testData[4:7,"row"]=4:7
+#   testData[4:8,"row"]=4:8 # should give error but doesnt yet... cause only 4 rows...
+#   testData[2:3,"row"]=10:11
+#   testData[]
+#   testData
+# 
+#   testData[4:7,"row"] # this should also have given an error
 
 
   # test levelSize of well=plate=measurement
@@ -72,6 +92,21 @@ test_that("Data.R_ basic tests",{
   testData["test2"]="love for cookies"
   # is it possible that plate>well?? i think not...  
   testData[]
+
+  # test plateName
+  # with platename first
+  testData=new("Data") 
+  test=list(row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )
+  testData=addData(testData,newData=test, plateName="first plate")
+  testData=addData(testData,newData=test, plateName="second plate")
+  testData=addData(testData,newData=test)
+  testData[]
+  # without platename first
+  testData=new("Data")
+  test=list(row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )
+  testData=addData(testData,newData=test)
+  testData=addData(testData,newData=test)
+  testData=addData(testData,newData=test, plateName="third plate")
 })
 
 
@@ -188,6 +223,9 @@ test_that("Data.R_ novastar",{
   system.time(testData$value)
   
   
+  system.time(replicate(1000,testData$value))
+  
+  
   system.time(replicate(10000,testData["content"])) # 4.864 sec
   system.time(replicate(10000,testData$content)) # 1.367 sec
   
@@ -214,4 +252,60 @@ test_that("Data.R_ novastar",{
   system.time(replicate(100000,length(1:600/600))) # 0.123 sec
 
 
+})
+
+
+
+
+test_that("Data.R_ stress/compare tests",{
+  # its probably a bad idea to keep this in the stress test
+  
+  workspace = getwd()
+  testdir=file.path(workspace, "tests/testdata/enzymeAssays")
+  file=file.path(testdir, "GJS_layout3263.tab")
+  layoutData=readLayoutFile(file=file)
+  file2=file.path(testdir, "3263.dbf")
+  newData=novostar.dbf(path=file2)
+  testData=new("Data")
+  
+  system.time(replicate(50, addData(testData,newData=newData,layoutData=layoutData)))
+  tdf=testData[] # 2MB ish
+  
+  system.time(replicate(1000,testData$value)) # 3 sec
+  system.time(replicate(1000,tdf$value)) # .4 sec
+  # about Data = 10x slower then data.frame
+  
+  system.time(replicate(1000,testData["value"])) # 24 sec
+  system.time(replicate(1000,tdf["value"])) # .3 sec
+  # many many times slower
+  
+  system.time(replicate(1000,testData["content"])) # .5 sec
+  system.time(replicate(1000,tdf["content"])) # 1.2 sec #... that is ... weird...
+  # that is ... weird... is this factor vs string?
+  # oooh crap... this is 600 vs 30000 rows....
+  system.time(replicate(1000,testData["content",level="measurement"])) # 55 sec
+  # that is ... many many times slower
+  
+  system.time(replicate(1000,testData["row",level="measurement"])) # 27 sec
+  system.time(replicate(1000,tdf["row"])) # .4 sec
+  # eeeugh....
+  
+  
+  testData=new("Data")
+  system.time(replicate(100, addData(testData,newData=newData,layoutData=layoutData))) # 5sec
+  testData
+  
+  
+  tdf=testData[] # 2MB ish
+  system.time(replicate(10,testData$value))
+  system.time(replicate(10,tdf$value))
+  
+  system.time(replicate(10000,testData["value"]))
+  system.time(replicate(10000,tdf["value"]))
+  
+  
+  testData[]
+  testData
+  
+  
 })

@@ -1,5 +1,44 @@
+##########
 
 
+testData=new("Data")
+test=list(row=1:2,column=1:2,measurement=list( list(value=1:5,temp=1:5,time=1:5),list(value=2,temp=1,time=1) ) )
+testData=addData(testData,newData=test)
+testData=addData(testData,newData=test)
+
+tdf=testData[]
+
+
+
+
+
+tdf[] # everything
+testData[]
+tdf[1] # first col
+testData[1] # first col
+testData[1,level="measurement"]
+testData[1,level=1]
+
+tdf[5] # temp
+testData[5] # temp
+
+tdf[1,] # first row
+tdf[,1] # first col
+tdf[1,2] # first row 2nd col
+tdf[,] # everything
+# multi arg
+tdf[c(1,3)] # returns first and 3th column
+tdf[c(1,3),] # returns first and 3th row so its consistent...
+tdf[c(),]
+
+
+
+
+
+
+
+
+#########################################
 # more data.frame behaviour
 df<-data.frame(a=c("x","x","y","y"),b=c(1,2,3,4),c=c(555,5,5,183447))
 df
@@ -104,8 +143,8 @@ layoutData=readLayoutFile(file=file)
 file2=file.path(testdir, "3263.dbf")
 newData=novostar.dbf(path=file2)
 testData=new("Data")
-testData=addData2(testData,newData=newData,layoutData=layoutData)
-testData=addData2(testData,newData=newData,layoutData=layoutData)
+testData=addData(testData,newData=newData,layoutData=layoutData)
+testData=addData(testData,newData=newData,layoutData=layoutData)
 testData[]
 testData
 # 2 errors 

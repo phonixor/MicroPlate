@@ -46,9 +46,26 @@ layoutData=readLayoutFile(file=file)
 file2=file.path(testdir, "3263.dbf")
 newData=novostar.dbf(path=file2)
 testData=new("Data")
-testData=addData2(testData,newData=newData,layoutData=layoutData)
-testData=addData2(testData,newData=newData,layoutData=layoutData)
+testData=addData(testData,newData=newData,layoutData=layoutData)
 testData[]
-testData
+
+result=NULL
+result=MPApply(testData,fun=smoothEpisode)
+result=MPApply(testData,fun=smoothEpisode,df=5, compact=TRUE, episode=c(300,700))
+
+result
+
+
+
+
+
+tdf=testData[]
+index=(tdf$row==1 & tdf$column==4)
+plot(x=tdf[index,"time"],y=tdf[index,"value"])
+
+# import doesnt seam to work for non s4 functions... :(
+derivs=smoothEpisode(x=tdf[index,"time"],y=tdf[index,"value"])
+plot(derivs$x,derivs$y)
+
 
 

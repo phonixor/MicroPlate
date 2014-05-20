@@ -1,7 +1,7 @@
 # compute the first order derivative from a window of 'wind' points
 # where wind mustr be uneven
 # output is a dataframe with time and running average of the derivative
-
+#' @export
 numericderiv <- function(x, y, window=min(5, length(x)), errcutoff=0.2) {
   window <- trunc(abs(window))
   if (window %% 2 == 0) window <- window + 1
@@ -28,6 +28,7 @@ numericderiv <- function(x, y, window=min(5, length(x)), errcutoff=0.2) {
 }
 
 # creates a spline through x-y data, reurns the spline and higher derivatives
+#' @export
 smoothfit <- function(x, y, deriv.degree=1, ...) {
   available <- which(is.finite(y))
   xr <- x[available]
@@ -48,6 +49,7 @@ smoothfit <- function(x, y, deriv.degree=1, ...) {
 
 # calls smoothfit separately for different episodes in a curve. Mainly to avoid 
 # distorting effects of discontinuities on the splines.
+#' @export
 smoothEpisode <- function(x, y, deriv.degree=1, episode=c(min(x), max(x)), ...) {
   if(!length(x) == length(y)) {
     stop("Arguments ",sQuote("x")," and ",sQuote("y")," must have same length")
