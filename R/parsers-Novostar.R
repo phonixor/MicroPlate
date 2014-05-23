@@ -38,7 +38,7 @@ library(foreign)
 #' 
 #'  @export
 "novostar.dbf"=function(path=NULL,name=Null){
-#   print(path)
+  #   print(path)
   # extract data (with function from the foreign package)
   # Suppress lots of warnings: because novostar dbf seem to have a wrong 
   # column type annotation
@@ -66,8 +66,8 @@ library(foreign)
   #
   #
   #
-#   df=data.frame(row=numeric(0),column=numeric(0),temp=numeric(0),time=numeric(0),value=numeric(0),content=str(0)) # create the df
-#   l=list(row=numeric(0),column=numeric(0),content=str(0),measurement=NULL)
+  #   df=data.frame(row=numeric(0),column=numeric(0),temp=numeric(0),time=numeric(0),value=numeric(0),content=str(0)) # create the df
+  #   l=list(row=numeric(0),column=numeric(0),content=str(0),measurement=NULL)
   l=list()
   for (i in 1:length(wellNames)) { # for each well
     coordinates=extractPlateCoordinates(wellNames[i])
@@ -75,9 +75,9 @@ library(foreign)
     l$row[i]=coordinates[1]
     l$column[i]=coordinates[2]
     l$content[i]=content[i]
-#     print(l)
-#     print(i)
-#     l[["measurement"]][1]=list()
+    #     print(l)
+    #     print(i)
+    #     l[["measurement"]][1]=list()
     temp=list()
     for (j in 1:length(measurements)){ # for each measurement
       temp$value=append(temp$value,wellData[i,j])
@@ -93,9 +93,89 @@ library(foreign)
 
 
 
-
-
-
+library(gdata)
+#' a parser for the novostar platereader's xls files
+#' 
+#' TODO: multiple wavelengths
+#' TODO: seconds/days
+#' 
+#' @export
+"novostar.xls"=function(path=NULL,name=Null){
+  xls = read.xls(path,stringsAsFactors=FALSE) # FUCK FACTORS!!!
+  # appears to ingnore empty rows
+  #   print(head(xls)[1:10])
+  
+#   print(dim(xls))
+#   print("cookies")
+  
+  
+  if(xls[4,1]!="Well\nRow"){
+    stop("data not found!")
+  }
+  
+  # get headers
+  header=xls[4,]
+  
+#   print(header)
+  time=NULL
+  waveLength=NULL
+  for(i in 4:length(header)){
+#     "Raw Data (600)\n1 - 0 h  " 
+#     "Raw Data (600)\n2 - 0 h 10 min "	
+#     "Raw Data (600)\n3 - 0 h 20 min "
+#     print(header[i])
+#     print(typeof(header[i]))
+  
+    temp=gsub("\n"," ",header[i])
+    temp=strsplit(temp," ")[[1]]
+    temptime=0
+    
+#     print("-------------")
+#     print(temp)
+#     print(length(temp))
+    for(j in 1:length(temp)){ # for each word in the header
+      if(j==3){
+        #(waveLength)
+#         print("WAVE")
+#         print(substr(temp[j],2,nchar(temp[j])-1))
+        waveLength=append(waveLength,as.numeric(substr(temp[j],2,nchar(temp[j])-1)))
+      }
+      
+      if(temp[j]=="h"){
+#         print(temp[j-1])
+        temptime=temptime+as.numeric(temp[j-1])*60
+      }
+      if(temp[j]=="min"){
+        temptime=temptime+as.numeric(temp[j-1])
+      }
+    }
+    time=append(time,temptime)
+  }
+  
+#   print("time....")
+#   print(time)
+#   print("waveLength....")
+#   print(waveLength)
+  
+  l=list()
+  dataRows=5:dim(xls)[1]
+  for(row in dataRows){ # for each row
+    l$row=append(l$row, xls[row,1])
+    l$column=append(l$column,as.numeric(xls[row,2]))
+    l$content=append(l$content,xls[row,3])
+    
+    
+    temp=list()
+    for(col in 4:dim(xls)[2]){ # for each column
+      temp$value=append(temp$value,xls[row,col])
+      temp$time=append(temp$time,time[col-3])
+      temp$waveLength=append(temp$waveLength,waveLength[col-3])
+      # no temperature!
+    }
+    l[["measurement"]][[row-4]]=temp
+  }
+  return(l)
+}
 
 
 
@@ -127,7 +207,7 @@ library(foreign)
   #
   # Measurement column names have the format M\d+ 
   measurements <- grep("^M[[:digit:]]+$", colnames(buffer))
- 
+  
   # CH column indicates data channels(?)
   # Rows with CH=[numeric] represent wells
   # Rows with CH=t represent time (only measurement columns)
@@ -189,93 +269,93 @@ extractPlateCoordinates=function(wellName){
       time=list(label="time", description="Time", unit="s"), 
       data=list(label="measurements"),
       temperature=list(label="temperature", description="Temperature",
-        unit="degC")
+                       unit="degC")
     )
   ) 
   {
-  ## "paths" is a character vector with one or more paths to the files to be 
-  ## read. "labels" is a list giving the labels for the time and data dimensions
-  ## "variables" is a character vector of variables that will be read from the 
-  ## file and returned in the output
-  ## Note that sampleLabels MUST be set in the output, otherwise combination
-  ## with MicroplateFrames is generally impossible, certainly  in case only part 
-  ## of the wells is present in the files, or the wells appear in order differnt
-  ## from that present in the MicroplateFrames.
-  ## FIXME: Check whether requested channels are present at all. If not, Stop or Warn
-  ## - - - - - - - - - - - - - - - - - - -
-  ## Check validity of the 'variables' list
-  require(foreign)
-  intVars <- c('time','data','temperature')
-  validNames <- c('label','description','unit')
-  .validParserVariables(intVars, validNames, variables)
-  if (!is.null(paths)) {
-    names <- NULL
-    data <- NULL
-    time <- NULL
-    temperature <- NULL
-    for (currentPath in paths) {
-      ## Suppress lots of warnings: because novostar dbf seem to have a wrong 
-      ## column type annotation
-      ## TODO: make tryCatch construct around read.dbf
-      buffer <- suppressWarnings(read.dbf(currentPath))
-      ## TODO: Build in check for valid Novostar dbf structure
-      ## Measurement column names have the format M\d+
-      measurements <- grep("^M[[:digit:]]+$", colnames(buffer))
-      ## CH column indicates data channels(?)
-      ## Rows with CH=[numeric] represent wells
-      ## Rows with CH=t represent time (only measurement columns)
-      ## Rows with CH=C represent temperature (only measurement colums)
-      channels <- buffer[,"CH"]
-      ## WELLNUM column contains well names
-      wellNames <- as.character(buffer[channels=="1", "WELLNUM"])
-      nofWells <- length(wellNames)
-      names <- c(names, wellNames)
-      wellData <- buffer[channels=="1", measurements]
-      if (is.null(data)) data <- t(wellData)
-      else {
-        dat2 <- t(wellData)
-        data <- cbind(data, dat2, deparse.level=0)
-      }
-      timePoints <- as.numeric(buffer[channels=="t", measurements])
-      if (is.null(time)) 
-        time <- matrix(rep(timePoints, nofWells), ncol=nofWells, byrow=FALSE)
-      else {
-        tim2 <- matrix(rep(timePoints, nofWells), ncol=nofWells, byrow=FALSE)
-        time <- cbind(time, tim2, deparse.level=0)
-      }
-      tmpPoints <- as.numeric(buffer[channels=="C", measurements])
-      if (is.null(temperature)) 
-        temperature <- matrix(rep(tmpPoints, nofWells), ncol=nofWells, byrow=FALSE)
-      else {
-        tmp2 <- matrix(rep(tmpPoints, nofWells), ncol=nofWells, byrow=FALSE)
-        temperature <- cbind(temperature, tmp2, deparse.level=0)
-      }
-    }
-    colnames(data) <- NULL
-    rownames(data) <- NULL
-    colnames(time) <- NULL
-    rownames(time) <- NULL
-    colnames(temperature) <- NULL
-    rownames(temperature) <- NULL
-    x <- list()
-    for (vlabel in names(variables)) {
-      x[[variables[[vlabel]][['label']]]] <- get(vlabel, inherits=FALSE)
-    }
-    ## Parse out leading '0's in the column identifiers of the well names in
-    ## the Novostar output, i.e. 'A01' becomes 'A1'
-    names <- sub("([[:alpha:]]+)0+","\\1", names)
-    vm <- NULL
+    ## "paths" is a character vector with one or more paths to the files to be 
+    ## read. "labels" is a list giving the labels for the time and data dimensions
+    ## "variables" is a character vector of variables that will be read from the 
+    ## file and returned in the output
+    ## Note that sampleLabels MUST be set in the output, otherwise combination
+    ## with MicroplateFrames is generally impossible, certainly  in case only part 
+    ## of the wells is present in the files, or the wells appear in order differnt
+    ## from that present in the MicroplateFrames.
+    ## FIXME: Check whether requested channels are present at all. If not, Stop or Warn
+    ## - - - - - - - - - - - - - - - - - - -
+    ## Check validity of the 'variables' list
+    require(foreign)
+    intVars <- c('time','data','temperature')
     validNames <- c('label','description','unit')
-    for (v in names(variables)) {
-      vm <- rbind(vm, unlist(variables[[v]])[validNames[-1]])
-    }
-    vm <- as.matrix(vm)
-    colnames(vm) <- c('labelDescription','unit')
-    rownames(vm) <- unlist(lapply(variables,"[",'label'))
-    vm[is.na(vm[,'labelDescription']),'labelDescription'] <- 
-      rownames(vm)[is.na(vm[,'labelDescription'])]
-    output <- new("AnnotatedSampleFrame", x=x, sampleLabels=names, 
-      varMetadata=as.data.frame(vm))  
-  } else stop("Argument ", sQuote('paths'), " not defined")
-  return(output)
-}
+    .validParserVariables(intVars, validNames, variables)
+    if (!is.null(paths)) {
+      names <- NULL
+      data <- NULL
+      time <- NULL
+      temperature <- NULL
+      for (currentPath in paths) {
+        ## Suppress lots of warnings: because novostar dbf seem to have a wrong 
+        ## column type annotation
+        ## TODO: make tryCatch construct around read.dbf
+        buffer <- suppressWarnings(read.dbf(currentPath))
+        ## TODO: Build in check for valid Novostar dbf structure
+        ## Measurement column names have the format M\d+
+        measurements <- grep("^M[[:digit:]]+$", colnames(buffer))
+        ## CH column indicates data channels(?)
+        ## Rows with CH=[numeric] represent wells
+        ## Rows with CH=t represent time (only measurement columns)
+        ## Rows with CH=C represent temperature (only measurement colums)
+        channels <- buffer[,"CH"]
+        ## WELLNUM column contains well names
+        wellNames <- as.character(buffer[channels=="1", "WELLNUM"])
+        nofWells <- length(wellNames)
+        names <- c(names, wellNames)
+        wellData <- buffer[channels=="1", measurements]
+        if (is.null(data)) data <- t(wellData)
+        else {
+          dat2 <- t(wellData)
+          data <- cbind(data, dat2, deparse.level=0)
+        }
+        timePoints <- as.numeric(buffer[channels=="t", measurements])
+        if (is.null(time)) 
+          time <- matrix(rep(timePoints, nofWells), ncol=nofWells, byrow=FALSE)
+        else {
+          tim2 <- matrix(rep(timePoints, nofWells), ncol=nofWells, byrow=FALSE)
+          time <- cbind(time, tim2, deparse.level=0)
+        }
+        tmpPoints <- as.numeric(buffer[channels=="C", measurements])
+        if (is.null(temperature)) 
+          temperature <- matrix(rep(tmpPoints, nofWells), ncol=nofWells, byrow=FALSE)
+        else {
+          tmp2 <- matrix(rep(tmpPoints, nofWells), ncol=nofWells, byrow=FALSE)
+          temperature <- cbind(temperature, tmp2, deparse.level=0)
+        }
+      }
+      colnames(data) <- NULL
+      rownames(data) <- NULL
+      colnames(time) <- NULL
+      rownames(time) <- NULL
+      colnames(temperature) <- NULL
+      rownames(temperature) <- NULL
+      x <- list()
+      for (vlabel in names(variables)) {
+        x[[variables[[vlabel]][['label']]]] <- get(vlabel, inherits=FALSE)
+      }
+      ## Parse out leading '0's in the column identifiers of the well names in
+      ## the Novostar output, i.e. 'A01' becomes 'A1'
+      names <- sub("([[:alpha:]]+)0+","\\1", names)
+      vm <- NULL
+      validNames <- c('label','description','unit')
+      for (v in names(variables)) {
+        vm <- rbind(vm, unlist(variables[[v]])[validNames[-1]])
+      }
+      vm <- as.matrix(vm)
+      colnames(vm) <- c('labelDescription','unit')
+      rownames(vm) <- unlist(lapply(variables,"[",'label'))
+      vm[is.na(vm[,'labelDescription']),'labelDescription'] <- 
+        rownames(vm)[is.na(vm[,'labelDescription'])]
+      output <- new("AnnotatedSampleFrame", x=x, sampleLabels=names, 
+                    varMetadata=as.data.frame(vm))  
+    } else stop("Argument ", sQuote('paths'), " not defined")
+    return(output)
+  }

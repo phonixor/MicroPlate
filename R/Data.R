@@ -70,7 +70,7 @@ library(plyr)
 #' @export
 Data=setClass(
   Class = "Data", 
-#   contains = "data.frame", # S3 s4 conflicts??? it kinda doesnt work :P
+#   contains = "data.frame", # S3 S4 conflicts??? it kinda doesnt work :P
   representation = representation(
 #     x="list", # data.frame has this???
     .data="environment" # only i may touch me!
@@ -1305,6 +1305,8 @@ setMethod("$<-", signature(x = "Data"), function(x, name, value) {
 setMethod("colnames", signature(x = "Data"), function(x) {
   return(x@.data$colNames)
 })
+
+
 #' overwrite colnames<-
 #' @export
 setMethod("colnames<-", signature(x = "Data"), function(x, value) {
@@ -1328,6 +1330,7 @@ setMethod("colnames<-", signature(x = "Data"), function(x, value) {
   #   return(x@.data$colnames)
   return(x) # for some reason i have to do this, else the instance of the class transforms into the value passed...
 })
+
 
 #' overwrite show()
 #' 
@@ -1427,7 +1430,6 @@ setMethod("MPApply", signature(self = "Data"), function(self, fun, ...){
   # for now no input... need to studie formula first....
   
   results=list()
-  
   # for each well
   for(i in 1:self@.data$levelSize[self@.data$level=="well"]){
     x=self@.data$data$measurement[[i]][["time"]]

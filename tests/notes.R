@@ -1,3 +1,117 @@
+
+
+# 
+workspace = getwd()
+testdir=file.path(workspace, "tests/testdata/xls/")
+file=file.path(testdir, "KineticData.xls")
+test=novostar.xls(path=file)
+test
+
+testData=new("Data")
+testData=addData(testData,newData=test)
+
+xls=read.xls(file, stringsAsFactors=FALSE)
+
+
+
+#############################
+### understanding formula ###
+coplot # check source, cause it works with formula...
+
+
+# functions created in coplot
+deparen <- function(expr) {
+  while (is.language(expr) && !is.name(expr) && deparse(expr[[1L]])[1L] == 
+           "(") expr <- expr[[2L]]
+  expr
+}
+getOp <- function(call) deparse(call[[1L]], backtick = FALSE)[[1L]]
+bad.formula <- function() stop("invalid conditioning formula")
+bad.lengths <- function() stop("incompatible variable lengths")
+
+
+formula=Petal.Length ~ Petal.Width | Species
+formula="Petal.Length ~ Petal.Width | Species"
+# class(formula)="formula"
+formula=as.formula(formula)
+typeof(formula) # language
+class(formula) # formula
+
+
+data=iris
+
+formula=deparen(formula) # appears to do nothing
+if (!inherits(formula, "formula")) 
+  bad.formula()
+y <- deparen(formula[[2L]]) # Petal.Length
+rhs <- deparen(formula[[3L]]) # Petal.Width | Species
+if (getOp(rhs) != "|") 
+  bad.formula()
+x <- deparen(rhs[[2L]]) # Petal.Width
+rhs <- deparen(rhs[[3L]]) # Species
+
+x.name <- deparse(x)
+x <- eval(x, data, parent.frame())
+y <- eval(y, data, parent.frame())
+
+y
+rhs
+x
+formula
+
+plot(x,y)
+
+
+deparen("abc ~ 123")
+deparen("((abc ~ 123")
+deparen(call("abc ~ 123"))
+deparen(call("((abc ~ 123"))
+deparen(call("((abc)) ~ 123"))
+
+call("iris","test")
+deparse(call("iris","test"))
+
+
+
+
+
+
+coplot(Petal.Length ~ Petal.Width | Species, data = iris)
+plot(Petal.Length ~ Petal.Width, data = iris)
+
+coplot(Petal.Width | Species, data = iris)
+
+"~"(Petal.Length,Petal.Width, data= iris)
+"~"(Petal.Length,Petal.Width, data= iris)
+
+
+
+coplot(Petal.Length ~ Petal.Width | Species, data = iris)
+coplot((Petal.Length ~ Petal.Width) | Species, data = iris) # gives error
+coplot((Petal.Length ~ Petal.Width) | Species, data = iris) # gives error
+coplot((Petal.Length ~ Petal.Width | Species), data = iris) # works
+coplot(formula=(Petal.Length ~ Petal.Width | Species), data = iris) # works
+coplot(formula=Petal.Length ~ Petal.Width | Species, data = iris) # works
+coplot(Petal.Length ~ (Petal.Width | Species), data = iris) # works
+coplot("~"(Petal.Length, (Petal.Width | Species)), data = iris) # works
+
+coplot(Petal.Length ~ (Petal.Width | Species), data = iris) # works
+
+
+
+test=lm(Petal.Length ~ Petal.Width | Species,data=iris)
+
+lm(Petal.Length ~ Petal.Width ,data=iris)
+
+
+lm(Petal.Length ~ Petal.Width | Species,data=iris)
+lm(Petal.Length ~ Petal.Width, data=iris)
+
+Petal.Length ~ Petal.Width | Species
+
+eval
+
+
 ##########
 
 
@@ -8,6 +122,13 @@ testData=addData(testData,newData=test)
 
 tdf=testData[]
 
+
+plot(temp~time,data=tdf)
+plot(temp~time,data=testData)
+plot(temp~time,data=testData[]) # somehow [] is called twice...
+
+plot(row~time,data=tdf)
+plot(row~time,data=testData[])
 
 
 

@@ -53,6 +53,9 @@ result=NULL
 result=MPApply(testData,fun=smoothEpisode)
 result=MPApply(testData,fun=smoothEpisode,df=5, compact=TRUE, episode=c(300,700))
 
+
+result=MPApply(testData,fun=mean)
+
 result
 
 
