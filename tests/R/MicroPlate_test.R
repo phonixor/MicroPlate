@@ -2,21 +2,21 @@
 library(microplate)
 library(testthat)
 #
-# Test Data.R
+# Test MicroPlate.R
 #
 #
 #
-test_that("Data.R_ basic tests",{
+test_that("MicroPlate.R_ basic tests",{
 #   workspace = getwd()
 #   testdir=file.path(workspace, "tests/testdata/enzymeAssays")
 #   file=file.path(testdir, "3263.dbf")
 #   test=novostar.dbf(path=file)
-#   testData=new("Data")
+#   testData=new("MicroPlate")
 #   testData=addData(testData,newData=test)
     
-  testData=new("Data")
+  testData=new("MicroPlate")
   test=list(row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )
-  testData=addData(testData,newData=test)
+  testData=addPlate(testData,newData=test)
   
   
   testData$test=1234567 # at plate level
@@ -33,8 +33,8 @@ test_that("Data.R_ basic tests",{
   expect_equal(testData2$cookies,123) # note that we changed test and check test2
   #
   # test that you can have multiple instances that dont influence eachother
-  testData3=new("Data")
-  testData3=addData(testData3,newData=test)
+  testData3=new("MicroPlate")
+  testData3=addPlate(testData3,newData=test)
   testData3$cookies=1234
   expect_false(testData2$cookies==1234) 
   
@@ -56,13 +56,13 @@ test_that("Data.R_ basic tests",{
   
   # test writing [<- 
   # test partial column update
-  testData=new("Data")
+  testData=new("MicroPlate")
   test=list(row=1:2,column=1:2,measurement=list( list(value=1:5,temp=1:5,time=1:5),list(value=2,temp=1,time=1) ) )
-  testData=addData(testData,newData=test)
-  testData=addData(testData,newData=test)
+  testData=addPlate(testData,newData=test)
+  testData=addPlate(testData,newData=test)
   
   expect_error(testData[4:7,"row"]) #  only 4 rows...
-  expect_error(testData[4:8,"row"]=4:8)
+  expect_error((testData[4:8,"row"]=4:8))
   testData[2:3,"row"]=10:11 # should just work
   
 #   testData[]
@@ -77,17 +77,17 @@ test_that("Data.R_ basic tests",{
 
 
   # test levelSize of well=plate=measurement
-  testData=new("Data")
+  testData=new("MicroPlate")
   test=list(row=1,column=1,measurement=list(list(value=1,temp=1,time=1)))
-  testData=addData(testData,newData=test)
+  testData=addPlate(testData,newData=test)
   testData$test=1234567 # new column size=1
   testData["test2"]="love for cookies"
   expect_equal[]
 
   # test levelSize of well=plate
-  testData=new("Data")
+  testData=new("MicroPlate")
   test=list(row=1,column=1,measurement=list(list(value=1:10,temp=1:10,time=1:10)))
-  testData=addData(testData,newData=test)
+  testData=addPlate(testData,newData=test)
   testData$test=1234567 # new column size=1
   testData["test2"]="love for cookies"
   # is it possible that plate>well?? i think not...  
@@ -95,32 +95,32 @@ test_that("Data.R_ basic tests",{
 
   # test plateName
   # with platename first
-  testData=new("Data") 
+  testData=new("MicroPlate") 
   test=list(row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )
-  testData=addData(testData,newData=test, plateName="first plate")
-  testData=addData(testData,newData=test, plateName="second plate")
-  testData=addData(testData,newData=test)
+  testData=addPlate(testData,newData=test, plateName="first plate")
+  testData=addPlate(testData,newData=test, plateName="second plate")
+  testData=addPlate(testData,newData=test)
   testData[]
   # without platename first
-  testData=new("Data")
+  testData=new("MicroPlate")
   test=list(row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )
-  testData=addData(testData,newData=test)
-  testData=addData(testData,newData=test)
-  testData=addData(testData,newData=test, plateName="third plate")
+  testData=addPlate(testData,newData=test)
+  testData=addPlate(testData,newData=test)
+  testData=addPlate(testData,newData=test, plateName="third plate")
 })
 
 
 
 #
 # some more tests
-test_that("Data.R_ novastar",{
+test_that("MicroPlate.R_ novastar",{
   # prepare
   workspace = getwd()
   testdir=file.path(workspace, "tests/testdata/enzymeAssays")
   file=file.path(testdir, "3263.dbf")
   test=novostar.dbf(path=file)
-  testData=new("Data")
-  testData=addData(testData,newData=test)
+  testData=new("MicroPlate")
+  testData=addPlate(testData,newData=test)
   # begin the tests
   
  
@@ -145,7 +145,7 @@ test_that("Data.R_ novastar",{
   expect_error(testData[testData]) # column not num or char
   expect_error(testData[1,"idonotexist"]) # unspecified column name
   
-  testData=addData(testData,newData=test) # add more data
+  testData=addPlate(testData,newData=test) # add more data
   expect_equal(testData@.data$levelSize,c(1,12,600)*2) # test if things got doubled
   
   
@@ -257,7 +257,7 @@ test_that("Data.R_ novastar",{
 
 
 
-test_that("Data.R_ stress/compare tests",{
+test_that("MicroPlate.R_ stress/compare tests",{
   # its probably a bad idea to keep this in the stress test
   
   workspace = getwd()
@@ -266,9 +266,9 @@ test_that("Data.R_ stress/compare tests",{
   layoutData=readLayoutFile(file=file)
   file2=file.path(testdir, "3263.dbf")
   newData=novostar.dbf(path=file2)
-  testData=new("Data")
+  testData=new("MicroPlate")
   
-  system.time(replicate(50, addData(testData,newData=newData,layoutData=layoutData)))
+  system.time(replicate(50, addPlate(testData,newData=newData,layoutData=layoutData)))
   tdf=testData[] # 2MB ish
   
   system.time(replicate(1000,testData$value)) # 3 sec
@@ -292,7 +292,7 @@ test_that("Data.R_ stress/compare tests",{
   
   
   testData=new("Data")
-  system.time(replicate(100, addData(testData,newData=newData,layoutData=layoutData))) # 5sec
+  system.time(replicate(100, addPlate(testData,newData=newData,layoutData=layoutData))) # 5sec
   testData
   
   

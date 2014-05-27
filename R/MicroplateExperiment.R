@@ -11,13 +11,13 @@
 #' 
 #' TODO: maybe turn this into a singleton??
 #' 
-#' @include Data.R
+#' @include MicroPlate.R
 #' @include Operation.R
 #' @export
 MicroplateExperiment=setClass(
   Class = "MicroplateExperiment", 
   representation = representation( 
-    .mainData = "Data",
+    .mainData = "MicroPlate",
     .views = "list", # with more Data :)
     .operations="list" # with operations?? how to enforce?
   )

@@ -7,8 +7,8 @@ file=file.path(testdir, "KineticData.xls")
 test=novostar.xls(path=file)
 test
 
-testData=new("Data")
-testData=addData(testData,newData=test)
+testData=new("MicroPlate")
+testData=addPlate(testData,newData=test)
 
 xls=read.xls(file, stringsAsFactors=FALSE)
 
@@ -115,10 +115,10 @@ eval
 ##########
 
 
-testData=new("Data")
+testData=new("MicroPlate")
 test=list(row=1:2,column=1:2,measurement=list( list(value=1:5,temp=1:5,time=1:5),list(value=2,temp=1,time=1) ) )
-testData=addData(testData,newData=test)
-testData=addData(testData,newData=test)
+testData=addPlate(testData,newData=test)
+testData=addPlate(testData,newData=test)
 
 tdf=testData[]
 
@@ -263,9 +263,9 @@ file=file.path(testdir, "GJS_layout3263.tab")
 layoutData=readLayoutFile(file=file)
 file2=file.path(testdir, "3263.dbf")
 newData=novostar.dbf(path=file2)
-testData=new("Data")
-testData=addData(testData,newData=newData,layoutData=layoutData)
-testData=addData(testData,newData=newData,layoutData=layoutData)
+testData=new("MicroPlate")
+testData=addPlate(testData,newData=newData,layoutData=layoutData)
+testData=addPlate(testData,newData=newData,layoutData=layoutData)
 testData[]
 testData
 # 2 errors 
@@ -639,7 +639,7 @@ testData@.data
 testData
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGH!!!
 
-testData=new("Data")# works
+testData=new("MicroPlate")# works
 testData=addData(testData,newData=test) # this works.... 
 testData@.data
 #
@@ -657,7 +657,7 @@ workspace = getwd()
 testdir=file.path(workspace, "tests/testdata/enzymeAssays")
 file=file.path(testdir, "3263.dbf")
 test=novostar.dbf(path=file)
-testData=new("Data")
+testData=new("MicroPlate")
 testData=addData(testData,newData=test)
 testData@.data
 
