@@ -107,6 +107,30 @@ test_that("MicroPlate.R_ basic tests",{
   testData=addPlate(testData,newData=test)
   testData=addPlate(testData,newData=test)
   testData=addPlate(testData,newData=test, plateName="third plate")
+
+  # test remove function df[colname]=NULL
+  testData=new("MicroPlate")
+  test=list(row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )
+  testData=addPlate(testData,newData=test)
+#   testData["plateName"]=NULL # should make this give an error... # it already does :P
+  testData["row"]=NULL
+  expect_equal(dim(testData[]),c(2,5))
+  testData["temp"]=NULL
+  expect_equal(dim(testData[]),c(2,4))
+  testData[]
+  
+  # more remove
+  expect_error(removeColumn(testData,"124123")) # invalid column name
+  expect_error(removeColumn(testData,1000000000)) # invalid column number
+  expect_error(removeColumn(testData,testData)) # wrong data type
+  
+  # multiple row delete
+  testData=new("MicroPlate")
+  test=list(row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )
+  testData=addPlate(testData,newData=test)
+  testData[c("temp","row")]=NULL
+  expect_equal(dim(testData[]),c(2,4))
+
 })
 
 

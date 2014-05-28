@@ -10,7 +10,8 @@ Depends:
     foreign,
     gtools,
     testthat,
-    plyr
+    plyr,
+    gdata
 License: GPL-3
 Collate:
     'Operation.R'

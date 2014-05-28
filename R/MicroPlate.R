@@ -663,6 +663,63 @@ setMethod("[[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i
 })
 
 
+#' removeColumn
+#' 
+#' todo Colnumber
+#' todo add export 
+#' todo add multiple row delete...
+#' 
+#' @export
+setGeneric("removeColumn", function(self, colNames) standardGeneric("removeColumn")) 
+setMethod("removeColumn", signature(self = "MicroPlate" ), function(self, colNames) {
+  col=colNames
+  
+  # check col
+  if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character")){
+    stop(paste("col index should be a number or char, not a: ",class(col)))
+  }  
+  
+  # also change to names if numbers
+  if(class(col)!="character"){
+    # check if its a valid column number
+    if(max(col)>length(self@.data$colNames)){
+      stop(paste("microplate only has ", length(self@.data$colNames) ," columns, asked for column ", max(col), sep="",collapse=""))
+    }
+    col=self@.data$colNames[col]
+  }
+  
+  # check valid column names
+  if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,self@.data$colNames)]))>0 ) {
+    stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(self@.data$colNames,collapse=", "), sep=""))
+  }
+  
+  # check for reserved names
+  if (any(is.element(col,self@.data$reservedNames))){
+    stop(paste("The following names are reserved for other purposes!: ",paste(self@.data$reservedNames,sep=", "), sep=""))
+  }
+  
+  
+  
+  for(i in 1:length(col)) {
+    # determine level
+    level=self@.data$colLevel[self@.data$colNames==col[i]]
+    
+    if (level=="plate") {
+      self@.data$plate[[col[i]]]=NULL
+    } else if(level=="well") {
+      self@.data$data[[col[i]]]=NULL
+    } else if (level=="measurement") {
+      for(j in 1:length(self@.data$data$measurement)){
+        self@.data$data$measurement[[j]][[col[i]]]=NULL
+      }
+    }
+  }
+  # restore the balance
+  updateColnames(self)
+  return(self)
+})
+
+
 #' [<-
 #' overwrite the []<- function..
 #' 
@@ -787,6 +844,9 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
     stop(paste("The following names are reserved for other purposes!: ",paste(x@.data$reservedNames,sep=", "), sep=""))
   }
   
+  # check if its a column remove df[names]=NULL
+  if(is.null(value)) return(removeColumn(x,col))
+
 #   print(col)
 
   
