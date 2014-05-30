@@ -17,7 +17,7 @@
 #'
 #'  @export
 setGeneric("calculateAvarage", function(self,over="values", weq="content") standardGeneric("calculateAvarage")) 
-setMethod("calculateAvarage", signature(self = "Data"), function(self,over="values", weq="content"){
+setMethod("calculateAvarage", signature(self = "MicroPlate"), function(self,over="values", weq="content"){
   # calculate the average and the sd
   #
   df=self

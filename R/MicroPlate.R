@@ -39,12 +39,12 @@ library(plyr)
 #
 # adding contains data.frame changes:
 # > testData
-# An object of class "Data"
+# An object of class "MicroPlate"
 # Slot ".data":
 #   <environment: 0x5f248f0>
 # to:
 # > testData
-# Object of class "Data"
+# Object of class "MicroPlate"
 # data frame with 0 columns and 0 rows
 # Slot ".data":
 #   <environment: 0x537d728>
@@ -54,22 +54,22 @@ library(plyr)
 
 
 #
-#' Data
+#' MicroPlate
 #' 
-#' This class stores data
+#' This class stores microplate data
 #' 
 #' for memory reasons everything is to be stored in an enviroment .data
 #' all behaviour to acces the .data is overwritten to work with it...
 #' this means that once you have created an instance of a class you can copy it 
-#' and the data is still sotred at only 1 location
+#' and the data is still stored at only 1 location
 #' 
 #' columns 
 #' columns with list are recorded in their own lists
 #' 
 #' 
 #' @export
-Data=setClass(
-  Class = "Data", 
+MicroPlate=setClass(
+  Class = "MicroPlate", 
 #   contains = "data.frame", # S3 S4 conflicts??? it kinda doesnt work :P
   representation = representation(
 #     x="list", # data.frame has this???
@@ -81,7 +81,7 @@ Data=setClass(
 #   )
 )
 #' initialize
-setMethod("initialize", "Data", function(.Object){
+setMethod("initialize", "MicroPlate", function(.Object){
   # initialize the love!
   .Object@.data=new.env() # make sure it has its own little space
   .Object@.data$data=NULL # stores all well and measurement data!
@@ -111,7 +111,7 @@ setMethod("initialize", "Data", function(.Object){
 #' 
 #' @export
 setGeneric("createFromDataFrame", function(self,df=NULL) standardGeneric("createFromDataFrame")) 
-setMethod("createFromDataFrame", signature(self = "Data"), function(self,df=NULL){
+setMethod("createFromDataFrame", signature(self = "MicroPlate"), function(self,df=NULL){
   # check if the object is a data.frame
   if(class(df)!="data.frame") stop("not a data frame")
   
@@ -127,82 +127,22 @@ setMethod("createFromDataFrame", signature(self = "Data"), function(self,df=NULL
 })
 
 
-#' addData
+#' addPlate
 #' 
 #' stores data in the class instance
 #' if no data exist the data imported becomes the data
 #' else smartbind is used to add the data
 #' 
 #' TODO add more plate data...
-#' 
 #' @export
-setGeneric("addDataOld", function(self,newData=NULL, plateName=NULL, ...) standardGeneric("addDataOld")) 
-setMethod("addDataOld", signature(self = "Data"), function(self,newData=NULL, plateName=NULL, ...){
+setGeneric("addPlate", function(self,newData=NULL, layoutData=NULL,  plateName=NULL, ...) standardGeneric("addPlate")) 
+setMethod("addPlate", signature(self = "MicroPlate"), function(self,newData=NULL, layoutData=NULL, plateName=NULL, ...){
   # check newData names and compare them with the names currently in use
   # add new columns to existing data
   # fill those with NA for existing data
   if(is.null(self@.data$data)){ # is there already any data?
     # no! use data as new data!
-    print("new Data")
-    
-    self@.data$data=newData
-    self@.data$data$plate=rep(1,length(newData[[1]])) # create foreign keys
-    
-    if( is.null(plateName) ){
-      # generate platename  --> plate number=row number
-      self@.data$plate=data.frame(plateName=1)
-    } else {
-      # use plateName.... however plate still has
-      self@.data$plate=data.frame(plateName=plateName)
-    }
-  }else{
-    # yes! add data to excisting data!
-    print("adding to Data")
-    if( is.null(plateName) ){
-      # generate platename
-      # why does this one take my own smartbind.... i dont give it a Data, i give it a data.frame....
-      self@.data$plate=smartbind(self@.data$plate, data.frame(plateName=(self@.data$levelSize[self@.data$level=="plate"]+1)))
-    } else {
-      # use plateName....
-      # todo check if plateName is unique..
-      self@.data$plate=smartbind(data.frame(plateName=plateName))
-    }
-    bindParsedData(self,newData)
-  }
-  #
-  # update colnames
-  updateColnames(self)
-  
-  
-  
-  #
-  # adding stuff to and empty data.frame with smartbind creates a row with NA's....
-  # ...so it's not actually that smart :P 
-#   
-#   if(nrow(self@.data)==0){
-# #     print("empty .data, .data=newData")
-# #     print(newData)
-#     self@.data=newData
-#   }else{
-#     smartbind(self@.data, newData)
-#   }
-  return(self)
-})
-
-#' addData2
-#' 
-#' same as addData but now with experimental file
-#' 
-#' @export
-#' 
-setGeneric("addData", function(self,newData=NULL, layoutData=NULL,  plateName=NULL, ...) standardGeneric("addData")) 
-setMethod("addData", signature(self = "Data"), function(self,newData=NULL, layoutData=NULL, plateName=NULL, ...){
-  # check newData names and compare them with the names currently in use
-  # add new columns to existing data
-  # fill those with NA for existing data
-  if(is.null(self@.data$data)){ # is there already any data?
-    # no! use data as new data!
-    print("new Data")
+    print("new plate")
     
     self@.data$data=newData
     self@.data$data$plate=rep(1,length(newData[[1]])) # create foreign keys
@@ -216,7 +156,7 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL, layou
     }
   }else{
     # yes! add data to excisting data!
-    print("adding to Data")
+    print("adding to excisting plate data")
     if( is.null(plateName) ){
       # generate platename
       # why does this one take my own smartbind.... i dont give it a Data, i give it a data.frame....
@@ -283,83 +223,6 @@ setMethod("addData", signature(self = "Data"), function(self,newData=NULL, layou
 
 
 
-
-#' updateColnames
-#' 
-#' recursive loop to update colnames and other column/meta data
-#' 
-#' TODO: add reset to last level name if list not at end of eeuh the columns...
-#' TODO: remove recursives to more standard "well" model
-#' TODO: add plate... and increase levelSize of well for each plate... and recalculate measurements...
-#' 
-#' 
-#' @export
-setGeneric("updateColnamesOld", function(self, path=NULL, level=NULL) standardGeneric("updateColnamesOld")) 
-setMethod("updateColnamesOld", signature(self = "Data"), function(self, path=NULL, level=NULL){
-#   print("recursive curse!")
-#   print(path)
-  
-  currentPath=path
-  currentLevel=level
-  
-  if(is.null(path)){
-    # first time this method is called (root/top/main level)
-#     print("first time!")
-    #
-    # update 
-    currentPath="self@.data$data"
-    currentLevel="well" # default top level!
-    #
-    # reset meta data
-    self@.data$colNames=NULL
-    self@.data$colLevel=NULL
-    self@.data$colType=NULL
-    self@.data$level="well" # default top level is well
-    self@.data$levelNr=2
-    self@.data$levelSize=length(self@.data$data[[1]])
-    
-  } 
-  
-  currentLevelNames=names(eval(parse(text=currentPath)))
-  
-  for(i in 1:length(currentLevelNames)){
-      
-    dataType=eval(parse(text=paste("typeof(",currentPath,"[['",currentLevelNames[i],"']][",i,"])",sep="")))
-    
-#     print(currentLevelNames[i])
-    
-    if(dataType=="list"){
-#       print("list!")
-      nextPath=paste(currentPath,"$",currentLevelNames[i],"[[1]]",sep="") # the firest nested list
-      
-      # calculate that levels size
-#       len=eval(parse(text=paste("length(",currentPath,"[['",currentLevelNames[i],"']][",i,"][[1]][[1]])",sep="")))      
-      len=0
-      for(j in 1:self@.data$levelSize[1]){
-        len=len+eval(parse(text=paste("length(",currentPath,"[['",currentLevelNames[i],"']][[",j,"]][[1]])",sep="")))
-      }  
-      # add to level
-      self@.data$level=append(self@.data$level,currentLevelNames[i])
-      self@.data$levelNr=append(self@.data$levelNr,currentLevelNr[i])
-      self@.data$levelSize=append(self@.data$levelSize,len)
-        
-      # recursively call this
-      updateColnames(self,nextPath, currentLevelNames[i])
-    }
-    else {
-#       print("not a list!")
-      # add to metadata
-      self@.data$colNames=append(self@.data$colNames,currentLevelNames[i])
-      self@.data$colType=append(self@.data$colType,dataType)
-      self@.data$colLevel=append(self@.data$colLevel,currentLevel)
-    }
-    
-  }  
-  
-  return(self)
-})
-
-
 #' updateColnames
 #' 
 #' this method is responsible for updating colnames and meta data
@@ -367,7 +230,7 @@ setMethod("updateColnamesOld", signature(self = "Data"), function(self, path=NUL
 #'
 #' @export
 setGeneric("updateColnames", function(self) standardGeneric("updateColnames"))
-setMethod("updateColnames", signature(self = "Data"), function(self){
+setMethod("updateColnames", signature(self = "MicroPlate"), function(self){
   # TODO maybe add custom levels???
   # 
   # plate
@@ -405,11 +268,13 @@ setMethod("updateColnames", signature(self = "Data"), function(self){
 #' similar as plyr's smart bind, only then for the thing that the parsers provide...
 #' typing this kinda makes me realize that this might not be very functional... mmmmh...
 #'
-#' needs a new name as i don't bind 2 Data objects...
+#' needs a new name as i don't bind 2 MicroPlate objects...
+#'
+#' TODO TEST!!!
 #'
 #' @export
 setGeneric("bindParsedData", function(self,newData=NULL) standardGeneric("bindParsedData"))
-setMethod("bindParsedData", signature(self = "Data"), function(self, newData=NULL){
+setMethod("bindParsedData", signature(self = "MicroPlate"), function(self, newData=NULL){
   # TODO what about other plate info?
   # add a lot of checks!
   # what if one deletes column and the new column only has NA as length? instead of the true vector length?
@@ -512,7 +377,7 @@ setMethod("bindParsedData", signature(self = "Data"), function(self, newData=NUL
 #' 
 #' @export
 setGeneric("as.data.frame", function(self) standardGeneric("as.data.frame")) 
-setMethod("as.data.frame", signature(self = "Data"), function(self){
+setMethod("as.data.frame", signature(self = "MicroPlate"), function(self){
   return(self[])
 })
 
@@ -533,14 +398,14 @@ setMethod("as.data.frame", signature(self = "Data"), function(self){
 #' this function gives the data at the appropiate level "plate","well" or "measurement"
 #' collumns of a higher level will be repeated
 #' 
-#' @slot x - Data
+#' @slot x - MicroPlate
 #' @slot i - row - number only
 #' @slot j - column - use column number or column name
 #' @slot level - use this to force the data to be repeated for the appropiate level: "plate","well","measurement" 
 #'  
 #' 
 #' @export 
-setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, ...) {
+setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i , j, ...) {
   # without "..." nargs() does not work! 
   # even if df[] you still get 2 args...  
   args <- list(...)
@@ -774,7 +639,7 @@ setMethod("[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, .
 #' STILL VERY BUGGY!!!
 #' 
 #' @export 
-setMethod("[[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, ...) {
+setMethod("[[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i , j, ...) {
   if(missing(i) & missing(j)){
     # df[] and df[,]
     stop("df[[]] or df[[,]] CRASH!")
@@ -795,6 +660,63 @@ setMethod("[[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, 
     return(temp[[dim(temp)]])
   }
   stop("I should never get here. CRASH!")
+})
+
+
+#' removeColumn
+#' 
+#' todo Colnumber
+#' todo add export 
+#' todo add multiple row delete...
+#' 
+#' @export
+setGeneric("removeColumn", function(self, colNames) standardGeneric("removeColumn")) 
+setMethod("removeColumn", signature(self = "MicroPlate" ), function(self, colNames) {
+  col=colNames
+  
+  # check col
+  if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character")){
+    stop(paste("col index should be a number or char, not a: ",class(col)))
+  }  
+  
+  # also change to names if numbers
+  if(class(col)!="character"){
+    # check if its a valid column number
+    if(max(col)>length(self@.data$colNames)){
+      stop(paste("microplate only has ", length(self@.data$colNames) ," columns, asked for column ", max(col), sep="",collapse=""))
+    }
+    col=self@.data$colNames[col]
+  }
+  
+  # check valid column names
+  if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,self@.data$colNames)]))>0 ) {
+    stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(self@.data$colNames,collapse=", "), sep=""))
+  }
+  
+  # check for reserved names
+  if (any(is.element(col,self@.data$reservedNames))){
+    stop(paste("The following names are reserved for other purposes!: ",paste(self@.data$reservedNames,sep=", "), sep=""))
+  }
+  
+  
+  
+  for(i in 1:length(col)) {
+    # determine level
+    level=self@.data$colLevel[self@.data$colNames==col[i]]
+    
+    if (level=="plate") {
+      self@.data$plate[[col[i]]]=NULL
+    } else if(level=="well") {
+      self@.data$data[[col[i]]]=NULL
+    } else if (level=="measurement") {
+      for(j in 1:length(self@.data$data$measurement)){
+        self@.data$data$measurement[[j]][[col[i]]]=NULL
+      }
+    }
+  }
+  # restore the balance
+  updateColnames(self)
+  return(self)
 })
 
 
@@ -829,7 +751,7 @@ setMethod("[[", signature(x = "Data", i = "ANY", j = "ANY"), function(x, i , j, 
 #' 
 #' 
 #' @export 
-setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), function(x, i, j, ..., value) {
+setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), function(x, i, j, ..., value) {
   args <- list(...)
   col=NULL
   row=NULL
@@ -922,6 +844,9 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
     stop(paste("The following names are reserved for other purposes!: ",paste(x@.data$reservedNames,sep=", "), sep=""))
   }
   
+  # check if its a column remove df[names]=NULL
+  if(is.null(value)) return(removeColumn(x,col))
+
 #   print(col)
 
   
@@ -1213,7 +1138,7 @@ setMethod("[<-", signature(x = "Data", i = "ANY", j = "ANY",value="ANY"), functi
 #'
 #'
 #' @export
-setMethod("$", signature(x = "Data"), function(x, name) {
+setMethod("$", signature(x = "MicroPlate"), function(x, name) {
   # 
   # check if the col name is valid
   if(!any(x@.data$colNames==name)){
@@ -1257,7 +1182,7 @@ setMethod("$", signature(x = "Data"), function(x, name) {
 #' 
 #' 
 #' @export
-setMethod("$<-", signature(x = "Data"), function(x, name, value) {
+setMethod("$<-", signature(x = "MicroPlate"), function(x, name, value) {
   # check if its a valid colname
   if (any(x@.data$reservedNames==name)){
     stop(paste("The following names are reserved for other purposes!: ",paste(x@.data$reservedNames,sep=", "), sep=""))
@@ -1302,14 +1227,14 @@ setMethod("$<-", signature(x = "Data"), function(x, name, value) {
 
 #' overwrite colnames()
 #' @export
-setMethod("colnames", signature(x = "Data"), function(x) {
+setMethod("colnames", signature(x = "MicroPlate"), function(x) {
   return(x@.data$colNames)
 })
 
 
 #' overwrite colnames<-
 #' @export
-setMethod("colnames<-", signature(x = "Data"), function(x, value) {
+setMethod("colnames<-", signature(x = "MicroPlate"), function(x, value) {
   # TODO add checks! if its the same size as data... and you probably dont want to change this anyways...
   stop("no longer supported for now!")
   
@@ -1338,13 +1263,13 @@ setMethod("colnames<-", signature(x = "Data"), function(x, value) {
 #'
 #' still gives error:
 #' > testData
-#' Object of class "Data"
+#' Object of class "MicroPlate"
 #' Error in S3Part(object, strictS3 = TRUE) : 
-#'  S3Part() is only defined for classes set up by setOldCLass(), basic classes or subclasses of these:  not true of class “Data”
+#'  S3Part() is only defined for classes set up by setOldCLass(), basic classes or subclasses of these:  not true of class “MicroPlate”
 #' 
 #' 
 #' @export
-setMethod("show", signature(object = "Data"), function(object) {
+setMethod("show", signature(object = "MicroPlate"), function(object) {
   print("steal the show!!!")
   print(object@.data$data)
   print(object@.data$plate)
@@ -1354,7 +1279,7 @@ setMethod("show", signature(object = "Data"), function(object) {
 
 #' overwrite print()
 #' @export
-setMethod("print", signature(x = "Data"), function(x) {
+setMethod("print", signature(x = "MicroPlate"), function(x) {
 #   print("oooh you want to know my secrets???... well they are secret!!!")
 #   x@.data
   print(x@.data$data)
@@ -1366,7 +1291,7 @@ setMethod("print", signature(x = "Data"), function(x) {
 #' TODO: add huge amounts of checks and stuff
 #' @export
 setGeneric("plotPerWell", function(self) standardGeneric("plotPerWell")) 
-setMethod("plotPerWell", signature(self = "Data"), function(self){
+setMethod("plotPerWell", signature(self = "MicroPlate"), function(self){
   nrOfWells=self@.data$levelSize[self@.data$level=="well"]
   
   for(i in 1:nrOfWells){
@@ -1381,7 +1306,7 @@ setMethod("plotPerWell", signature(self = "Data"), function(self){
 #' TODO: add huge amounts of checks and stuff
 #' @export
 setGeneric("plotPerPlate", function(self) standardGeneric("plotPerPlate")) 
-setMethod("plotPerPlate", signature(self = "Data"), function(self){
+setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
   origenalPar=par() # backup plotting pars
   nrOfPlates=self@.data$levelSize[self@.data$level=="plate"]
   nrOfWells=self@.data$levelSize[self@.data$level=="well"]
@@ -1422,7 +1347,7 @@ setMethod("plotPerPlate", signature(self = "Data"), function(self){
 #' 
 #' @export
 setGeneric("MPApply", function(self, fun, ...) standardGeneric("MPApply")) 
-setMethod("MPApply", signature(self = "Data"), function(self, fun, ...){
+setMethod("MPApply", signature(self = "MicroPlate"), function(self, fun, ...){
 #   funcall=substitute(fun(...))
   x="time"
   y="value"

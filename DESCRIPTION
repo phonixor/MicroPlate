@@ -10,19 +10,19 @@ Depends:
     foreign,
     gtools,
     testthat,
-    plyr
+    plyr,
+    gdata
 License: GPL-3
 Collate:
     'Operation.R'
     'CustomOperation.R'
-    'Data.R'
+    'MicroPlate.R'
     'MicroplateExperiment.R'
     'MyClass.R'
     'OperationsBackups.R'
     'RemoveBlank.R'
     'curve-analysis.R'
     'generalFunctions.R'
-    'microplate.R'
     'parsers-Novostar.R'
     'parsers-Spectramax.R'
     'readLayoutFile.R'
