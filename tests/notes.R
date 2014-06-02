@@ -1,4 +1,21 @@
 
+############
+library(gdata)
+
+
+workspace = getwd()
+testdir=file.path(workspace, "tests/testdata/")
+file=file.path(testdir, "layout_test.xls")
+
+xls = read.xls(file,stringsAsFactors=FALSE, sheet=3) # FUCK FACTORS!!!
+xls 
+
+read.xls
+
+
+
+#####################
+
 
 # 
 workspace = getwd()
