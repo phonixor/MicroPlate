@@ -174,6 +174,7 @@ library(gdata)
     }
     l[["measurement"]][[row-4]]=temp
   }
+  l$row=lettersToNumber(l$row)# change letters to numbers
   return(l)
 }
 
