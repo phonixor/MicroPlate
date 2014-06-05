@@ -1,5 +1,311 @@
+#############
+# compare
+# smartbind[tdf[]] vs current
+
+workspace = getwd()
+testdir=file.path(workspace, "tests/testdata/enzymeAssays")
+file=file.path(testdir, "GJS_layout3263.tab")
+layoutData=readLayoutFile(file=file)
+file2=file.path(testdir, "3263.dbf")
+newData=novostar.dbf(path=file2)
+testData=new("MicroPlate")
+# testData=addPlate(testData,newData=newData)
+testData=addPlate(testData,newData=newData,layoutData=layoutData)
+tdf=testData[]
+
+
+tdf
+l=list()
+l$measurement=tdf[c("value","time","temp")]
+head(l$measurement)
+l$well=unique(tdf[c("row","column","content","basic","sample")])
+head(l$well)
+l$plate=data.frame(plateName=unique(tdf["plateName"]))
+l$well$b=((1:12)*50)-49
+l$well$e=((1:12)*50)
+l
+list=l
+i=1
+
+# new
+test=function(list){
+  l=list$measurement
+  temp=data.frame()
+  for(i in 1:dim(list$well)[1]){
+    for(k in 1:(list$well$e[[i]]-list$well$b[[i]]+1) )
+      temp=rbind(temp,list$well[i,])
+  }
+  l=cbind(temp,l)
+  return(l)
+}
+cookies=test(l)
+cookies
+dim(cookies)
+
+system.time(test(l)) # 0.295
+system.time(replicate(100,test(l))) # 29.734
+
+system.time(testData[]) #0.003
+system.time(replicate(100,testData[])) # 0.258
+
+system.time(tdf) #0
+system.time(replicate(100,tdf)) # 0.002
+
+
+test=function(list){
+  l=list$measurement
+  temp=data.frame()
+  for(i in 1:12){
+    for(k in 1:50)
+      temp=rbind(temp,list$well[i,])
+  }
+  l=cbind(temp,l)
+  return(l)
+}
+system.time(test(l)) # 0.317
+#eeeugh
+
+test=function(list){
+  l=list$measurement
+  temp=data.frame()
+  for(i in 1:12){
+    for(k in 1:50)
+      temp=append(temp,list$well[i,])
+  }
+  l=cbind(temp,l)
+  return(l)
+}
+system.time(test(l)) # 1.116
+# eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeugh
+
+
+temp=NULL
+temp=list()
+# temp=rep(append(temp,list$well[i,]),10)
+temp=replicate(10,append(temp,list$well[i,]))
+temp=t(temp)
+temp
+
+test=function(list){
+  l=list$measurement
+  temp=list()
+  for(i in 1:12){
+    test=list()
+    test=replicate(50,append(test,list$well[i,]))
+    temp=append(temp,test)
+  }
+  temp=t(temp)
+  l=cbind(temp,l)
+  return(l)
+}
+test(l)
+system.time(test(l)) # 1.807
+
+
+
+
+
+temp=data.frame()
+temp=rbind(temp,list$well[i,])
+temp=rbind(temp,list$well[i,])
+temp
+
+temp=data.frame()
+temp=replicate(n=10,expr=rbind(temp,list$well[i,])) # why doesnt this work!!!
+temp
+
+temp=data.frame()
+# temp=replicate(n=10,expr=rbind(temp,list$well[i,]),simplify=FALSE) # why doesnt this work!!!
+temp=rbind(temp,replicate(n=10,list$well[i,],simplify=FALSE))
+temp
+
+test=data.frame()
+replicate(n=10,list$well[i,])
+replicate(n=10,list$well[i,],simplify=FALSE)
+
+replicate(n=10,list$well[i,],simplify=FALSE)
+t(replicate(n=10,as.list(list$well[i,])))
+
+test=function(list){
+  l=list$measurement
+  temp=list()
+  for(i in 1:12){
+    temp=rbind(temp,t(replicate(n=50,as.list(list$well[i,]))))
+  }
+  l=cbind(temp,l)
+  return(l)
+}
+test(l)
+system.time(test(l)) # 0.073
+system.time(replicate(100,test(l))) # 7.901
+
+system.time(testData[]) #0.003
+system.time(replicate(100,testData[])) # 0.258
+
+#### why the speed difference????
+tdf
+x=testData
+
+lalala=function(x){
+  col=colnames(x)
+  row=NULL
+  returnValue=data.frame(matrix(nrow=600,ncol=9))
+  colnames(returnValue)=col
+  for(colnr in 1:length(col)){ # for each column
+    # always first fill tempdata with the whole column (at measurement level)
+    # then do the row select
+    level=x@.data$colLevel[x@.data$colNames==col[colnr]]
+    tempData=NULL
+    if (level=="well"){
+      # data at top level
+      #
+      # data has to be repeated for each measurement
+      for (i in 1:length(x@.data$data$measurement)){ # for each measurement
+        tempData=append(tempData,rep(x@.data$data[[col[colnr]]][[i]],length(x@.data$data$measurement[[i]][[1]])))
+      }
+    } else if(level=="measurement"){
+      # get whole column
+      for(i in 1:length(x@.data$data$measurement)){
+        tempData=append(tempData, x@.data$data$measurement[[i]][[col[colnr]]])
+      }
+    } else if(level=="plate"){
+      # repeat for each well*each measurement
+      for(i in 1:length(x@.data$data[[1]])){ # for each well
+        # get the corresponding plate values
+        data=x@.data$plate[x@.data$data$plate[[i]],col[colnr]]
+        tempData=append(tempData,rep(data,length(x@.data$data$measurement[[i]][[1]]))) # for each measurement
+      }
+      #         tempData=lapply(x@.data$data, function(x)returnValue=append(returnValue,x[[name]]))
+      tempData=c(tempData,recursive=T)
+    } else {
+      stop("data at unknown level... this error means a coding error as it should have been cought above!")
+    }
+    
+    if(is.null(row)){
+      # whole column
+      returnValue[,colnr]=tempData
+    } else {
+      # specific rows
+      returnValue[,colnr]=tempData[row]
+    }
+  }
+  return(returnValue)
+}
+
+lalala(testData)
+
+system.time(lalala(testData)) # 0.003
+system.time(replicate(100,lalala(testData))) # 0.246
+# ok so its prop not a package=compiled or something thing...
+
+
+temp=list()
+temp=rbind(temp,replicate(n=50,as.list(list$well[i,])))
+temp=rbind(temp,replicate(n=50,as.list(list$well[i,])))
+dim(temp) # nope...
+temp
+
+
+tdf
+l=list()
+for(i in c("value","time","temp") ){
+  l$measurement[[i]]=tdf[[i]]
+}
+tdf2=unique(tdf[c("row","column","content","basic","sample")])
+for(i in c("row","column","content","basic","sample") ){
+  l$well[[i]]=tdf2[[i]]
+}
+l$well$b=((1:12)*50)-49
+l$well$e=((1:12)*50)
+l$plate$plateName=unique(tdf[["plateName"]])
+l
+list=l
+
+test=function(list){
+  l=list$measurement
+  for(i in names(list$well)){
+    temp=list()
+    for(j in 1:length(list$well[[i]])){
+      l[[i]]=append(l[[i]],replicate(n=50,list$well[[i]][j]))
+    }
+  }
+  return(data.frame(l))
+}
+test(l)
+
+system.time(test(l)) # 0.012
+system.time(replicate(100,test(l))) # 1.232
+#... WTF!!!
+# is it the append thing???
+
+system.time(testData[]) # 0.003
+system.time(replicate(100,testData[])) # 0.275
+
+test=function(list){
+  l=data.frame(matrix(nrow=length(list$measurement[[1]]),ncol=length(list$measurement)+length(list$well)))
+  colnames(l)=append(names(list$measurement),names(list$well))
+  for(i in names(list$measurement)){
+    l[[i]]=list$measurement[[i]]
+  }
+  
+  for(i in names(list$well)){
+    index=1
+    for(j in 1:length(list$well[[i]])){
+#       print(replicate(n=50,list$well[[i]][j]))
+#       print(c(list$well[["b"]][j],list$well[["e"]][j]))
+#       print(l[c(list$well[["b"]][j],list$well[["e"]][j]),i])
+      l[index:(index+49),i]=replicate(n=50,list$well[[i]][j])
+      index=index+50
+    }
+  }
+  return(data.frame(l))
+}
+test(l)
+system.time(test(l)) # 0.017
+system.time(replicate(100,test(l))) # 1.927
+# why is this still so slow compared to other stuff...
+
+
+
+# 
+# 
+# 
+# 
+# 
+# temp=append(temp,rep(list$well[i,],10))
+# temp
+# 
+# temp=data.frame()
+# temp=rep(append(temp,list$well[i,]),10)
+# temp
+# 
+# temp=data.frame()
+# temp=replicate(n=10,expr=append(temp,list$well[i,]))
+# temp
+# 
+# temp=data.frame()
+# for (k in 1:10){
+#   temp=rbind(temp,list$well[i,])
+# }
+# temp
+
+
+
+####################
+# spectramax
+
+workspace = getwd()
+testdir=file.path(workspace, "tests/testdata/growth/")
+file=file.path(testdir, "20100114_data.txt")
+
+
+test=spectramax.txt(path=file)
+test
+
+
 
 ############
+# testing multi sheet xls files for layout
 library(gdata)
 
 
