@@ -133,11 +133,27 @@ test_that("MicroPlate.R_ basic tests",{
 
 })
 
+test_that("MicroPlate.R_additional_functions",{
+  testData=new("MicroPlate")
+  test=list(row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )
+  testData=addPlate(testData,newData=test)
+  # make the copy
+  testCopy=copy(testData)
+  expect_true(all(testCopy[]==testData[]))
+  # check if they behave indepently
+  testCopy@.data$data$column=c(2,2)
+  expect_true(!all(testCopy[]==testData[]))
+  testData@.data$data$column=c(2,2)
+  expect_true(all(testCopy[]==testData[]))
+  #
+  
+  
+})
 
 
 #
 # some more tests
-test_that("MicroPlate.R_ novastar",{
+test_that("MicroPlate.R_novastar",{
   # prepare
   workspace = getwd()
   testdir=file.path(workspace, "tests/testdata/enzymeAssays")

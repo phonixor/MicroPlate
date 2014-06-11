@@ -1,6 +1,68 @@
+test=data.frame(a=1:26, b=letters[1:26], c=rep("tada",26))
+test
+
+test=as.list(test)
+test
+
+
+##########
+# compare more
+# more compare
+
+workspace = getwd()
+testdir=file.path(workspace, "tests/testdata/enzymeAssays")
+file=file.path(testdir, "GJS_layout3263.tab")
+layoutData=readLayoutFile(file=file)
+file2=file.path(testdir, "3263.dbf")
+newData=novostar.dbf(path=file2)
+testData=new("MicroPlate")
+# testData=addPlate(testData,newData=newData)
+testData=addPlate(testData,newData=newData,layoutData=layoutData)
+tdf=testData[]
+
+
+tdf
+l=list()
+l$measurement=tdf[c("value","time","temp")]
+l$measurement$index=as.integer((0:599/50)+1)
+head(l$measurement)
+l$well=unique(tdf[c("row","column","content","basic","sample")])
+l$well$plateName=rep(1,12)
+head(l$well)
+l$plate=data.frame(plateName=unique(tdf["plateName"]))
+
+l
+
+# new
+test=function(list){
+  l=list$measurement
+  l=cbind(l,list$well[list$measurement$index,])
+  return(l)
+}
+cookies=test(l)
+cookies
+dim(cookies)
+
+system.time(test(l)) # 0.001
+system.time(replicate(100,test(l))) # 0.079
+
+system.time(testData[]) #0.003
+system.time(replicate(100,testData[])) # 0.258
+
+system.time(tdf) #0
+system.time(replicate(100,tdf)) # 0.002
+
+# new
+test=function(list){
+  temp=list$well
+  l=list$measurement
+  l=cbind(l,list$well[list$measurement$index,])
+  return(l)
+}
+
 #############
 # compare
-# smartbind[tdf[]] vs current
+
 
 workspace = getwd()
 testdir=file.path(workspace, "tests/testdata/enzymeAssays")

@@ -149,10 +149,10 @@ setMethod("addPlate", signature(self = "MicroPlate"), function(self,newData=NULL
     
     if( is.null(plateName) ){
       # generate platename  --> plate number=row number
-      self@.data$plate=data.frame(plateName="1", stringsAsFactors=F)
+      self@.data$plate=list(plateName="1")
     } else {
       # use plateName.... however plate still has
-      self@.data$plate=data.frame(plateName=plateName, stringsAsFactors=F)
+      self@.data$plate=list(plateName=plateName)
     }
   }else{
     # yes! add data to excisting data!
@@ -272,7 +272,6 @@ setMethod("updateColnames", signature(self = "MicroPlate"), function(self){
 #'
 #' TODO TEST!!!
 #'
-#' @export
 setGeneric("bindParsedData", function(self,newData=NULL) standardGeneric("bindParsedData"))
 setMethod("bindParsedData", signature(self = "MicroPlate"), function(self, newData=NULL){
   # TODO what about other plate info?
@@ -1368,7 +1367,42 @@ setMethod("MPApply", signature(self = "MicroPlate"), function(self, fun, ...){
 })
 
 
+#' copy
+#'
+#' make a copy of the microplate data instance
+#' this function is used to get around the default behaviour
+#' 
+#' @export
+setGeneric("copy", function(self) standardGeneric("copy")) 
+setMethod("copy", signature(self = "MicroPlate"), function(self){
+  copy=new("MicroPlate")
+  listOldVars=ls(envir=self@.data, all.names=T)
+  for(i in listOldVars){
+    copy@.data[[i]]=self@.data[[i]]
+  }
+  # this could even be an lapply?  
+  return(copy)
+})
 
+
+library("grofit")
+#' getGrowthRate
+#' 
+#' what if multiple wavelengths?
+#'
+#' @export
+setGeneric("getGrowthRate", function(self,...) standardGeneric("getGrowthRate")) 
+setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self,...){
+#   $model.type
+#   [1] "logistic"     "richards"     "gompertz"     "gompertz.exp"
+  for (i in 1:length(self@.data$data$measurement)){ # for each well
+    
+  }
+  grofit()
+  results=gcFit()
+  
+  return(self)
+})
 
 
 # setMethod("+",
