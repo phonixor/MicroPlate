@@ -1,8 +1,5 @@
-<html>
-<head>
-<title>MicroPlate</title>
-</head>
-<body>
+#MicroPlate
+
 this package is a set off tools to easily import and work with data from microplate readers
 
 it contains a set of parsers:
@@ -33,7 +30,4 @@ the data is easily converted into a dataframe
 
 
 
-
-</body>
-</html>
 
