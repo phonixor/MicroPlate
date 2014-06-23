@@ -1,3 +1,81 @@
+##############
+
+test=list(row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )
+testData=addPlate(testData,newData=test, test=1234, cookies=1423423)
+testData=addPlate(testData,newData=test, test=1234, cookies=1423423)
+colnames(testData)
+
+testData[]
+testData[level="well"]
+testData[level="plate"]
+
+testData
+
+
+
+
+
+testData=new("MicroPlate")
+test=list(row=1,column=1,measurement=list( list(value=1,temp=1,time=1)) )
+testData=addPlate(testData,newData=test, test=1234, cookies=1423423)
+tdf=testData[]
+
+tdf[1]
+tdf[1,1]
+tdf[,1]
+
+testData[1]
+testData[1,1] # leveled...
+testData[,1]
+
+tdf[2]
+tdf[1,2]
+
+testData[2]
+testData[1,2] # wrong data.frame with 1 element
+
+tdf[5]
+tdf[1,5]
+
+testData[5]
+testData[1,5] # wrong data.frame with 1 element
+
+# try again with multiple plates...
+testData=new("MicroPlate")
+test=list(row=1,column=1,measurement=list( list(value=1,temp=1,time=1)) )
+testData=addPlate(testData,newData=test, test=1234, cookies=1423423)
+testData=addPlate(testData,newData=test, test=1234, cookies=1423423)
+testData=addPlate(testData,newData=test, test=1234, cookies=1423423)
+testData=addPlate(testData,newData=test, test=1234, cookies=1423423)
+testData=addPlate(testData,newData=test, test=1234, cookies=1423423)
+testData=addPlate(testData,newData=test, test=1234, cookies=1423423)
+testData=addPlate(testData,newData=test, test=1234, cookies=1423423)
+testData=addPlate(testData,newData=test, test=1234, cookies=1423423)
+tdf=testData[]
+tdf[] # returns data.frame everything
+tdf[1] # returns data.frame first column
+tdf[1,1] # returns object as type of the object...
+tdf[,1] # returns a vector of the first column
+tdf[1,] # returns a data.frame of the first row # eeeeeugh... that is odd....
+tdf[2:4] # returns a data.frame with 3 columns
+tdf[1,2:4] # returns a data.frame of the first row of 3 colums
+tdf[2:4,2:4] # returns a 3x3 data.frame
+tdf[2:4,1] # returns a vector of 2:4 row and 1st column
+tdf[,2:4] # returns a data.frame with 3 columns
+
+
+
+
+(testData[1,2]+3)[1,1] # might not cause many bugs... but it looks awefull!
+
+
+
+
+
+
+
+
+##############
 test=data.frame(a=1:26, b=letters[1:26], c=rep("tada",26))
 test
 

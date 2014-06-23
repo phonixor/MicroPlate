@@ -22,14 +22,53 @@
 # 
 # 
 #
-#
-#
-#
+library(gdata)
+library(readODS)
+
 #' Read Experiment File
-#' 
+#'
 #' @export
 setGeneric("readLayoutFile", function(file=NULL) standardGeneric("readLayoutFile")) 
 setMethod("readLayoutFile", signature(), function( file=NULL){
+  # deteremine filetype
+  splitedFile=unlist(strsplit(file,split = ".",fixed=TRUE))
+  extention=casefold(splitedFile[length(splitedFile)], upper = FALSE)
+#   print(extention)
+  
+  if(extention=="xls" || extention=="xlsx"){
+    # uses gdata
+    data=list()
+    for(i in 1:sheetCount(file)){
+      data[[i]]=read.xls(file, sheet=i, stringsAsFactors=FALSE, header=FALSE, blank.lines.skip=FALSE)
+    }
+    
+    
+  }else if(extention=="ods"){
+    # uses readODS
+    data=read.ods(file)
+    
+  }else if(extention=="csv" || extention=="txt"){
+    # 
+    
+  }else{
+    stop("Unknown file type, please make sure the file has a proper extention.\n supported extentions are sheet formats: xls,xlsx & ods. comma seperated files: csv & txt")
+  }
+  
+  print(data)
+  
+  
+  
+    
+})
+  
+
+
+
+#' Read Experiment File
+#' 
+#' @export
+setGeneric("readLayoutFile2", function(file=NULL) standardGeneric("readLayoutFile2")) 
+setMethod("readLayoutFile2", signature(), function( file=NULL){
   # maybe change it to get restricted names from Data...
   # though row and column arent their...
   reservedVariables=c("plate","well","measurement","row","column")

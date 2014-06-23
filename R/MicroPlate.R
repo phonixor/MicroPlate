@@ -102,8 +102,6 @@ setMethod("initialize", "MicroPlate", function(.Object){
 })
 
 
-
-
 #' createFromDataFrame
 #' 
 #' doesnt work!
@@ -137,6 +135,10 @@ setMethod("createFromDataFrame", signature(self = "MicroPlate"), function(self,d
 #' @export
 setGeneric("addPlate", function(self,newData=NULL, layoutData=NULL,  plateName=NULL, ...) standardGeneric("addPlate")) 
 setMethod("addPlate", signature(self = "MicroPlate"), function(self,newData=NULL, layoutData=NULL, plateName=NULL, ...){
+  plateCols=list(...)
+  print(plateCols)
+  newPlateData=list()
+  
   # check newData names and compare them with the names currently in use
   # add new columns to existing data
   # fill those with NA for existing data
@@ -159,14 +161,15 @@ setMethod("addPlate", signature(self = "MicroPlate"), function(self,newData=NULL
     print("adding to excisting plate data")
     if( is.null(plateName) ){
       # generate platename
-      # why does this one take my own smartbind.... i dont give it a Data, i give it a data.frame....
-      self@.data$plate=smartbind(self@.data$plate, data.frame(plateName=(self@.data$levelSize[self@.data$level=="plate"]+1),stringsAsFactors=F))
+      newPlateData=list(plateName=(self@.data$levelSize[self@.data$level=="plate"]+1))
+#       self@.data$plate=smartbind(self@.data$plate, data.frame(),stringsAsFactors=F))
     } else {
       # use plateName....
       # todo check if plateName is unique..
-      self@.data$plate=smartbind(self@.data$plate, data.frame(plateName=plateName,stringsAsFactors=F))
+      newPlateData=list(plateName=plateName)
+#       self@.data$plate=smartbind(self@.data$plate, data.frame(plateName=plateName,stringsAsFactors=F))
     }
-    bindParsedData(self,newData)
+    bindParsedData(self,newData,newPlateData)
   }
   # update colnames
   updateColnames(self)
@@ -237,7 +240,7 @@ setMethod("updateColnames", signature(self = "MicroPlate"), function(self){
   self@.data$level="plate"
   self@.data$levelNr=3 # measurement=1, well=2, plate=3
   self@.data$levelSize=length(self@.data$plate[[1]])
-  self@.data$colNames=colnames(self@.data$plate)
+  self@.data$colNames=names(self@.data$plate)
   self@.data$colLevel=rep("plate",length(self@.data$plate))
   self@.data$colLevelNr=rep(3,length(self@.data$plate))
   #
@@ -268,28 +271,34 @@ setMethod("updateColnames", signature(self = "MicroPlate"), function(self){
 #' similar as plyr's smart bind, only then for the thing that the parsers provide...
 #' typing this kinda makes me realize that this might not be very functional... mmmmh...
 #'
-#' needs a new name as i don't bind 2 MicroPlate objects...
 #'
 #' TODO TEST!!!
 #'
-setGeneric("bindParsedData", function(self,newData=NULL) standardGeneric("bindParsedData"))
-setMethod("bindParsedData", signature(self = "MicroPlate"), function(self, newData=NULL){
+setGeneric("bindParsedData", function(self,wellData=NULL, plateData=NULL) standardGeneric("bindParsedData"))
+setMethod("bindParsedData", signature(self = "MicroPlate"), function(self, wellData=NULL, plateData=NULL){
   # TODO what about other plate info?
   # add a lot of checks!
   # what if one deletes column and the new column only has NA as length? instead of the true vector length?
   #
   # TODO check what if columns at different level? move to smallest?
   
-  nrOfNewWells=length(newData[[1]])
+  nrOfNewWells=length(wellData[[1]])
+  nrOfNewPlates=length(plateData[[1]])
   nrOfWells=self@.data$levelSize[self@.data$level=="well"]
+  nrOfPlates=self@.data$levelSize[self@.data$level=="plate"]
   plateNumber=self@.data$levelSize[self@.data$level=="plate"]+1 #this needs change
   
-  colsWell=names(newData)
-  colsMeasurement=names(newData$measurement[[1]])
+  
+  colsPlate=names(plateData)
+  colsWell=names(wellData)
+  colsMeasurement=names(wellData$measurement[[1]])
+  newColsPlate=colsPlate[!(colsPlate %in% self@.data$colNames[self@.data$colLevel=="plate"])]
   newColsWell=colsWell[!(colsWell %in% self@.data$colNames[self@.data$colLevel=="well"])]
   newColsMeasurement=colsMeasurement[!(colsMeasurement %in% self@.data$colNames[self@.data$colLevel=="measurement"])]
+  missingColsPlate=self@.data$colNames[self@.data$colLevel=="plate"][!(self@.data$colNames[self@.data$colLevel=="plate"] %in% colsPlate)]
   missingColsWell=self@.data$colNames[self@.data$colLevel=="well"][!(self@.data$colNames[self@.data$colLevel=="well"] %in% colsWell)]
   missingColsMeasurement=self@.data$colNames[self@.data$colLevel=="measurement"][!(self@.data$colNames[self@.data$colLevel=="measurement"] %in% colsMeasurement)]
+  existingColsPlate=colsPlate[(colsPlate %in% self@.data$colNames[self@.data$colLevel=="plate"])]
   existingColsWell=colsWell[(colsWell %in% self@.data$colNames[self@.data$colLevel=="well"])]
 #   existingColsMeasurement=colsMeasurement[is.element(colsMeasurement,self@.data$colNames)] # this one is kinda useless
 
@@ -315,20 +324,40 @@ setMethod("bindParsedData", signature(self = "MicroPlate"), function(self, newDa
 #   print("")
 #   print("existingColsWell")
 #   print(existingColsWell)
-
-
+  
+  # plate
+  if(length(newColsPlate)>0){
+    for(i in 1:length(newColsPlate)){
+      # create new column
+      # fill existing plate columns with NA and add the new data
+      self@.data$plate[[newColsPlate[i]]]=append(rep(x=NA,nrOfPlates),plateData[[newColsPlate[i]]])
+    }
+  }
+  if(length(missingColsPlate)>0){
+    for(i in 1:length(missingColsPlate)){
+      # fill the existing columns for which the newData has no data with NA
+      self@.data$plate[[missingColsPlate[i]]]=append(self@.data$plate[[missingColsPlate[i]]],rep(x=NA,nrOfNewWells))
+    }
+  }
+  if(length(existingColsPlate)>0){ # this should always be the case as row and column are mandatory...
+    for(i in 1:length(existingColsPlate)){
+      # add newData to existing columns
+      self@.data$plate[[existingColsPlate[i]]]=append(self@.data$plate[[existingColsPlate[i]]],plateData[[existingColsPlate[i]]])
+    }
+  }
+  
   # Well
   self@.data$data$plate=append(self@.data$data$plate, rep(x=plateNumber,nrOfNewWells)) # generate foreign key
-  for(i in 1:length(newColsWell)){
+  for(i in 1:length(newColsWell)){ # measurement is seen as a new column
     # create new column
     # fill the existing wells with NA and add the new data
     
     # note that: newColsWell contains measurement!
     if(newColsWell[i]=="measurement"){
       # combine the measurement columns in at the well level
-      self@.data$data$measurement=append(self@.data$data$measurement,newData$measurement)
+      self@.data$data$measurement=append(self@.data$data$measurement,wellData$measurement)
     } else {
-      self@.data$data[[newColsWell[i]]]=append(rep(x=NA,nrOfWells),newData[[newColsWell[i]]])
+      self@.data$data[[newColsWell[i]]]=append(rep(x=NA,nrOfWells),wellData[[newColsWell[i]]])
     }
   }
   if(length(missingColsWell)>0){
@@ -340,7 +369,7 @@ setMethod("bindParsedData", signature(self = "MicroPlate"), function(self, newDa
   if(length(existingColsWell)>0){ # this should always be the case as row and column are mandatory...
     for(i in 1:length(existingColsWell)){
       # add newData to existing columns
-      self@.data$data[[existingColsWell[i]]]=append(self@.data$data[[existingColsWell[i]]],newData[[existingColsWell[i]]])
+      self@.data$data[[existingColsWell[i]]]=append(self@.data$data[[existingColsWell[i]]],wellData[[existingColsWell[i]]])
     }
   }
   # adding NA to empty spaces
@@ -365,19 +394,11 @@ setMethod("bindParsedData", signature(self = "MicroPlate"), function(self, newDa
       }
     }
   }
+
+
+
   updateColnames(self)
   
-})
-
-
-#' as.data.frame()
-#' 
-#' 
-#' 
-#' @export
-setGeneric("as.data.frame", function(self) standardGeneric("as.data.frame")) 
-setMethod("as.data.frame", signature(self = "MicroPlate"), function(self){
-  return(self[])
 })
 
 
@@ -540,11 +561,10 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
   if(lowestLevel==3){ # plate
     if(is.null(row)){
       # whole column
-      # TODO return as true data frame...
-      return(x@.data$plate[,col])
+      return(as.data.frame(x@.data$plate)[col])
     } else {
       # specific rows
-      return(x@.data$plate[row,col])
+      return(as.data.frame(x@.data$plate)[row,col])
     }
     
   }else if (lowestLevel==2){ # well
@@ -606,7 +626,7 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
         # repeat for each well*each measurement
         for(i in 1:length(x@.data$data[[1]])){ # for each well
           # get the corresponding plate values
-          data=x@.data$plate[x@.data$data$plate[[i]],col[colnr]]
+          data=as.data.frame(x@.data$plate)[x@.data$data$plate[[i]],col[colnr]]
           tempData=append(tempData,rep(data,length(x@.data$data$measurement[[i]][[1]]))) # for each measurement
         }
         #         tempData=lapply(x@.data$data, function(x)returnValue=append(returnValue,x[[name]]))
@@ -1269,8 +1289,9 @@ setMethod("colnames<-", signature(x = "MicroPlate"), function(x, value) {
 #' 
 #' @export
 setMethod("show", signature(object = "MicroPlate"), function(object) {
-  print("steal the show!!!")
+  print("well+measurement data:")
   print(object@.data$data)
+  print("plate data:")
   print(object@.data$plate)
   return(object)
 })
@@ -1281,8 +1302,7 @@ setMethod("show", signature(object = "MicroPlate"), function(object) {
 setMethod("print", signature(x = "MicroPlate"), function(x) {
 #   print("oooh you want to know my secrets???... well they are secret!!!")
 #   x@.data
-  print(x@.data$data)
-  return(x)
+  return(show(x))
 })
 
 #' plotPerWell
