@@ -9,13 +9,13 @@ Description: More about what it does (maybe more than one line)
 Depends:
     foreign,
     gtools,
-    testthat,
     plyr,
     gdata
 License: GPL-3
 Suggests:
     devtools,
-    testthat
+    testthat,
+    roxygen2
 Collate:
     'Operation.R'
     'CustomOperation.R'

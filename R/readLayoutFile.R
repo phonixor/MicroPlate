@@ -22,45 +22,271 @@
 # 
 # 
 #
+
 library(gdata)
 library(readODS)
-
 #' Read Experiment File
 #'
 #' @export
+#' @import gdata readODS
 setGeneric("readLayoutFile", function(file=NULL) standardGeneric("readLayoutFile")) 
 setMethod("readLayoutFile", signature(), function( file=NULL){
   # deteremine filetype
   splitedFile=unlist(strsplit(file,split = ".",fixed=TRUE))
   extention=casefold(splitedFile[length(splitedFile)], upper = FALSE)
 #   print(extention)
-  
+  spreadsheet=NULL
   if(extention=="xls" || extention=="xlsx"){
     # uses gdata
-    data=list()
+    spreadsheet=list()
     for(i in 1:sheetCount(file)){
-      data[[i]]=read.xls(file, sheet=i, stringsAsFactors=FALSE, header=FALSE, blank.lines.skip=FALSE)
+      spreadsheet[[i]]=read.xls(file, sheet=i, stringsAsFactors=FALSE, header=FALSE, blank.lines.skip=FALSE)
+      #does blank.lines.skip actually work?
     }
-    
     
   }else if(extention=="ods"){
     # uses readODS
-    data=read.ods(file)
+    spreadsheet=read.ods(file)
     
   }else if(extention=="csv" || extention=="txt"){
     # 
-    
+#     print("csv / txt not implemented atm...")
+    # need to test this :)
+    spreadsheet=read.csv(file, stringsAsFactors=FALSE, header=FALSE)
   }else{
     stop("Unknown file type, please make sure the file has a proper extention.\n supported extentions are sheet formats: xls,xlsx & ods. comma seperated files: csv & txt")
   }
   
-  print(data)
+  #TODO remove empty sheets
   
+  print(spreadsheet)
   
-  
+  nrOfPlates=length(spreadsheet)
+  for(sheet in spreadsheet){
+    print("next sheet!")
+
+    nrOfRows=dim(sheet)[1] # rows of the sheet, not of the plate
+    nrOfColumn=dim(sheet)[2] # cols of the sheet = cols of the plate
     
-})
+    data=NULL
+    
+    cols=NULL
+    rowLock=TRUE
+    rows=NULL
+    
+    index=0
+    continue=TRUE
+    while(continue){
+      index=index+1
+      # 
+      # 
+      if(trim(sheet[index,1])==""){ # empty line ignore
+        #       print("ignore empty line")
+      } else if(sheet[index,1]=="#"){ # comment line ignore
+        #       print("comment line ignore")
+      } else if(sheet[index,1]==">"){ # well data
+        # add variable name to list
+        dataNames=append(dataNames,sheet[index,2])
+        currentName=sheet[index,2]
+        #       data[[currentName]]=NULL
+        print(paste("parsing:", currentName))
+        #
+        #
+        # assume next line is the column list
+        index=index+1      
+        # use the first column list to check if it is consistent for all future variables.
+        # col names/number should start with a "#" 
+        if(sheet[index,1]=="#"){
+          if(is.null(cols)){
+            # set cols 
+            cols=sheet[index,2:nrOfColumn]
+          } else {
+            # check cols
+            if(any(cols!=sheet[index,2:nrOfColumn]))stop("columns are not consistent")
+          }
+        } else stop("wrong format!")
+        
+        
+        # convert to numbers
+        if(all(suppressWarnings(!is.na(as.numeric(cols))))){
+          cols=as.numeric(cols)
+        } else {
+          # asume that its in the A=1, B=2 etc format
+          cols=lettersToNumber(cols)
+          if(any(is.na(cols))){
+            error("unsupported column names, use letters or numbers")
+          }
+        }
+        
+        # get data
+        while(TRUE){
+          index=index+1
+          #
+          # check if done
+          if(index>=nrOfRows || sheet[index,1]==">" || sheet[index,1]=="" || sheet[index,1]=="#"){ # end of data
+            # end of data section 
+            rowLock=TRUE
+            index=index-1# row back!
+            break # stop!
+          }else{
+            # do some checks
+            if(!rowLock){
+              # add stuff to row
+              rows=append(rows,sheet[index,1])
+            }else{
+              # check if row names/numbers are the same 
+#               if(rows[...]==sheet[index,1]){
+#                 stop("row names inconsistent")
+#               }
+            }
+            # add the data!
+            data[[currentName]]=append(data[[currentName]],sheet[index,2:nrOfCols])
+          }
+        
+        }# data section loop
+        
+      }# data section including >
+      #stop condition
+      if(index>=nrOfColumn) continue=FALSE
+      
+      
+      
+    }#sheet
+    
+    print(data)
+    # smartbind data or something...
+    
+    
+  }#spreadsheet
   
+})
+
+
+
+
+
+# 
+#   
+#   # maybe change it to get restricted names from Data...
+#   # though row and column arent their...
+#   reservedVariables=c("plate","well","measurement","row","column")
+#   #
+#   # storage
+#   dataNames=NULL
+#   #
+#   # 
+#   rows=NULL
+#   rowLock=FALSE
+#   nrOfRows=0
+#   cols=NULL
+#   
+#   errorList=NULL
+#   #
+#   #
+#   index=1
+#   line=lines[index]
+#   continue=TRUE
+#   #
+#   while (continue){
+#     
+#     
+#     
+#     if(trim(line)==""){ # empty line ignore
+#       #       print("ignore empty line")
+#     } else if(substring(line,1,1)=="#"){ # comment line ignore
+#       #       print("comment line ignore")
+#     } else if(substring(line,1,1)==">"){ # variable
+#       # add variable name to list
+#       #       print(line)
+#       line=listFromLine(line)
+#       #       print(typeof(line))
+#       #       print(class(line))
+#       #       print(line)
+#       #       print(line[2])
+#       #       print(line[[2]])
+#       dataNames=append(dataNames,line[2])
+#       currentName=line[2]
+#       #       data[[currentName]]=NULL
+#       print(paste("parsing:", currentName))
+#       # assume next line is the column list
+#       index=index+1
+#       line=listFromLine(lines[index])
+#       if(substring(line[1],1,1)=="#"){
+#         if(!colLock){
+#           # set cols
+#           cols=line[2:length(line)]
+#           colLock=TRUE
+#           print(paste("nr of cols =",length(cols)))
+#         } else {
+#           # check cols
+#           if(any(cols!=line[2:length(line)])){
+#             stop("columns are not consistent")
+#           }
+#         }
+#       } else {
+#         stop("column line expected after a > line")
+#       }
+#       
+# 
+#     } else {
+#       warning("the end or dont know what todo...")
+#     }
+#     
+#     # prepare for next line
+#     index=index+1
+#     line=lines[index]
+#     
+#     if(is.na(line)){# end of file
+#       continue=FALSE
+#       # finish up...
+#     } 
+#   } # main while loop
+#   
+#   # convert to numbers
+#   if(all(suppressWarnings(!is.na(as.numeric(cols))))){
+#     cols=as.numeric(cols)
+#   } else {
+#     # asume that its in the A=1, B=2 etc format
+#     cols=lettersToNumber(cols)
+#     if(any(is.na(cols))){
+#       error("unsupported column names, use letters or numbers")
+#     }
+#   }
+#   
+#   # convert to numbers
+#   if(all(suppressWarnings(!is.na(as.numeric(rows))))){
+#     rows=as.numeric(rows)
+#   } else {
+#     # asume that its in the A=1, B=2 etc format
+#     rows=lettersToNumber(rows)
+#     if(any(is.na(rows))){
+#       error("unsupported row names, use letters or numbers")
+#     }
+#   }  
+#   
+#   #
+#   #
+#   # finishing convert data to proper table
+#   for (i in 1:length(rows))
+#   {
+#     for(j in 1:length(cols)){
+#       data[["column"]]=append(data[["column"]],cols[j])
+#       data[["row"]]=append(data[["row"]],rows[i])
+#     }
+#   }
+#   #   data[["col"]]=rep(length(rows),cols)
+#   #   data[["row"]]=rep(length(cols),rows)
+#   
+#   # convert to data.frame
+#   data=data.frame(data,stringsAsFactors=FALSE)
+#   
+#   return(data)
+#   
+#   
+#   
+#   
+# })
+#   
 
 
 

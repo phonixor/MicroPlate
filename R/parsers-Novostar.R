@@ -23,20 +23,14 @@
 #
 # 
 
-## Functions for reading dbf files created by Novostar readers
+
 library(foreign)
-
-
-
-
-
-
-
 #' a parser for the novostar platereader's dbf files
 #' 
 #' TODO better plate identification
 #' 
 #'  @export
+#'  @import foreign
 "novostar.dbf"=function(path=NULL,name=Null){
   #   print(path)
   # extract data (with function from the foreign package)
@@ -90,9 +84,6 @@ library(foreign)
 }
 
 
-
-
-
 library(gdata)
 #' a parser for the novostar platereader's xls files
 #' 
@@ -100,6 +91,7 @@ library(gdata)
 #' TODO: seconds/days
 #' 
 #' @export
+#' @import gdata
 "novostar.xls"=function(path=NULL,name=Null){
   xls = read.xls(path,stringsAsFactors=FALSE) # FUCK FACTORS!!!
   # appears to ingnore empty rows
@@ -179,17 +171,6 @@ library(gdata)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
 #' a parser for the novostar platereader's dbf files
 #' 
 #' TODO better plate identification
@@ -261,6 +242,7 @@ extractPlateCoordinates=function(wellName){
   row=match(casefold(row),letters) # convert B to 2
   return(c(row,column))
 }
+
 
 #' The SampleFrame class
 #' @export

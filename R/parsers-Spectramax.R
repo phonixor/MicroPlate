@@ -86,10 +86,6 @@
   }
 
 
-
-
-
-
 ## "time" text file output produced by Spectramax
 #' @export
 "spectramax.txt_OLD" <- 
@@ -181,6 +177,7 @@
   } else stop("Argument ", sQuote('paths'), " not defined")
   return(output)
 }
+
 
 #"spectramax.xml" <- function(
 #  paths=NULL, variables=list(

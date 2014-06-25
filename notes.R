@@ -1,3 +1,23 @@
+
+###
+
+file=paste(getwd(),"/tests/testdata/testproject/layout_test.ods",sep="")
+test=readLayoutFile(file)
+
+file=paste(getwd(),"/tests/testdata/testproject/layout_test.ods",sep="")
+read.ods(file)
+
+
+
+
+################
+test=c(1,2,3,4)
+test=append(test,c(5,6,7))
+test
+
+
+
+
 ##############
 
 test=list(row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )

@@ -1,5 +1,7 @@
 library(gtools)
+library(grofit)
 library(plyr)
+
 #
 # Data stores everything!
 # hopefully on different levels...
@@ -68,6 +70,7 @@ library(plyr)
 #' 
 #' 
 #' @export
+#' @import gtools plyr grofit
 MicroPlate=setClass(
   Class = "MicroPlate", 
 #   contains = "data.frame", # S3 S4 conflicts??? it kinda doesnt work :P
@@ -1246,6 +1249,7 @@ setMethod("$<-", signature(x = "MicroPlate"), function(x, name, value) {
 
 #' overwrite colnames()
 #' @export
+setGeneric("colnames", function(x) standardGeneric("colnames")) 
 setMethod("colnames", signature(x = "MicroPlate"), function(x) {
   return(x@.data$colNames)
 })
@@ -1253,6 +1257,7 @@ setMethod("colnames", signature(x = "MicroPlate"), function(x) {
 
 #' overwrite colnames<-
 #' @export
+setGeneric("colnames<-", function(x, value) standardGeneric("colnames<-")) 
 setMethod("colnames<-", signature(x = "MicroPlate"), function(x, value) {
   # TODO add checks! if its the same size as data... and you probably dont want to change this anyways...
   stop("no longer supported for now!")
@@ -1299,11 +1304,13 @@ setMethod("show", signature(object = "MicroPlate"), function(object) {
 
 #' overwrite print()
 #' @export
+setGeneric("print", function(x) standardGeneric("print")) 
 setMethod("print", signature(x = "MicroPlate"), function(x) {
 #   print("oooh you want to know my secrets???... well they are secret!!!")
 #   x@.data
   return(show(x))
 })
+
 
 #' plotPerWell
 #' 
@@ -1319,6 +1326,7 @@ setMethod("plotPerWell", signature(self = "MicroPlate"), function(self){
   }
   return(self)
 })
+
 
 #' plotPerPlate
 #' 
@@ -1405,7 +1413,6 @@ setMethod("copy", signature(self = "MicroPlate"), function(self){
 })
 
 
-library("grofit")
 #' getGrowthRate
 #' 
 #' what if multiple wavelengths?
