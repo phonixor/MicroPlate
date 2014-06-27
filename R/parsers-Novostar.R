@@ -93,6 +93,7 @@ library(gdata)
 #' @export
 #' @import gdata
 "novostar.xls"=function(path=NULL,name=Null){
+  print("novostar.xls!!!")
   xls = read.xls(path,stringsAsFactors=FALSE) # FUCK FACTORS!!!
   # appears to ingnore empty rows
   #   print(head(xls)[1:10])

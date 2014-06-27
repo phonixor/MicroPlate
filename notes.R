@@ -9,6 +9,10 @@ read.ods(file)
 
 
 
+file=paste(getwd(),"/tests/testdata/testproject/layout.xls",sep="")
+test=readLayoutFile(file)
+
+
 
 ################
 test=c(1,2,3,4)

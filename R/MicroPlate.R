@@ -181,6 +181,8 @@ setMethod("addPlate", signature(self = "MicroPlate"), function(self,newData=NULL
   # add experimental layout file with more information about each well
   if(!is.null(layoutData)){
     # check length
+    print(dim(layoutData)[1])
+    
     if(length(newData[[1]])==dim(layoutData)[1]){
       # files are equal in length, nice!
     }else if( length(newData[[1]])==length(which(layoutData$basic!="empty"))[1] ){

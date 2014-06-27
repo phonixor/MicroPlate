@@ -22,6 +22,11 @@
 # 
 # 
 #
+# todo check restricted names
+# todo fix .ods
+# todo fix .csv
+
+
 
 library(gdata)
 library(readODS)
@@ -29,8 +34,10 @@ library(readODS)
 #'
 #' @export
 #' @import gdata readODS
-setGeneric("readLayoutFile", function(file=NULL) standardGeneric("readLayoutFile")) 
-setMethod("readLayoutFile", signature(), function( file=NULL){
+#' @include MicroPlate.R
+setGeneric("readLayoutFile", function(file=NULL, existingMicroPlate) standardGeneric("readLayoutFile")) 
+setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=NULL){
+  if(missing(existingMicroPlate)) existingMicroPlate=NULL
   # deteremine filetype
   splitedFile=unlist(strsplit(file,split = ".",fixed=TRUE))
   extention=casefold(splitedFile[length(splitedFile)], upper = FALSE)
@@ -59,16 +66,19 @@ setMethod("readLayoutFile", signature(), function( file=NULL){
   
   #TODO remove empty sheets
   
-  print(spreadsheet)
+#   print(spreadsheet)
   
   nrOfPlates=length(spreadsheet)
+  
+
   for(sheet in spreadsheet){
     print("next sheet!")
 
     nrOfRows=dim(sheet)[1] # rows of the sheet, not of the plate
-    nrOfColumn=dim(sheet)[2] # cols of the sheet = cols of the plate
+    nrOfColumns=dim(sheet)[2] # cols of the sheet = cols of the plate
     
     data=NULL
+    dataNames=NULL
     
     cols=NULL
     rowLock=TRUE
@@ -82,9 +92,9 @@ setMethod("readLayoutFile", signature(), function( file=NULL){
       # 
       if(trim(sheet[index,1])==""){ # empty line ignore
         #       print("ignore empty line")
-      } else if(sheet[index,1]=="#"){ # comment line ignore
+      } else if(substr(sheet[index,1],1,1)=="#"){ # comment line ignore
         #       print("comment line ignore")
-      } else if(sheet[index,1]==">"){ # well data
+      } else if(sheet[index,1]=="/"){ # well data
         # add variable name to list
         dataNames=append(dataNames,sheet[index,2])
         currentName=sheet[index,2]
@@ -96,17 +106,16 @@ setMethod("readLayoutFile", signature(), function( file=NULL){
         index=index+1      
         # use the first column list to check if it is consistent for all future variables.
         # col names/number should start with a "#" 
-        if(sheet[index,1]=="#"){
+        if(sheet[index,1]=="/"){
           if(is.null(cols)){
             # set cols 
-            cols=sheet[index,2:nrOfColumn]
+            cols=sheet[index,2:nrOfColumns]
           } else {
             # check cols
-            if(any(cols!=sheet[index,2:nrOfColumn]))stop("columns are not consistent")
+            if(any(cols!=sheet[index,2:nrOfColumns]))stop("columns are not consistent")
           }
         } else stop("wrong format!")
-        
-        
+        #
         # convert to numbers
         if(all(suppressWarnings(!is.na(as.numeric(cols))))){
           cols=as.numeric(cols)
@@ -117,13 +126,18 @@ setMethod("readLayoutFile", signature(), function( file=NULL){
             error("unsupported column names, use letters or numbers")
           }
         }
-        
+        #
         # get data
         while(TRUE){
           index=index+1
           #
           # check if done
-          if(index>=nrOfRows || sheet[index,1]==">" || sheet[index,1]=="" || sheet[index,1]=="#"){ # end of data
+          if(index>=nrOfRows){
+            rowLock=TRUE
+            continue=FALSE
+            break
+          }
+          if(sheet[index,1]=="/" || sheet[index,1]=="" || substr(sheet[index,1],1,1)=="#"){ # end of data
             # end of data section 
             rowLock=TRUE
             index=index-1# row back!
@@ -140,25 +154,73 @@ setMethod("readLayoutFile", signature(), function( file=NULL){
 #               }
             }
             # add the data!
-            data[[currentName]]=append(data[[currentName]],sheet[index,2:nrOfCols])
+#             print("--------------------")
+#             print(as.character(sheet[index,2:nrOfColumns]))
+            data[[currentName]]=append(data[[currentName]],as.character(sheet[index,2:nrOfColumns]))
+            data[[currentName]][data[[currentName]]=="NA"]=NA
           }
         
         }# data section loop
+      # data section including >
+      } else {
+        # asume new plate variable
+        variableName=sheet[index,1]
+        value=sheet[index,2]
+        data$plate[[variableName]]=value
         
-      }# data section including >
+        
+        
+        
+      }  
       #stop condition
-      if(index>=nrOfColumn) continue=FALSE
+      if(index>=nrOfRows) continue=FALSE
       
       
       
     }#sheet
     
-    print(data)
+#     print(data)
+#     print("_________________")
     # smartbind data or something...
+    if(is.null(existingMicroPlate)){
+      existingMicroPlate=new("MicroPlate")
+#       print(existingMicroPlate)
+#       print(data$plate)
+      print(data$plate[["dataFile"]])
+      print(data$plate[["parser"]])
+#       print(data$plate$dataFile)
+      dataFile=data$plate[["dataFile"]]
+      parser=data$plate[["parser"]]
+      plateName=data$plate[["plateName"]]
+      
+      layoutData=data[names(data)!="plate"]
+
+      measuredData=eval(parse(text=paste(parser,"('",dirname(file),"/",dataFile,"')",sep="")))
+      addPlate(existingMicroPlate, newData=measuredData, layoutData=layoutData, plateName=plateName )
+      print("___________________________________")
+#       print(measuredData)
+      
+
+#       existingMicroPlate@.data$data=measuredData
+
+      
+#       existingMicroPlate@.data$plate=data$plate
+#       print(existingMicroPlate)
+#       print(data[names(data)])
+#       existingMicroPlate@.data$data=data[names(data)!="plate"]
+      #       existingMicroPlate=existingMicroPlate@.data$data
+#       print("_________________")
+#       print(existingMicroPlate)
+    } else{
+      existingMicroPlate
+    }
+    
     
     
   }#spreadsheet
   
+#   updateColnames(existingMicroPlate)
+  return(existingMicroPlate)
 })
 
 
