@@ -30,11 +30,20 @@
 
 library(gdata)
 library(readODS)
-#' Read Experiment File
-#'
+#' readLayoutFile
+#' 
+#' @description
+#' Read Experiment File and generates/returns a MicroPlate object
+#' 
+#' the layout file can be .xls .xlsx .ods
+#' TODO add link to true documentation...
+#' 
+#' @param file the path to the layout file
+#' @param existingMicroPlate if you want to add it to excisting data
+#'  
 #' @export
-#' @import gdata readODS
 #' @include MicroPlate.R
+#' @import gdata readODS
 setGeneric("readLayoutFile", function(file=NULL, existingMicroPlate) standardGeneric("readLayoutFile")) 
 setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=NULL){
   if(missing(existingMicroPlate)) existingMicroPlate=NULL
@@ -86,7 +95,7 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
     
     index=0
     continue=TRUE
-    while(continue){
+    while(continue){ # for each row in sheeta=1:10 
       index=index+1
       # 
       # 
@@ -179,6 +188,41 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
       
     }#sheet
     
+#     
+#     # convert to numbers
+#     if(all(suppressWarnings(!is.na(as.numeric(cols))))){
+#       cols=as.numeric(cols)
+#     } else {
+#       # asume that its in the A=1, B=2 etc format
+#       cols=lettersToNumber(cols)
+#       if(any(is.na(cols))){
+#         error("unsupported column names, use letters or numbers")
+#       }
+#     }
+#     
+#     # convert to numbers
+#     if(all(suppressWarnings(!is.na(as.numeric(rows))))){
+#       rows=as.numeric(rows)
+#     } else {
+#       # asume that its in the A=1, B=2 etc format
+#       rows=lettersToNumber(rows)
+#       if(any(is.na(rows))){
+#         error("unsupported row names, use letters or numbers")
+#       }
+#     }  
+#     
+#     #
+#     #
+#     # finishing convert data to proper table
+#     for (i in 1:length(rows))
+#     {
+#       for(j in 1:length(cols)){
+#         data[["column"]]=append(data[["column"]],cols[j])
+#         data[["row"]]=append(data[["row"]],rows[i])
+#       }
+#     }
+
+
 #     print(data)
 #     print("_________________")
     # smartbind data or something...
@@ -222,9 +266,6 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
 #   updateColnames(existingMicroPlate)
   return(existingMicroPlate)
 })
-
-
-
 
 
 # 
@@ -353,6 +394,8 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
 
 
 #' Read Experiment File
+#' 
+#' @param file old dont use
 #' 
 #' @export
 setGeneric("readLayoutFile2", function(file=NULL) standardGeneric("readLayoutFile2")) 
@@ -521,7 +564,13 @@ setMethod("readLayoutFile2", signature(), function( file=NULL){
   
 #' listFromLine
 #' 
-#' @export
+#' @description
+#' returns a list from a sting separating it with tabs
+#' 
+#' @keywords internal
+#' 
+#' @param line the line given
+#' 
 setGeneric("listFromLine", function(line=NULL) standardGeneric("listFromLine")) 
 setMethod("listFromLine", signature(), function( line=NULL){
   list=strsplit(line,"\t")

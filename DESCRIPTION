@@ -1,7 +1,7 @@
 Package: microplate
 Type: Package
 Title: What the package does (short line)
-Version: 1.0
+Version: 0.1
 Date: 2014-03-28
 Author: Who wrote it
 Maintainer: Who to complain to <yourfault@somewhere.net>
@@ -10,21 +10,16 @@ Depends:
     foreign,
     gtools,
     plyr,
-    gdata
+    gdata,
+    readODS,
+    grofit
 License: GPL-3
 Suggests:
     devtools,
     testthat,
     roxygen2
 Collate:
-    'Operation.R'
-    'CustomOperation.R'
     'MicroPlate.R'
-    'MicroplateExperiment.R'
-    'MyClass.R'
-    'OperationsBackups.R'
-    'RemoveBlank.R'
-    'curve-analysis.R'
     'generalFunctions.R'
     'parsers-Novostar.R'
     'parsers-Spectramax.R'

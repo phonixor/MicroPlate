@@ -1,21 +1,38 @@
 
+##
+# this file contains general functions
+
+
 #' trim.leading
+#' 
+#' @description
 #' returns string w/o leading whitespace
+#' includes spaces, tabs, ...
+#' @param x the string you want to remove the white space from
 #' @export
 trim.leading <- function (x)  sub("^\\s+", "", x)
 
 #' trim.trailing
+#' 
+#' @description
 #' returns string w/o trailing whitespace
+#' includes spaces, tabs, ...
+#' @param x the string you want to remove the white space from
 #' @export
 trim.trailing <- function (x) sub("\\s+$", "", x)
 
 #' trim
+#' 
+#' @description
 #' returns string w/o leading or trailing whitespace
+#' includes spaces, tabs, ...
+#' @param x the string you want to remove the white space from
 #' @export
 trim <- function (x) gsub("^\\s+|\\s+$", "", x)
 
 #' lettersToNumber
 #' 
+#' @description
 #' A=1, Z=26
 #' AA=27, ZZ=... a lot!
 #' ZZ=702
@@ -29,6 +46,7 @@ trim <- function (x) gsub("^\\s+|\\s+$", "", x)
 #' ABC=676 + 52 + 3 = 731
 #' 
 #' this is basically a base26 to base10 math converter!
+#' @param listOfStrings a string or list/vector of strings that need to be converted
 #' 
 #' @export
 setGeneric("lettersToNumber", function(listOfStrings=NULL) standardGeneric("lettersToNumber")) 
