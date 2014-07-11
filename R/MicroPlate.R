@@ -72,7 +72,7 @@ library(plyr)
 #' 
 #' 
 #' @export
-#' @import gtools plyr grofit
+#' @import methods gtools plyr grofit 
 MicroPlate=setClass(
   Class = "MicroPlate", 
 #   contains = "data.frame", # S3 S4 conflicts??? it kinda doesnt work :P
@@ -120,6 +120,7 @@ setMethod("initialize", "MicroPlate", function(.Object){
 #' 
 #' @export
 setGeneric("merge", function(self,other) standardGeneric("merge"))
+#' @aliases MicroPlate,ANY,ANY-method
 setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(self,other){
   # 
   self@.data$colNames
@@ -1493,7 +1494,8 @@ setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
 #' @param ...
 #' 
 #' @export
-setGeneric("MPApply", function(self, fun, ...) standardGeneric("MPApply")) 
+setGeneric("MPApply", function(self, fun, ...) standardGeneric("MPApply"))
+#' @aliases MicroPlate,ANY,ANY,ANY-method
 setMethod("MPApply", signature(self = "MicroPlate"), function(self, fun, ...){
 #   funcall=substitute(fun(...))
   x="time"

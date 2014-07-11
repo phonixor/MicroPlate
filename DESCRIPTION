@@ -12,7 +12,8 @@ Depends:
     plyr,
     gdata,
     readODS,
-    grofit
+    grofit,
+    methods
 License: GPL-3
 Suggests:
     devtools,

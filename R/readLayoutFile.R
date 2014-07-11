@@ -225,6 +225,7 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
 
 #     print(data)
 #     print("_________________")
+    print("data parsed...")
     # smartbind data or something...
     if(is.null(existingMicroPlate)){
       existingMicroPlate=new("MicroPlate")
