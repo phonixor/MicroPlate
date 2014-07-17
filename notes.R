@@ -1,5 +1,15 @@
 
 
+file=paste(getwd(),"/tests/testdata/project/layout.ods",sep="")
+test=readLayoutFile(file)
+
+file=paste(getwd(),"/tests/testdata/project/KineticData.xls",sep="")
+novostar.xls(file)
+
+
+
+
+
 ###
 
 file=paste(getwd(),"/tests/testdata/testproject/layout_test.ods",sep="")

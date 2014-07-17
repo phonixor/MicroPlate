@@ -1,0 +1,7 @@
+2777: LDH
+2773: protein
+3271: ACK
+3265: LDH
+3263: PYK
+3264: ENO
+last two are 1 plate

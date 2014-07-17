@@ -1,0 +1,21 @@
+# Layout for 2777.dbf												
+#	1	2	3	4	5	6	7	8	9	10	11	12
+>	basic											
+A	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty
+B	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty
+C	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+D	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+E	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty
+F	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty
+G	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty
+H	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty
+#	1	2	3	4	5	6	7	8	9	10	11	12
+>	assay											
+A	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+B	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+C	LDH	LDH	LDH	LDH	LDH	LDH	LDH	LDH	LDH	LDH	LDH	LDH
+D	PKY	PKY	PKY	PKY	PKY	PKY	PKY	PKY	PKY	PKY	PKY	PKY
+E	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+F	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+G	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+H	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA

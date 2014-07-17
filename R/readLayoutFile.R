@@ -1,6 +1,7 @@
-# # Layout for 2777.dbf  											
-# >  basic	
-# #	1	2	3	4	5	6	7	8	9	10	11	12
+# # comment line
+#
+# /  basic	
+# /	1	2	3	4	5	6	7	8	9	10	11	12
 # A	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
 # B	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty
 # C	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty
@@ -9,8 +10,8 @@
 # F	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty
 # G	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty
 # H	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty
-# >  sample	
-# #	1	2	3	4	5	6	7	8	9	10	11	12				
+# /  sample	
+# /	1	2	3	4	5	6	7	8	9	10	11	12				
 # A	A	A	B	B	C	C	D	D	E	E	F	F
 # B	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
 # C	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
@@ -39,15 +40,16 @@ library(readODS)
 #' TODO add link to true documentation...
 #' 
 #' @param file the path to the layout file
-#' @param existingMicroPlate if you want to add it to excisting data
+#' @@param existingMicroPlate if you want to add it to excisting data
 #'  
 #' @export
 #' @include MicroPlate.R
 #' @import gdata readODS
-setGeneric("readLayoutFile", function(file=NULL, existingMicroPlate) standardGeneric("readLayoutFile")) 
-setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=NULL){
-  if(missing(existingMicroPlate)) existingMicroPlate=NULL
+setGeneric("readLayoutFile", function(file=NULL) standardGeneric("readLayoutFile")) 
+setMethod("readLayoutFile", signature(), function(file=NULL){
+#   if(missing(existingMicroPlate)) existingMicroPlate=NULL
   # deteremine filetype
+  returnValue=NULL
   splitedFile=unlist(strsplit(file,split = ".",fixed=TRUE))
   extention=casefold(splitedFile[length(splitedFile)], upper = FALSE)
 #   print(extention)
@@ -82,11 +84,12 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
 
   for(sheet in spreadsheet){
     print("next sheet!")
-
+    
     nrOfRows=dim(sheet)[1] # rows of the sheet, not of the plate
     nrOfColumns=dim(sheet)[2] # cols of the sheet = cols of the plate
     
     data=NULL
+    plateData=NULL
     dataNames=NULL
     
     cols=NULL
@@ -165,8 +168,10 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
             # add the data!
 #             print("--------------------")
 #             print(as.character(sheet[index,2:nrOfColumns]))
+            print(length(data[[currentName]]))
             data[[currentName]]=append(data[[currentName]],as.character(sheet[index,2:nrOfColumns]))
             data[[currentName]][data[[currentName]]=="NA"]=NA
+            print(length(data[[currentName]]))
           }
         
         }# data section loop
@@ -175,7 +180,7 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
         # asume new plate variable
         variableName=sheet[index,1]
         value=sheet[index,2]
-        data$plate[[variableName]]=value
+        plateData[[variableName]]=value
         
         
         
@@ -227,22 +232,50 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
 #     print("_________________")
     print("data parsed...")
     # smartbind data or something...
-    if(is.null(existingMicroPlate)){
-      existingMicroPlate=new("MicroPlate")
+    
+
 #       print(existingMicroPlate)
 #       print(data$plate)
-      print(data$plate[["dataFile"]])
-      print(data$plate[["parser"]])
+    print(plateData[["dataFile"]])
+    print(plateData[["parser"]])
 #       print(data$plate$dataFile)
-      dataFile=data$plate[["dataFile"]]
-      parser=data$plate[["parser"]]
-      plateName=data$plate[["plateName"]]
-      
-      layoutData=data[names(data)!="plate"]
+    dataFile=plateData[["dataFile"]]
+    parser=plateData[["parser"]]
+    plateName=plateData[["plateName"]]
+    
+#     layoutData=data[names(data)!="plate"]# don't include plate numbers
+#     print(layoutData)
+  
+    measuredData=eval(parse(text=paste(parser,"('",dirname(file),"/",dataFile,"')",sep="")))
+    # add plate data
+    print(names(plateData))
+    for(i in 1:length(plateData)){
+#       print(names(plateData)[i])
+#       print(plateData[[names(plateData)[i]]])
+      measuredData[names(plateData)[i]]=plateData[[names(plateData)[i]]]
+    }
+    # add layout data at well level
+    
+    # TODO BETTER CHECKS!!!
+#     selector=1:length(data$basic)[(data$basic!="empty")]
 
-      measuredData=eval(parse(text=paste(parser,"('",dirname(file),"/",dataFile,"')",sep="")))
-      addPlate(existingMicroPlate, newData=measuredData, layoutData=layoutData, plateName=plateName )
-      print("___________________________________")
+    for(i in 1:length(data)){
+      # TODO NEEDS CHECKS!!!!
+      print(names(data)[i])
+      print(data[[names(data)[i]]])
+      
+      measuredData[names(data)[i]]=data[[names(data)[i]]]
+      
+    }
+    
+
+
+
+    updateColnames(measuredData)
+    measuredData
+    returnValue=measuredData
+#     addPlate(existingMicroPlate, newData=measuredData, layoutData=layoutData, plateName=plateName )
+    print("___________________________________")
 #       print(measuredData)
       
 
@@ -256,142 +289,15 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
       #       existingMicroPlate=existingMicroPlate@.data$data
 #       print("_________________")
 #       print(existingMicroPlate)
-    } else{
-      existingMicroPlate
-    }
+
     
     
     
   }#spreadsheet
   
 #   updateColnames(existingMicroPlate)
-  return(existingMicroPlate)
+  return(returnValue)
 })
-
-
-# 
-#   
-#   # maybe change it to get restricted names from Data...
-#   # though row and column arent their...
-#   reservedVariables=c("plate","well","measurement","row","column")
-#   #
-#   # storage
-#   dataNames=NULL
-#   #
-#   # 
-#   rows=NULL
-#   rowLock=FALSE
-#   nrOfRows=0
-#   cols=NULL
-#   
-#   errorList=NULL
-#   #
-#   #
-#   index=1
-#   line=lines[index]
-#   continue=TRUE
-#   #
-#   while (continue){
-#     
-#     
-#     
-#     if(trim(line)==""){ # empty line ignore
-#       #       print("ignore empty line")
-#     } else if(substring(line,1,1)=="#"){ # comment line ignore
-#       #       print("comment line ignore")
-#     } else if(substring(line,1,1)==">"){ # variable
-#       # add variable name to list
-#       #       print(line)
-#       line=listFromLine(line)
-#       #       print(typeof(line))
-#       #       print(class(line))
-#       #       print(line)
-#       #       print(line[2])
-#       #       print(line[[2]])
-#       dataNames=append(dataNames,line[2])
-#       currentName=line[2]
-#       #       data[[currentName]]=NULL
-#       print(paste("parsing:", currentName))
-#       # assume next line is the column list
-#       index=index+1
-#       line=listFromLine(lines[index])
-#       if(substring(line[1],1,1)=="#"){
-#         if(!colLock){
-#           # set cols
-#           cols=line[2:length(line)]
-#           colLock=TRUE
-#           print(paste("nr of cols =",length(cols)))
-#         } else {
-#           # check cols
-#           if(any(cols!=line[2:length(line)])){
-#             stop("columns are not consistent")
-#           }
-#         }
-#       } else {
-#         stop("column line expected after a > line")
-#       }
-#       
-# 
-#     } else {
-#       warning("the end or dont know what todo...")
-#     }
-#     
-#     # prepare for next line
-#     index=index+1
-#     line=lines[index]
-#     
-#     if(is.na(line)){# end of file
-#       continue=FALSE
-#       # finish up...
-#     } 
-#   } # main while loop
-#   
-#   # convert to numbers
-#   if(all(suppressWarnings(!is.na(as.numeric(cols))))){
-#     cols=as.numeric(cols)
-#   } else {
-#     # asume that its in the A=1, B=2 etc format
-#     cols=lettersToNumber(cols)
-#     if(any(is.na(cols))){
-#       error("unsupported column names, use letters or numbers")
-#     }
-#   }
-#   
-#   # convert to numbers
-#   if(all(suppressWarnings(!is.na(as.numeric(rows))))){
-#     rows=as.numeric(rows)
-#   } else {
-#     # asume that its in the A=1, B=2 etc format
-#     rows=lettersToNumber(rows)
-#     if(any(is.na(rows))){
-#       error("unsupported row names, use letters or numbers")
-#     }
-#   }  
-#   
-#   #
-#   #
-#   # finishing convert data to proper table
-#   for (i in 1:length(rows))
-#   {
-#     for(j in 1:length(cols)){
-#       data[["column"]]=append(data[["column"]],cols[j])
-#       data[["row"]]=append(data[["row"]],rows[i])
-#     }
-#   }
-#   #   data[["col"]]=rep(length(rows),cols)
-#   #   data[["row"]]=rep(length(cols),rows)
-#   
-#   # convert to data.frame
-#   data=data.frame(data,stringsAsFactors=FALSE)
-#   
-#   return(data)
-#   
-#   
-#   
-#   
-# })
-#   
-
 
 
 #' Read Experiment File
@@ -579,179 +485,3 @@ setMethod("listFromLine", signature(), function( line=NULL){
 })
 
 
-
-
-
-
-# 
-# ## Constructor for the MicroplateFrame class.
-# ## Reads a layout from a layout file. A plateFormat must be provided. It is
-# ## used to read and check for consistency. A platename must be provided if the 
-# ## layout file does not define one. If the platename argument is provided, it 
-# ## will override the plate name provided in the layout file
-# "read.Layout" <- function (file, formatID, platename=NULL) {
-#   format <- plateFormat(formatID)
-#   rsvVar <- getOption("MicroP")$rsvVar
-#   rsvVarProtected <- unlist(lapply(rsvVar,"[[","protected"))
-#   rsvVarDescription <- unlist(lapply(rsvVar,"[[","description"))
-#   lines <- readLines(file, warn=FALSE) # do not need warning if missing final EOL
-#   # CHECK THE STRUCTURE OF THE FILE
-#   # ms0 will collect error messages of fatal errors for a layout file 
-#   # that can still be parsed fairly well
-#   ms0 <- c()
-#   # Detect comment, variable, plate name, and data lines. Plate name lines 
-#   # are the first non-comment lines before the variable and comment lines.
-#   # Data lines are lines that do not belong to the other three categories.
-#   cmtlines <- grepl("^#.*$|^[[:space:]]*$", lines)
-#   varlines <- grepl("^>", lines)
-#   namlines <- !(cmtlines | varlines)
-#   namlines[min(which(cmtlines | varlines)):length(lines)] <- FALSE
-#   datlines <- !(cmtlines | varlines | namlines)
-#   dnrs <- which(datlines)
-#   vnrs <- which(varlines)
-#   nnrs <- which(namlines)
-#   # Stop if there are no variable lines: no further parsing possible
-#   if (!any(varlines)) 
-#     stop(paste("No variable lines detected in the layout file,",
-#                "i.e. lines starting with \">\"")
-#     )
-#   # Check variable names
-#   varnames <- make.names(.colFromLines(lines[varlines],2), unique=TRUE)
-#   ## Translate reserved variables to canonical lower case name
-#   basenames <- which(tolower(varnames) %in% names(rsvVar))
-#   varnames[basenames] <- tolower(varnames[basenames])
-#   ## Are there protected variables in the layout file?
-#   if (any(rsvVarProtected[varnames[varnames %in% names(rsvVarProtected)]])) {
-#     protname <- 
-#       names(rsvVarProtected[varnames[varnames %in% names(rsvVarProtected)]])[
-#         which(rsvVarProtected[varnames[varnames %in% names(rsvVarProtected)]])]
-#     ms0 <- c(ms0, paste("Protected variable names not allowed in layout:",
-#                         paste("\"", protname, "\"", collapse=", ", sep=""))
-#     )
-#   }
-#   # Determine the plate name provided by the file
-#   platenameFromFile <- NULL
-#   if (length(nnrs) > 0) {
-#     if (length(nnrs) > 1) {
-#       warning("Multiple plate name lines (",
-#               paste(nnrs, collapse=", "),
-#               "). Only first line will be used.")
-#     }
-#     platenameFromFile <- unlist(strsplit(lines[nnrs[1]],"\t"))[1]
-#   }
-#   # If both platename and platenameFromFile are provided, issue a warning
-#   # that platenameFromFile will be used
-#   if (!is.null(platenameFromFile) && !is.null(platename)) {
-#     message("Both layout file and \"platename\" argument provide a plate name.",
-#             "\n  The plate name from the \"platename\" argument will be used.")
-#   }
-#   # Set plate name to the one from file if platename argument was NULL
-#   if (is.null(platename) && !is.null(platenameFromFile))
-#     platename <- platenameFromFile
-#   # Test for wrong plate name
-#   platename <- make.names(platename)
-#   # If no platename is given in file or argument then issue error
-#   if(is.null(platename)) {
-#     ms0 <- c(ms0, paste("No platename defined. Platename must be given",
-#                         "either in layout file or in \"platename\" argument")
-#     )
-#   }
-#   # Determine data lines of sub-layouts
-#   names(vnrs) <- varnames
-#   sublayouts <- list()
-#   for (i in seq(along=vnrs)) {
-#     if (i < length(vnrs)) {
-#       sublayouts[[varnames[i]]] <- dnrs[dnrs > vnrs[i] & dnrs < vnrs[i+1]]
-#     } else {
-#       sublayouts[[varnames[i]]] <- dnrs[dnrs > vnrs[i]]
-#     }
-#   }
-#   # Check number of well columns and rows
-#   wrongrows <- 
-#     names(which(sapply(lapply(sublayouts, length),"!=",rows(format))))
-#   if (length(wrongrows) > 0) {
-#     ms0 <- c(ms0, paste("Number of rows does not match with plate format", 
-#                         "in sublayouts", paste("\"",wrongrows,"\"", sep="", collapse=", "))
-#     )
-#   }
-#   wrongcols <- which(datlines & 
-#                        sapply(strsplit(sub("\t$","\t|",lines),"\t"), length) < columns(format)+1)
-#   if (length(wrongcols) > 0) {
-#     ms0 <- c(ms0, paste("Number of columns does not match with plate format", 
-#                         "in lines", paste(wrongcols, collapse=","))
-#     )
-#   } else {
-#     warncols <- which(datlines & 
-#                         sapply(strsplit(lines,"\t"), length) > columns(format)+1)
-#     if (length(warncols) > 0) {
-#       warning("Number of columns in lines ",paste(warncols, collapse=","), 
-#               " larger than plate format.\n  Ignoring excess columns.")
-#     }
-#   }
-#   # Finished analyzing the file structure. Start building the output, or 
-#   # stop and issue error messages
-#   if (length(ms0) > 0) {
-#     stop(.niceError(ms0))
-#   } else {
-#     wells <- wells(format)
-#     data <- list(
-#       'formatID'  = as.factor(rep(formatID, wells)),
-#       'plate'     = as.factor(rep(platename, wells)),
-#       'row'       = as.factor(rep(rownames(format), each=columns(format))),
-#       'column'    = as.factor(rep(colnames(format), rows(format))),
-#       'well'      = as.factor(wellnames(format)),
-#       'basic'     = as.factor(rep("sample", wells)),
-#       'experiment'= as.factor(rep("###", wells))
-#     )
-#     wellLabels = paste(platename, wellnames(format, byrow=TRUE), sep=".")
-#     ## construct the SampleFrame@x list
-#     colrange <- 2:(columns(format) + 1)
-#     for (vname in varnames) {
-#       values <- .colFromLines(lines[sublayouts[[vname]]], 
-#                               colrange, na.regexp="^[[:space:]]*$|^NA$", ignore.case=TRUE)
-#       ## Convert to factor or numerical, if possible
-#       ## TODO: make class of layout variable controllable by user
-#       if (any(is.na(suppressWarnings(as.numeric(values))) & !is.na(values))) {
-#         values <- as.factor(values)
-#       } else {
-#         values <- as.numeric(values)
-#       }
-#       ## Check the reserved variables, translate standard values if necessary
-#       if (vname %in% names(rsvVar)) {
-#         matchlist <- .matchRsvValues(vname, values)
-#         values <- matchlist$values
-#         ms0 <- c(ms0, matchlist$errors)
-#       }
-#       data[[vname]] <- values
-#     }
-#     ## Construct the varMetadata data.frame
-#     descriptions <- rsvVarDescription[names(data)]
-#     names(descriptions) <- names(data)
-#     descriptions[is.na(descriptions)] <- 
-#       .colFromLines(lines[vnrs[names(data)]], 3, 
-#                     na.regexp="^[[:space:]]*$|^NA$", ignore.case=TRUE
-#       )[is.na(descriptions)]
-#     descriptions[is.na(descriptions)] <- 
-#       .firstToUpper(names(descriptions)[is.na(descriptions)])
-#     units <- .colFromLines(lines[vnrs[names(data)]], 4, 
-#                            na.regexp="^[[:space:]]*$|^NA$", ignore.case=TRUE)
-#     recognizedUnits <- units %in% character(0L) # TODO: make a Unit class
-#     metadata <- data.frame(
-#       labelDescription = descriptions,
-#       unit             = units,
-#       recognizedUnit   = recognizedUnits,
-#       stringsAsFactors = FALSE,
-#       row.names        = names(data)
-#     )
-#     if (length(ms0) > 0) {
-#       stop(.niceError(ms0))
-#     } else {
-#       output <- (new("MicroplateFrame", x=data, varMetadata=metadata, 
-#                      sampleLabels=wellLabels))
-#       if (any(output$basic=='empty'))
-#         output <- output[,-which(output$basic=='empty')]
-#       return(output)
-#     }
-#   }
-#   
-# })

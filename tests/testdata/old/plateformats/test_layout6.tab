@@ -1,0 +1,41 @@
+PlateY
+#	1	2	3	4	5	6	7	8	9	10	11	12
+>	cell											
+A	Bam1.A1	Bam1.A3	Bam1.A5	Bam1.A7	Bam1.A9	Bam1.A11	Bam1.A13	Bam1.A15	Bam1.A17	Bam1.A19	Bam1.A21	Bam1.A23
+B												
+C	Bam1.E1	Bam1.E3	Bam1.E5	Bam1.E7	Bam1.E9	Bam1.E11	Bam1.E13	Bam1.E15	Bam1.E17	Bam1.E19	Bam1.E21	Bam1.E23
+D	Bam1.G1	Bam1.G3	Bam1.G5	Bam1.G7	Bam1.G9	Bam1.G11	Bam1.G13	Bam1.G15	Bam1.G17	Bam1.G19	Bam1.G21	Bam1.G23
+E	Bam1.I1	Bam1.I3	Bam1.I5	Bam1.I7	Bam1.I9	Bam1.I11	Bam1.I13	Bam1.I15	Bam1.I17	Bam1.I19	Bam1.I21	Bam1.I23
+F	Bam1.K1	Bam1.K3	Bam1.K5	Bam1.K7	Bam1.K9	Bam1.K11	Bam1.K13	Bam1.K15	Bam1.K17	Bam1.K19	Bam1.K21	Bam1.K23
+G	Bam1.M1	Bam1.M3	Bam1.M5	Bam1.M7	Bam1.M9	Bam1.M11	Bam1.M13	Bam1.M15	Bam1.M17	Bam1.M19	Bam1.M21	Bam1.M23
+H	Bam1.O1	Bam1.O3	Bam1.O5	Bam1.O7	Bam1.O9	Bam1.O11	Bam1.O13	Bam1.O15	Bam1.O17	Bam1.O19	Bam1.O21	Bam1.O23
+#	1	2	3	4	5	6	7	8	9	10	11	12
+>	basic											
+A	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample	sample
+B	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty	empty
+C	sample	sample	control	sample	sample	sample	sample	sample	sample	sample	sample	sample
+D	sample	sample	control	sample	sample	sample	sample	sample	sample	sample	sample	sample
+E	sample	sample	control	sample	sample	sample	sample	sample	sample	sample	sample	sample
+F	sample	sample	control	sample	sample	sample	sample	sample	sample	sample	sample	sample
+G	sample	sample	control	sample	sample	sample	sample	sample	sample	sample	sample	sample
+H	sample	sample	control	sample	sample	sample	sample	sample	sample	sample	sample	sample
+#	1	2	3	4	5	6	7	8	9	10	11	12
+>	mutation											
+A	mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant
+B												
+C	mutant	mutant		mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant
+D	mutant	mutant		mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant
+E	mutant	mutant		mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant
+F	mutant	mutant		mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant
+G	mutant	mutant		mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant
+H	mutant	mutant		mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant	mutant
+#	1	2	3	4	5	6	7	8	9	10	11	12
+>	experiment											
+A	e1	e1	e1	e1	e1	e1	e1	e1	e1	e1	e1	e1
+B												
+C	e1	e1		e1	e1	e1	e1	e1	e1	e1	e1	e1
+D	e1	e1		e1	e1	e1	e1	e1	e1	e1	e1	e1
+E	e1	e1		e1	e1	e1	e1	e1	e1	e1	e1	e1
+F	e1	e1		e1	e1	e1	e1	e1	e1	e1	e1	e1
+G	e1	e1		e1	e1	e1	e1	e1	e1	e1	e1	e1
+H	e1	e1		e1	e1	e1	e1	e1	e1	e1	e1	e1
