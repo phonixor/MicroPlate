@@ -3,11 +3,23 @@
 file=paste(getwd(),"/tests/testdata/project/layout.ods",sep="")
 test=readLayoutFile(file)
 
+test2=copy(test)
+
+test=merge(test,test2)
+# plate data NA
+test@.data$data$plate # here is the cause... now to find the cause of the cause...
+
+
+
+
+
+####
+
+file=paste(getwd(),"/tests/testdata/project/layout.ods",sep="")
+test=readLayoutFile(file)
+
 file=paste(getwd(),"/tests/testdata/project/KineticData.xls",sep="")
 novostar.xls(file)
-
-
-
 
 
 ###

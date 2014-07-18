@@ -168,6 +168,8 @@ library(gdata)
     l$column=append(l$column,as.numeric(xls[row,2]))
     l$content=append(l$content,xls[row,3])
     
+    # add plate number
+    l$plate=append(l$plate,1)
     
     temp=list()
     for(col in 4:dim(xls)[2]){ # for each column
@@ -183,6 +185,7 @@ library(gdata)
   mp=new("MicroPlate")
   mp@.data$data=l
   
+  #add plateName
   if(!is.null(plateName)){
     mp@.data$plate$plateName=plateName
   }else{

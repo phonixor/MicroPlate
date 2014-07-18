@@ -144,7 +144,7 @@ setMethod("readLayoutFile", signature(), function(file=NULL){
           index=index+1
           #
           # check if done
-          if(index>=nrOfRows){
+          if(index>nrOfRows){#end of sheet
             rowLock=TRUE
             continue=FALSE
             break
@@ -168,10 +168,10 @@ setMethod("readLayoutFile", signature(), function(file=NULL){
             # add the data!
 #             print("--------------------")
 #             print(as.character(sheet[index,2:nrOfColumns]))
-            print(length(data[[currentName]]))
+#             print(length(data[[currentName]]))
             data[[currentName]]=append(data[[currentName]],as.character(sheet[index,2:nrOfColumns]))
             data[[currentName]][data[[currentName]]=="NA"]=NA
-            print(length(data[[currentName]]))
+#             print(length(data[[currentName]]))
           }
         
         }# data section loop
@@ -236,8 +236,8 @@ setMethod("readLayoutFile", signature(), function(file=NULL){
 
 #       print(existingMicroPlate)
 #       print(data$plate)
-    print(plateData[["dataFile"]])
-    print(plateData[["parser"]])
+#     print(plateData[["dataFile"]])
+#     print(plateData[["parser"]])
 #       print(data$plate$dataFile)
     dataFile=plateData[["dataFile"]]
     parser=plateData[["parser"]]
@@ -261,8 +261,8 @@ setMethod("readLayoutFile", signature(), function(file=NULL){
 
     for(i in 1:length(data)){
       # TODO NEEDS CHECKS!!!!
-      print(names(data)[i])
-      print(data[[names(data)[i]]])
+#       print(names(data)[i])
+#       print(data[[names(data)[i]]])
       
       measuredData[names(data)[i]]=data[[names(data)[i]]]
       
@@ -275,7 +275,7 @@ setMethod("readLayoutFile", signature(), function(file=NULL){
     measuredData
     returnValue=measuredData
 #     addPlate(existingMicroPlate, newData=measuredData, layoutData=layoutData, plateName=plateName )
-    print("___________________________________")
+#     print("___________________________________")
 #       print(measuredData)
       
 
