@@ -1,3 +1,0 @@
-# index voor groeiproef leuconostoc								
-plaatnr	index	plateformat	fileformat	filedir	fileprefix	platename	templatedir	template
-1	1	384	timeseries	rawdata	20100114_data	plate	templates	20100114_design.txt
