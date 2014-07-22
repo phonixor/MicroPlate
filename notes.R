@@ -3,10 +3,21 @@
 file=paste(getwd(),"/tests/testdata/project/layout.ods",sep="")
 test=readLayoutFile(file)
 
+test
+
+
 test2=copy(test)
+test=merge(test,test2)
+
+
+
+
+test2=merge(test2,test)
 
 test=merge(test,test2)
 # plate data NA
+test[]
+
 test@.data$data$plate # here is the cause... now to find the cause of the cause...
 
 

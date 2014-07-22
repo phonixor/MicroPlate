@@ -107,9 +107,8 @@ setMethod("initialize", "MicroPlate", function(.Object){
 })
 
 
-
 #' merge
-#' 
+#' @rdname merge
 #' @details
 #' merge two MicroPlates
 #' 
@@ -117,11 +116,12 @@ setMethod("initialize", "MicroPlate", function(.Object){
 #' 
 #' @param self the MicroPlate object
 #' @param other the other MicroPlate object
+#' @param removeOther default behaviour is to remove the other/2nd microplate given, put FALSE to stop this.
 #' 
 #' @export
-setGeneric("merge", function(self,other) standardGeneric("merge"))
-#' @aliases MicroPlate,ANY,ANY-method
-setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(self,other){
+setGeneric("merge", function(self,other,removeOther=TRUE) standardGeneric("merge"))
+#' @rdname merge
+setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(self,other,removeOther=TRUE){
   # 
 #   self@.data$colNames
 #   other@.data$colNames
@@ -131,7 +131,7 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
   nrOfNewPlates=other@.data$levelSize[other@.data$level=="plate"]
   nrOfWells=self@.data$levelSize[self@.data$level=="well"]
   nrOfPlates=self@.data$levelSize[self@.data$level=="plate"]
-  plateNumber=self@.data$levelSize[self@.data$level=="plate"]+1 #this needs change
+#   plateNumber=self@.data$levelSize[self@.data$level=="plate"]+1 #this needs change
   
   
   
@@ -139,15 +139,12 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
   colsWell=names(other@.data$data)
   colsMeasurement=names(other@.data$measurement[[1]])
   newColsPlate=colsPlate[!(colsPlate %in% self@.data$colNames[self@.data$colLevel=="plate"])]
-  print(newColsPlate)
   newColsWell=colsWell[!(colsWell %in% self@.data$colNames[self@.data$colLevel=="well"])]
   newColsMeasurement=colsMeasurement[!(colsMeasurement %in% self@.data$colNames[self@.data$colLevel=="measurement"])]
   missingColsPlate=self@.data$colNames[self@.data$colLevel=="plate"][!(self@.data$colNames[self@.data$colLevel=="plate"] %in% colsPlate)]
-  print(missingColsPlate)
   missingColsWell=self@.data$colNames[self@.data$colLevel=="well"][!(self@.data$colNames[self@.data$colLevel=="well"] %in% colsWell)]
   missingColsMeasurement=self@.data$colNames[self@.data$colLevel=="measurement"][!(self@.data$colNames[self@.data$colLevel=="measurement"] %in% colsMeasurement)]
   existingColsPlate=colsPlate[(colsPlate %in% self@.data$colNames[self@.data$colLevel=="plate"])]
-  print(existingColsPlate)
   existingColsWell=colsWell[(colsWell %in% self@.data$colNames[self@.data$colLevel=="well"])]
   
   # plate
@@ -172,8 +169,17 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
   }
   
   # Well
-  #TODO THIS NEED FIXING!
-  self@.data$data$plate=append(self@.data$data$plate, rep(x=plateNumber,nrOfNewWells)) # generate foreign key
+  #
+  # plate number reference
+  # plate numbers need to match row numbers, so you cannot use the row numbers from other.
+  # the row numbers need to continue from the last self plate row number
+  for(i in 1:nrOfNewPlates){
+    # get number of wells per plate
+    nrOfWellsPerPlate=sum(other@.data$data$plate==i)
+    self@.data$data$plate=append(self@.data$data$plate, rep(x=nrOfPlates+i,nrOfWellsPerPlate))
+  }
+  # 
+  # 
   for(i in 1:length(newColsWell)){ # measurement is seen as a new column
     # create new column
     # fill the existing wells with NA and add the new data
@@ -182,6 +188,8 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
     if(newColsWell[i]=="measurement"){
       # combine the measurement columns in at the well level
       self@.data$data$measurement=append(self@.data$data$measurement,other@.data$data$measurement)
+    } else if(newColsWell[i]=="plate"){
+      # plate numbers have been changed above
     } else {
       self@.data$data[[newColsWell[i]]]=append(rep(x=NA,nrOfWells),other@.data$data[[newColsWell[i]]])
     }
@@ -221,20 +229,24 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
     }
   }
   
-  
-  
   updateColnames(self)
   
   # remove other
-#   rm(other)
-  
+  # TODO figure this thing out when stackexchange is not down!
+#   if(removeOther){rm(other,pos=parent.frame())}
+#   if(removeOther){remove(other)}
+  if(removeOther){
+    print(match.call()[[3]])
+    print(class(match.call()[[3]]))
+    rm(match.call()[[3]])
+  }  
+
   return(self)
 })
 
 
-
 #' createFromDataFrame
-#' 
+#' @rdname createFromDataFrame
 #' @keywords internal
 #' 
 #' @details
@@ -246,7 +258,7 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
 #' 
 #' 
 setGeneric("createFromDataFrame", function(self,df=NULL) standardGeneric("createFromDataFrame")) 
-#' @aliases MicroPlate,ANY,ANY-method
+#' @rdname createFromDataFrame
 setMethod("createFromDataFrame", signature(self = "MicroPlate"), function(self,df=NULL){
   # check if the object is a data.frame
   if(class(df)!="data.frame") stop("not a data frame")
@@ -263,10 +275,8 @@ setMethod("createFromDataFrame", signature(self = "MicroPlate"), function(self,d
 })
 
 
-
-
 #' addPlate
-#' 
+#' @rdname addPlate
 #' @description
 #' stores data in the class instance
 #' if no data exist the data imported becomes the data
@@ -279,7 +289,7 @@ setMethod("createFromDataFrame", signature(self = "MicroPlate"), function(self,d
 #' TODO add more plate data...
 #' @export
 setGeneric("addPlate", function(self,newData=NULL,layoutData=NULL) standardGeneric("addPlate")) 
-#' @aliases MicroPlate,ANY,ANY-method
+#' @rdname addPlate
 setMethod("addPlate", signature(self = "MicroPlate"), function(self,newData=NULL,layoutData=NULL){
   newPlateData=list()
   
@@ -371,9 +381,8 @@ setMethod("addPlate", signature(self = "MicroPlate"), function(self,newData=NULL
 })
 
 
-
 #' addPlate
-#' 
+#' @rdname addPlate2
 #' @description
 #' stores data in the class instance
 #' if no data exist the data imported becomes the data
@@ -388,6 +397,7 @@ setMethod("addPlate", signature(self = "MicroPlate"), function(self,newData=NULL
 #' TODO add more plate data...
 #' @export
 setGeneric("addPlate2", function(self,newData=NULL, layoutData=NULL,  plateName=NULL, ...) standardGeneric("addPlate2")) 
+#' @rdname addPlate2
 setMethod("addPlate2", signature(self = "MicroPlate"), function(self,newData=NULL, layoutData=NULL, plateName=NULL, ...){
   plateCols=list(...)
   print(plateCols)
@@ -481,9 +491,8 @@ setMethod("addPlate2", signature(self = "MicroPlate"), function(self,newData=NUL
 })
 
 
-
 #' updateColnames
-#' 
+#' @rdname updateColnames
 #' @keywords internal 
 #' @description
 #' this method is responsible for updating colnames and meta data
@@ -494,6 +503,7 @@ setMethod("addPlate2", signature(self = "MicroPlate"), function(self,newData=NUL
 #' internal only!
 #' @export
 setGeneric("updateColnames", function(self) standardGeneric("updateColnames"))
+#' @rdname updateColnames
 setMethod("updateColnames", signature(self = "MicroPlate"), function(self){
   # TODO maybe add custom levels???
   # 
@@ -528,7 +538,7 @@ setMethod("updateColnames", signature(self = "MicroPlate"), function(self){
 
 
 #' bindParsedData
-#'
+#' @rdname bindParsedData
 #' @description
 #' similar as plyr's smart bind, only then for the thing that the parsers provide...
 #' typing this kinda makes me realize that this might not be very functional... mmmmh...
@@ -540,6 +550,7 @@ setMethod("updateColnames", signature(self = "MicroPlate"), function(self){
 #' TODO TEST!!!
 #'
 setGeneric("bindParsedData", function(self,wellData=NULL, plateData=NULL) standardGeneric("bindParsedData"))
+#' @rdname bindParsedData
 setMethod("bindParsedData", signature(self = "MicroPlate"), function(self, wellData=NULL, plateData=NULL){
   # TODO what about other plate info?
   # add a lot of checks!
@@ -869,7 +880,7 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
   #   print(proc.time())
     #
     # fetch the requested data
-    returnValue=data.frame(matrix(nrow=if(!is.null(row)){length(row)}else{nrOfRows},ncol=length(col)))
+    returnValue=data.frame(matrix(nrow=if(!is.null(row)){length(row)}else{nrOfRows},ncol=length(col)),stringsAsFactors = FALSE)
     colnames(returnValue)=col
     for(colnr in 1:length(col)){ # for each column
       # always first fill tempdata with the whole column (at measurement level)
@@ -892,7 +903,7 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
         # repeat for each well*each measurement
         for(i in 1:length(x@.data$data[[1]])){ # for each well
           # get the corresponding plate values
-          data=as.data.frame(x@.data$plate)[x@.data$data$plate[[i]],col[colnr]]
+          data=as.data.frame(x@.data$plate,stringsAsFactors = FALSE)[x@.data$data$plate[[i]],col[colnr]]
           tempData=append(tempData,rep(data,length(x@.data$data$measurement[[i]][[1]]))) # for each measurement
         }
         #         tempData=lapply(x@.data$data, function(x)returnValue=append(returnValue,x[[name]]))
@@ -917,7 +928,6 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
 
 #' [[]]
 #' overwrite the [[]] function..
-#' 
 #' @description
 #' data.frame also has a DUMP slot... no clue what this does... or how to call it...
 #' its probably not called... but instead filled when called... don't know its function though...
@@ -955,7 +965,7 @@ setMethod("[[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i
 
 
 #' removeColumn
-#' 
+#' @rdname removeColumn
 #' @description
 #' remove the column with the given colname
 #' 
@@ -967,7 +977,8 @@ setMethod("[[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i
 #' @param colNames the names of the columns you want to delete
 #' 
 #' @export
-setGeneric("removeColumn", function(self, colNames) standardGeneric("removeColumn")) 
+setGeneric("removeColumn", function(self, colNames) standardGeneric("removeColumn"))
+#' @rdname removeColumn
 setMethod("removeColumn", signature(self = "MicroPlate" ), function(self, colNames) {
   col=colNames
   
@@ -1422,6 +1433,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
   return(x) 
 })
 
+
 #' $
 #' overwrite the $ function..
 #' 
@@ -1542,6 +1554,7 @@ setMethod("$<-", signature(x = "MicroPlate"), function(x, name, value) {
 
 
 #' overwrite colnames()
+#' @rdname colnames
 #' @description
 #' returns the column names (hiddes internal names)
 #' 
@@ -1549,6 +1562,7 @@ setMethod("$<-", signature(x = "MicroPlate"), function(x, name, value) {
 #' 
 #' @export
 setGeneric("colnames", function(x) standardGeneric("colnames")) 
+#' @rdname colnames
 setMethod("colnames", signature(x = "MicroPlate"), function(x) {
   return(x@.data$colNames)
 })
@@ -1557,6 +1571,7 @@ setMethod("colnames", signature(x = "MicroPlate"), function(x) {
 #' overwrite colnames<-
 #' 
 #' BROKEN!
+#' @rdname colnamesis
 #' @description
 #' overwrite the column names 
 #' 
@@ -1565,7 +1580,8 @@ setMethod("colnames", signature(x = "MicroPlate"), function(x) {
 #' @param value the new column names
 #' 
 #' @export
-setGeneric("colnames<-", function(x, value) standardGeneric("colnames<-")) 
+setGeneric("colnames<-", function(x, value) standardGeneric("colnames<-"))
+#' @rdname colnamesis
 setMethod("colnames<-", signature(x = "MicroPlate"), function(x, value) {
   # TODO add checks! if its the same size as data... and you probably dont want to change this anyways...
   stop("no longer supported for now!")
@@ -1618,12 +1634,14 @@ setMethod("show", signature(object = "MicroPlate"), function(object) {
 
 #' overwrite print()
 #' @export
+#' @rdname print
 #' @description
 #' just calls show(x)
 #' @param x the MicroPlate object
 #' @param ... not used but roxygen complains without this
 #' 
-setGeneric("print", function(x) standardGeneric("print")) 
+setGeneric("print", function(x) standardGeneric("print"))
+#' @rdname print
 setMethod("print", signature(x = "MicroPlate"), function(x) {
 #   print("oooh you want to know my secrets???... well they are secret!!!")
 #   x@.data
@@ -1632,6 +1650,7 @@ setMethod("print", signature(x = "MicroPlate"), function(x) {
 
 
 #' plotPerWell
+#' @rdname plotPerWell
 #' @description
 #' TODO: add huge amounts of checks and stuff
 #' 
@@ -1639,6 +1658,7 @@ setMethod("print", signature(x = "MicroPlate"), function(x) {
 #' 
 #' @export
 setGeneric("plotPerWell", function(self) standardGeneric("plotPerWell")) 
+#' @rdname plotPerWell
 setMethod("plotPerWell", signature(self = "MicroPlate"), function(self){
   nrOfWells=self@.data$levelSize[self@.data$level=="well"]
   
@@ -1651,7 +1671,7 @@ setMethod("plotPerWell", signature(self = "MicroPlate"), function(self){
 
 
 #' plotPerPlate
-#' 
+#' @rdname plotPerPlate
 #' @description
 #' TODO: add huge amounts of checks and stuff
 #' 
@@ -1659,6 +1679,7 @@ setMethod("plotPerWell", signature(self = "MicroPlate"), function(self){
 #' 
 #' @export
 setGeneric("plotPerPlate", function(self) standardGeneric("plotPerPlate")) 
+#' @rdname plotPerPlate
 setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
   origenalPar=par() # backup plotting pars
   nrOfPlates=self@.data$levelSize[self@.data$level=="plate"]
@@ -1697,17 +1718,17 @@ setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
 
 #' microplate apply
 #' MPApply
-#' 
+#' @rdname MPApply
 #' @description 
 #' DOES NOT WORK
 #' 
 #' @param self the MicroPlate object
 #' @param fun the function 
-#' @param ...
+#' @param ... ...
 #' 
 #' @export
 setGeneric("MPApply", function(self, fun, ...) standardGeneric("MPApply"))
-#' @aliases MicroPlate,ANY,ANY,ANY-method
+#' @rdname MPApply
 setMethod("MPApply", signature(self = "MicroPlate"), function(self, fun, ...){
 #   funcall=substitute(fun(...))
   x="time"
@@ -1730,7 +1751,7 @@ setMethod("MPApply", signature(self = "MicroPlate"), function(self, fun, ...){
 
 
 #' copy
-#' 
+#' @rdname copy
 #' @description
 #' make a copy of the microplate data instance
 #' this function is used to get around the default behaviour
@@ -1738,7 +1759,8 @@ setMethod("MPApply", signature(self = "MicroPlate"), function(self, fun, ...){
 #' @param self the MicroPlate object
 #' 
 #' @export
-setGeneric("copy", function(self) standardGeneric("copy")) 
+setGeneric("copy", function(self) standardGeneric("copy"))
+#' @rdname copy
 setMethod("copy", signature(self = "MicroPlate"), function(self){
   copy=new("MicroPlate")
   listOldVars=ls(envir=self@.data, all.names=T)
@@ -1751,7 +1773,7 @@ setMethod("copy", signature(self = "MicroPlate"), function(self){
 
 
 #' getGrowthRate
-#' 
+#' @rdname getGrowthRate
 #' @description
 #' uses the grofit package to determine growth rate
 #' 
@@ -1767,7 +1789,8 @@ setMethod("copy", signature(self = "MicroPlate"), function(self){
 #' 
 #' @export
 #' @import grofit
-setGeneric("getGrowthRate", function(self,...) standardGeneric("getGrowthRate")) 
+setGeneric("getGrowthRate", function(self,...) standardGeneric("getGrowthRate"))
+#' @rdname getGrowthRate
 setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self,...){
 #   $model.type
 #   [1] "logistic"     "richards"     "gompertz"     "gompertz.exp"

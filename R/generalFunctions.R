@@ -31,7 +31,7 @@ trim.trailing <- function (x) sub("\\s+$", "", x)
 trim <- function (x) gsub("^\\s+|\\s+$", "", x)
 
 #' lettersToNumber
-#' 
+#' @rdname lettersToNumber
 #' @description
 #' A=1, Z=26
 #' AA=27, ZZ=... a lot!
@@ -50,6 +50,7 @@ trim <- function (x) gsub("^\\s+|\\s+$", "", x)
 #' 
 #' @export
 setGeneric("lettersToNumber", function(listOfStrings=NULL) standardGeneric("lettersToNumber")) 
+#' @rdname lettersToNumber
 setMethod("lettersToNumber", signature(listOfStrings="character"), function( listOfStrings=NULL){
   total=NULL
   for(i in 1:length(listOfStrings)){ # for each string

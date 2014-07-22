@@ -32,7 +32,7 @@
 library(gdata)
 library(readODS)
 #' readLayoutFile
-#' 
+#' @rdname readLayoutFile
 #' @description
 #' Read Experiment File and generates/returns a MicroPlate object
 #' 
@@ -46,6 +46,7 @@ library(readODS)
 #' @include MicroPlate.R
 #' @import gdata readODS
 setGeneric("readLayoutFile", function(file=NULL) standardGeneric("readLayoutFile")) 
+#' @rdname readLayoutFile
 setMethod("readLayoutFile", signature(), function(file=NULL){
 #   if(missing(existingMicroPlate)) existingMicroPlate=NULL
   # deteremine filetype
@@ -301,11 +302,12 @@ setMethod("readLayoutFile", signature(), function(file=NULL){
 
 
 #' Read Experiment File
-#' 
+#' @rdname readLayoutFile2
 #' @param file old dont use
 #' 
 #' @export
 setGeneric("readLayoutFile2", function(file=NULL) standardGeneric("readLayoutFile2")) 
+#' @rdname readLayoutFile2
 setMethod("readLayoutFile2", signature(), function( file=NULL){
   # maybe change it to get restricted names from Data...
   # though row and column arent their...
@@ -470,7 +472,7 @@ setMethod("readLayoutFile2", signature(), function( file=NULL){
 
   
 #' listFromLine
-#' 
+#' @rdname listFromLine
 #' @description
 #' returns a list from a sting separating it with tabs
 #' 
@@ -479,6 +481,7 @@ setMethod("readLayoutFile2", signature(), function( file=NULL){
 #' @param line the line given
 #' 
 setGeneric("listFromLine", function(line=NULL) standardGeneric("listFromLine")) 
+#' @rdname listFromLine
 setMethod("listFromLine", signature(), function( line=NULL){
   list=strsplit(line,"\t")
   return(list[[1]])
