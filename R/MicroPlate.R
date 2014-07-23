@@ -7,7 +7,7 @@ library(plyr)
 # hopefully on different levels...
 #
 #
-# TODO:
+# TODO:alanced endgame, all new missions, secure online play, links to Dungeon Defenders II and more!
 # dim, length, +-*/ == !=
 # Arith() = +-*/  ???
 # Compate = == != < > etc... ???
@@ -236,9 +236,13 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
 #   if(removeOther){rm(other,pos=parent.frame())}
 #   if(removeOther){remove(other)}
   if(removeOther){
-    print(match.call()[[3]])
-    print(class(match.call()[[3]]))
-    rm(match.call()[[3]])
+#     Sx <- deparse(substitute(other))
+#     print(Sx)
+    rm(list=deparse(substitute(other)),envir=sys.frame(-2))
+    
+#     print(match.call()[[3]])
+#     print(class(match.call()[[3]]))
+#     rm(match.call()[[3]])
   }  
 
   return(self)
@@ -1617,7 +1621,7 @@ setMethod("colnames<-", signature(x = "MicroPlate"), function(x, value) {
 #' > testData
 #' Object of class "MicroPlate"
 #' Error in S3Part(object, strictS3 = TRUE) : 
-#'  S3Part() is only defined for classes set up by setOldCLass(), basic classes or subclasses of these:  not true of class “MicroPlate”
+#'  S3Part() is only defined for classes set up by setOldCLass(), basic classes or subclasses of these:  not true of class "MicroPlate"
 #' 
 #' @param object the Microplate object
 #' 

@@ -7,22 +7,25 @@ library(testthat)
 test_that("",{
   #
   
-#   file=paste(getwd(),"/tests/testdata/testproject/layout_test.xls",sep="")
-#   xls=read.xls(file, stringsAsFactors=FALSE, blank.lines.skip=FALSE,header=FALSE)
-#   
-#   file=paste(getwd(),"/tests/testdata/testproject/layout_test.xlsx",sep="")
-#   xlsx=read.xls(file, stringsAsFactors=FALSE, blank.lines.skip=FALSE,header=FALSE)
-#   
-#   file=paste(getwd(),"/tests/testdata/testproject/layout_test.ods",sep="")
-#   ods=read.ods(file)
-#   
+
+  xls=paste(getwd(),"/../testdata/project/layout.xls",sep="")
+  xlsx=paste(getwd(),"/../testdata/project/layout.xlsx",sep="")
+  ods=paste(getwd(),"/../testdata/project/layout.ods",sep="")
+
+  xls=readLayoutFile(xls)
+  xlsx=readLayoutFile(xlsx)
+  ods=readLayoutFile(ods)
+  
+  # test is everyting is the same
+  expect_true(all(xls[]==xlsx[], na.rm=T))
+  expect_true(all(xls[]==ods[], na.rm=T))
+  
+   
+   
 #   xls
 #   xlsx
 #   ods
-#   
-#   
-#   xlsData=readLayoutFile(file=paste(getwd(),"/tests/testdata/testproject/layout_test.xls",sep=""))
-#   odsData=readLayoutFile()
-#   xlsxDatareadLayoutFile()
+
+
   
 })

@@ -7,76 +7,52 @@ library(testthat)
 #
 #
 test_that("MicroPlate.R_ basic tests",{
-# #   workspace = getwd()
-# #   testdir=file.path(workspace, "tests/testdata/enzymeAssays")
-# #   file=file.path(testdir, "3263.dbf")
-# #   test=novostar.dbf(path=file)
-# #   testData=new("MicroPlate")
-# #   testData=addData(testData,newData=test)
-#     
-#   testData=new("MicroPlate")
-#   test=list(plate=c(1,1),row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )
-#   testData@.data$data=test
-#   testData@.data$plate$plateName=1
-# #   testData=addPlate(testData,newData=test)
-#   
-#   testData$test=1234567 # at plate level
-#   expect_equal(testData$test,1234567)
-#   expect_true(any(colnames(testData)=="test")) # test the colname
-# #   expect_error((colnames(testData)="cookies")) # only 1 element while data has 8 columns
-# #   expect_warning((colnames(testData)=c(1,"cookies",3,4,5,6,7,8)))
-# #   expect_true(any(colnames(testData)=="cookies")) # test if the colname was changed
-# #   expect_equal(testData$cookies,1234567) # test if the data also changed...
-#   
+  
+  file=paste(getwd(),"/../testdata/project/KineticData.xls",sep="")
+  testData=novostar.xls(file)
+
+
+  testData$test=1234567 # at plate level
+  expect_equal(testData$test,1234567)
+  expect_true(any(colnames(testData)=="test")) # test the colname
+  expect_error((colnames(testData)="cookies")) # only 1 element while data has 8 columns # NOTE: currently it just returns an error in any case
+#   expect_warning((colnames(testData)=c(1,"cookies",3,4,5,6,7,8)))
+#   expect_true(any(colnames(testData)=="cookies")) # test if the colname was changed
+#   expect_equal(testData$cookies,1234567) # test if the data also changed...
+   
 #   # change in one instance effectes the other
-#   testData2=testData
-#   testData$cookies=123 # once again at plate level
-#   expect_equal(testData2$cookies,123) # note that we changed test and check test2
-#   #
-#   # test that you can have multiple instances that dont influence eachother
-#   testData3=new("MicroPlate")
-#   testData3=addPlate(testData3,newData=test)
-#   testData3$cookies=1234
-#   expect_false(testData2$cookies==1234) 
-#   
+  testData2=testData
+  testData$cookies=123 # once again at plate level
+  expect_equal(testData2$cookies,123) # note that we changed test and check test2
+
+  # test that you can have multiple instances that dont influence eachother
+  testData3=novostar.xls(file)
+  testData3$cookies=1234
+  expect_false(testData2$cookies==1234) 
+  
 #   # test reading [
-#   expect_equal(dim(testData[]),c(2,8))   # everything
-#   expect_equal(testData[1],"1")          # first col # plateName
-#   expect_equal(dim(testData[1,]),c(1,8)) # first row
-#   expect_equal(testData[,1],"1") # first col
-#   expect_equal(testData[1,2], 1234567)   # first row 2nd col # the test i just added
-#   expect_equal(dim(testData[,]),c(2,8))  # everything
+  expect_equal(dim(testData[]),c(24000,9))    # everything
+  expect_equal(testData[1],"KineticData.xls") # first col # plateName
+  expect_equal(dim(testData[1,]),c(1,9)) # first row
+  expect_equal(testData[,1],"KineticData.xls") # first col
+  expect_equal(testData[1,2], 1234567)   # first row 2nd col # the test i just added
+  expect_equal(dim(testData[,]),c(24000,9))  # everything
 # 
-#   expect_equal(testData[level=1],testData[level="measurement"]) # test level select
-#   expect_equal(testData[level=2],testData[level="well"])
+  expect_equal(testData[level=1],testData[level="measurement"]) # test level select
+  expect_equal(testData[level=2],testData[level="well"])
 # #   testData[level=2] # TODO decide what todo if levelSize well=measurement...testData[level=2] # TODO decide what todo if levelSize well=measurement...
-#   expect_equal(testData[level=3],testData[level="plate"])
-#   expect_equal(dim(testData[c(1,3,5)])[2],3) # test column select
-#   expect_equal(dim(testData[,c(1,3,5)])[2],3) # test column select
-#   expect_equal(dim(testData[c(1,2),])[1],2) # test row select 
-#   
-#   # test writing [<- 
-#   # test partial column update
-#   testData=new("MicroPlate")
-#   test=list(row=1:2,column=1:2,measurement=list( list(value=1:5,temp=1:5,time=1:5),list(value=2,temp=1,time=1) ) )
-#   testData=addPlate(testData,newData=test)
-#   testData=addPlate(testData,newData=test)
-#   
-#   expect_error(testData[4:7,"row"]) #  only 4 rows...
-#   expect_error((testData[4:8,"row"]=4:8))
-#   testData[2:3,"row"]=10:11 # should just work
-#   
-# #   testData[]
-# #   testData["row"]
-# #   testData[4:7,"row"]=4:7
-# #   testData[4:8,"row"]=4:8 # should give error but doesnt yet... cause only 4 rows...
-# #   testData[2:3,"row"]=10:11
-# #   testData[]
-# #   testData
-# # 
-# #   testData[4:7,"row"] # this should also have given an error
-# 
-# 
+  expect_equal(testData[level=3],testData[level="plate"])
+  expect_equal(dim(testData[c(1,3,5)])[2],3) # test column select
+  expect_equal(dim(testData[,c(1,3,5)])[2],3) # test column select
+  expect_equal(dim(testData[c(1,2),])[1],2) # test row select 
+  
+  # test writing [<- 
+  testData=novostar.xls(file)
+  expect_error(testData[93:97,"row"]) #  only 96 at well level...
+  expect_error((testData[93:97,"row"]=93:97))
+  testData[2:3,"row"]=10:11 # should just work
+  expect_true(all(testData[2:3,"row"]==10:11))
+
 #   # test levelSize of well=plate=measurement
 #   testData=new("MicroPlate")
 #   test=list(row=1,column=1,measurement=list(list(value=1,temp=1,time=1)))
@@ -300,7 +276,8 @@ test_that("MicroPlate.R_novastar",{
 
 test_that("MicroPlate.R_ stress/compare tests",{
   # its probably a bad idea to keep this in the stress test
-#   
+  
+#   file="../testdata/"
 #   workspace = getwd()
 #   testdir=file.path(workspace, "tests/testdata/enzymeAssays")
 #   file=file.path(testdir, "GJS_layout3263.tab")

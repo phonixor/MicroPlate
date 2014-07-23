@@ -1,4 +1,25 @@
 
+file=paste(getwd(),"/tests/testdata/project/layout.xls",sep="")
+xls=read.xls(file, stringsAsFactors=FALSE, blank.lines.skip=FALSE,header=FALSE)
+
+file=paste(getwd(),"/tests/testdata/project/layout.xlsx",sep="")
+xlsx=read.xls(file, stringsAsFactors=FALSE, blank.lines.skip=FALSE,header=FALSE)
+
+file=paste(getwd(),"/tests/testdata/project/layout.ods",sep="")
+ods=read.ods(file)
+
+xls=paste(getwd(),"/tests/testdata/project/layout.xls",sep="")
+xlsx=paste(getwd(),"/tests/testdata/project/layout.xlsx",sep="")
+ods=paste(getwd(),"/tests/testdata/project/layout.ods",sep="")
+
+xls=readLayoutFile(xls)
+xlsx=readLayoutFile(xlsx)
+ods=readLayoutFile(ods)
+
+all(xls[]==xlsx[], na.rm=T)
+all(xls[]==ods[], na.rm=T)
+
+
 
 file=paste(getwd(),"/tests/testdata/project/layout.ods",sep="")
 test=readLayoutFile(file)
@@ -11,7 +32,6 @@ test=merge(test,test2)
 
 
 
-
 test2=merge(test2,test)
 
 test=merge(test,test2)
@@ -21,6 +41,9 @@ test[]
 test@.data$data$plate # here is the cause... now to find the cause of the cause...
 
 
+
+
+showNonASCII( readLines(f))
 
 
 
