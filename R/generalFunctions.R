@@ -63,39 +63,214 @@ setMethod("lettersToNumber", signature(listOfStrings="character"), function( lis
   return(total)
 })
 
+
+#' onAttach
+#' @keywords internal
+#' @description 
+#' http://stat.ethz.ch/R-manual/R-devel/library/base/html/ns-hooks.html
+#'   
+.onAttach = function(libname, pkgname){
+  setup()
+}
+
+
+#' setup
+#' 
+#' TODO: maybe don't do all tests
+#' all test
+#' 
+#' http://cran.r-project.org/web/packages/openxlsx/index.html
+#' http://cran.r-project.org/web/packages/xlsx/index.html
+#' 
 #'
-#'
-#'
-#'@import
-#'@include 
-.onLoad - function(){
+#' @export
+#' 
+setup = function(){
   # check the current OS/Environment to determine which packages are used to load
-  # http://stat.ethz.ch/R-manual/R-devel/library/base/html/ns-hooks.html
-  
-  # TODO: put this in its own function!!
-  # http://cran.r-project.org/web/packages/openxlsx/index.html
-  # http://cran.r-project.org/web/packages/xlsx/index.html
-  
-  
-  # read.ODS
-  tryCatch({
-    file=paste(path.package("readODS"),"/readODS/tests/testdata/project/layout.ods",sep="")
-    print(file)
-    read.ods(file)
+  # 
+  message("*** setup microplate ***")
+  message("- seaching for an ODS parser")
+  # ODS
+  #
+  # readODS
+  .readODSWorks<<-tryCatch({
+    install.package("readODS")
+
+    file=paste(path.package("microplate"),"/extdata/test.ods",sep="")
+    read.ods(file) 
     
-    
-    
+    message(" + readODS package works for ODS files")
+    T # if it got here without errors it works!
+  }, error=function(e){
+    message(" - readODS package does not work for ODS files on this system")
+    return(F)
   })
-  # set function
-  .read.ods.function<<-read.ods
   
-  .read.ods.function=error("no packages work on your system for .ods files, packages tried: readODS")
+  # check if anything worked
+  if(!.readODSWorks){
+    warning("no packages work on your system for .ods files, packages tried: readODS")
+  }
+  
+  
+  # XLSX
+  #
+  # gdata
+  message("- searching for a XLSX parser")
+  .gdataWorksForXLSX<<-tryCatch({
+    install.package("gdata")
+    
+    file=paste(path.package("microplate"),"/extdata/test.xlsx",sep="")
+    gdata::read.xls(file, stringsAsFactors=FALSE, header=FALSE)
+  
+    message(" + gdata works for .xlsx files on this system.")
+    T # if it got here without errors it works!
+  }, error=function(e){
+    message(" - gdata does not work for .xlsx files on this system.")
+    return(F)
+  })
+  #
+  # openxlsx
+  .openxlsxWorksForXLSX<<-tryCatch({
+    install.package("openxlsx")
+    
+    file=paste(path.package("microplate"),"/extdata/test.xlsx",sep="")
+    openxlsx::read.xlsx(file,colNames=F)
+    
+    message(" + openxlsx works for .xlsx files on this system.")
+    T # if it got here without errors it works!  
+  }, error=function(e){
+    message(" - openxlsx does not work for .xlsx files on this system.")
+    return(F)
+  })
+  #
+  # xlsx
+  .xlsxWorksForXLSX<<-tryCatch({
+    install.package("xlsx")
+    
+    file=paste(path.package("microplate"),"/extdata/test.xlsx",sep="")
+    xlsx::read.xlsx(file, sheetIndex=1, stringsAsFactors=FALSE, header=FALSE)
+    
+    message(" + xlsx works for .xlsx files on this system.")
+    T # if it got here without errors it works!
+  }, error=function(e){
+    message(" - xlsx does not work for .xlsx files on this system.")
+    return(F) 
+  })
+
+  # check if anything worked
+  if(!any(.gdataWorksForXLSX, .openxlsxWorksForXLSX, .xlsxWorksForXLSX)){
+    warning("no packages work on your system for .xlsx files, packages tried: gdata, xlsx, openxlsx")
+  }
+  
+  # XLS
+  #
+  # gdata
+  message("- searching for a XLS parser")
+  .gdataWorksForXLS<<-tryCatch({
+    install.package("gdata")
+    
+    file=paste(path.package("microplate"),"/extdata/test.xls",sep="")
+    gdata::read.xls(file, stringsAsFactors=FALSE, header=FALSE)
+    
+    message(" + gdata works for .xls files on this system.")
+    T # if it got here without errors it works!
+  }, error=function(e){
+    message(" - gdata does not work for .xls files on this system.")
+    return(F)
+  })
+  #
+  # xlsx
+  .xlsxWorksForXLS<<-tryCatch({
+    install.package("xlsx")
+    
+    file=paste(path.package("microplate"),"/extdata/test.xls",sep="")
+    xlsx::read.xlsx(file, sheetIndex=1, stringsAsFactors=FALSE, header=FALSE)
+    
+    message(" + xlsx works for .xls files on this system.")
+    T # if it got here without errors it works!
+  }, error=function(e){
+    message(" - xlsx does not work for .xls files on this system.")
+    return(F) 
+  })
+  
+  # check if anything worked
+  if(!any(.gdataWorksForXLSX, .openxlsxWorksForXLSX, .xlsxWorksForXLSX)){
+    warning("no packages work on your system for .xls files, packages tried: gdata, xlsx")
+  }
+  
+  
   
 }
 
 
-read.Sheet = function(){
+#' read.sheet
+#' 
+#' a function that 
+#' ods, xls, xlsx
+#' 
+#' TODO: decide if i want to support "..."
+#' TODO: support .csv ???
+#' TODO: multi sheet... sheets...
+#'    sheetCount and sheet=i for gdata
+#' 
+#' @export
+#' 
+read.sheet = function(file=NULL){
+  if(!exists(.readODSWorks)) {
+    warning(".readODSWorks undefined, setup() did not run properely, or variables where removed")
+    setup()
+  }
   
+  splitedFile=unlist(strsplit(file,split = ".",fixed=TRUE))
+  extention=casefold(splitedFile[length(splitedFile)], upper = FALSE)
+  
+  if(extention=="ods"){
+    if(.readODSWorks){
+      return(readODS::read.ods(file))
+    }else{
+      stop("no valid ods parser")
+    }
+    
+  }else if(extention=="xls"){
+    if(.gdataWorksForXLS){
+      return(gdata::read.xls(file, stringsAsFactors=FALSE, header=FALSE))
+    } else if(.xlsxWorksForXLS){
+      return(xlsx::read.xlsx(file, sheetIndex=1, stringsAsFactors=FALSE, header=FALSE))
+    } else {
+      stop("no valid xls parser")
+    }
+  }else if(extention=="xlsx"){
+    if(.gdataWorksForXLSX){
+      return(gdata::read.xls(file, stringsAsFactors=FALSE, header=FALSE))
+    } else if(.openxlsxWorksForXLSX){
+      return(openxlsx::read.xlsx(file,colNames=F))
+    } else if(.xlsxWorksForXLSX){
+      return(xlsx::read.xlsx(file, sheetIndex=1, stringsAsFactors=FALSE, header=FALSE))
+    } else {
+      stop("no valid xlsx parser")
+    }
+  }else{
+    stop(paste("extention not supported: ",extention, "supported extentions: ods,xls,xlsx", sep=""))
+  }
+  stop("how did i get here?")
+}
+
+
+#' install.package
+#' 
+#' load a package or
+#' install a package and then load it...
+#' 
+#' because R defaults R Ridiculous
+#' 
+#' @export
+install.package = function(packageName=NULL){
+  if(packageName %in% rownames(installed.packages()) == FALSE) {
+#     message(paste("installing package:",sep=""))
+    lib=.libPaths()[[1]]
+    install.packages(packageName,lib=lib)
+  }
+  library(packageName,character.only = T)
 }
 
 
