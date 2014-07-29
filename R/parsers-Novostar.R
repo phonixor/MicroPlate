@@ -29,13 +29,11 @@ library(foreign)
 #' 
 #' @description
 #' TODO better plate identification
-#' TODO make not BROKEN!!!
 #' 
 #' @param path path to the novostar .dbf file.
 #' @param name unused TODO CHECK!
 #' 
 #' @export
-#' @include MicroPlate.R
 #' @import foreign
 "novostar.dbf"=function(path=NULL,name=NULL){
   #   print(path)
@@ -98,12 +96,11 @@ library(gdata)
 #' TODO: seconds/days
 #' 
 #' @param path the path to the novostar excel file
-#' @param plateName the name of the plate if left empty, the filename will be used
+#' @param name unused apperently... TODO CHECK!
 #' 
 #' @export
-#' @include MicroPlate.R
 #' @import gdata
-"novostar.xls"=function(path=NULL,plateName=NULL){
+"novostar.xls"=function(path=NULL,name=NULL){
   print("novostar.xls!!!")
   xls = read.xls(path,stringsAsFactors=FALSE) # FUCK FACTORS!!!
   # appears to ingnore empty rows
@@ -168,8 +165,6 @@ library(gdata)
     l$column=append(l$column,as.numeric(xls[row,2]))
     l$content=append(l$content,xls[row,3])
     
-    # add plate number
-    l$plate=append(l$plate,1)
     
     temp=list()
     for(col in 4:dim(xls)[2]){ # for each column
@@ -181,20 +176,7 @@ library(gdata)
     l[["measurement"]][[row-4]]=temp
   }
   l$row=lettersToNumber(l$row)# change letters to numbers
-
-  mp=new("MicroPlate")
-  mp@.data$data=l
-  
-  #add plateName
-  if(!is.null(plateName)){
-    mp@.data$plate$plateName=plateName
-  }else{
-    mp@.data$plate$plateName=basename(path)
-  }
-
-  updateColnames(mp)
-  
-  return(mp)
+  return(l)
 }
 
 

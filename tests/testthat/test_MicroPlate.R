@@ -32,9 +32,9 @@ test_that("MicroPlate.R_ basic tests",{
   
 #   # test reading [
   expect_equal(dim(testData[]),c(24000,9))    # everything
-  expect_equal(testData[1],"KineticData.xls") # first col # plateName
+  expect_equal(testData[[1]],"KineticData.xls") # first col # plateName
   expect_equal(dim(testData[1,]),c(1,9)) # first row
-  expect_equal(testData[,1],"KineticData.xls") # first col
+#   expect_equal(testData[,1],"KineticData.xls") # first col
   expect_equal(testData[1,2], 1234567)   # first row 2nd col # the test i just added
   expect_equal(dim(testData[,]),c(24000,9))  # everything
 # 

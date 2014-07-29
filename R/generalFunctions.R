@@ -63,3 +63,39 @@ setMethod("lettersToNumber", signature(listOfStrings="character"), function( lis
   return(total)
 })
 
+#'
+#'
+#'
+#'@import
+#'@include 
+.onLoad - function(){
+  # check the current OS/Environment to determine which packages are used to load
+  # http://stat.ethz.ch/R-manual/R-devel/library/base/html/ns-hooks.html
+  
+  # TODO: put this in its own function!!
+  # http://cran.r-project.org/web/packages/openxlsx/index.html
+  # http://cran.r-project.org/web/packages/xlsx/index.html
+  
+  
+  # read.ODS
+  tryCatch({
+    file=paste(path.package("readODS"),"/readODS/tests/testdata/project/layout.ods",sep="")
+    print(file)
+    read.ods(file)
+    
+    
+    
+  })
+  # set function
+  .read.ods.function<<-read.ods
+  
+  .read.ods.function=error("no packages work on your system for .ods files, packages tried: readODS")
+  
+}
+
+
+read.Sheet = function(){
+  
+}
+
+

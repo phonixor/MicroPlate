@@ -11,6 +11,7 @@ Depends:
     gtools,
     plyr,
     gdata,
+    openxlsx,
     readODS,
     grofit,
     methods

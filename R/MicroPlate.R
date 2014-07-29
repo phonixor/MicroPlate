@@ -842,17 +842,17 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
   if(lowestLevel==3){ # plate
     if(is.null(row)){
       # whole column
-      return(as.data.frame(x@.data$plate)[col])
+      return(as.data.frame(x@.data$plate, stringsAsFactors=F)[col])
     } else {
       # specific rows
-      return(as.data.frame(x@.data$plate)[row,col])
+      return(as.data.frame(x@.data$plate, stringsAsFactors=F)[row,col])
     }
     
   }else if (lowestLevel==2){ # well
     # repeat plate for each well
     #
     # reserve space
-    returnValue=data.frame(matrix(nrow=if(!is.null(row)){length(row)}else{x@.data$levelSize[x@.data$levelNr==lowestLevel]},ncol=length(col)))
+    returnValue=data.frame(matrix(nrow=if(!is.null(row)){length(row)}else{x@.data$levelSize[x@.data$levelNr==lowestLevel]},ncol=length(col)), stringsAsFactors=F)
     colnames(returnValue)=col
     for(colnr in 1:length(col)){ # for each column
       tempData=NULL
@@ -1192,7 +1192,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
   # if you use df[] and you add something way bigger, 
   # it will keep the df the same size, and throw a bunch of warning
   if(class(value)=="matrix"){
-    value=data.frame(value) # dont want to deal with this crap seperatly!
+    value=data.frame(value, stringsAsFactors=F) # dont want to deal with this crap seperatly!
   }
   if(class(value)=="data.frame"){
 #     if( is.null(row) && (nrOfRows%%dim(value)[1]>0) ){

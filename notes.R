@@ -2,6 +2,10 @@
 file=paste(getwd(),"/tests/testdata/project/layout.xls",sep="")
 xls=read.xls(file, stringsAsFactors=FALSE, blank.lines.skip=FALSE,header=FALSE)
 
+xls
+
+
+
 file=paste(getwd(),"/tests/testdata/project/layout.xlsx",sep="")
 xlsx=read.xls(file, stringsAsFactors=FALSE, blank.lines.skip=FALSE,header=FALSE)
 
@@ -53,6 +57,7 @@ file=paste(getwd(),"/tests/testdata/project/layout.ods",sep="")
 test=readLayoutFile(file)
 
 file=paste(getwd(),"/tests/testdata/project/KineticData.xls",sep="")
+
 novostar.xls(file)
 
 
@@ -472,9 +477,9 @@ test=function(list){
   for(i in names(list$well)){
     index=1
     for(j in 1:length(list$well[[i]])){
-#       print(replicate(n=50,list$well[[i]][j]))
-#       print(c(list$well[["b"]][j],list$well[["e"]][j]))
-#       print(l[c(list$well[["b"]][j],list$well[["e"]][j]),i])
+      #       print(replicate(n=50,list$well[[i]][j]))
+      #       print(c(list$well[["b"]][j],list$well[["e"]][j]))
+      #       print(l[c(list$well[["b"]][j],list$well[["e"]][j]),i])
       l[index:(index+49),i]=replicate(n=50,list$well[[i]][j])
       index=index+50
     }
@@ -1142,10 +1147,10 @@ string <- function(obj) new("string", as.character(obj))
 
 ## this works
 setMethod("+", signature(e1 = "character", e2 = "ANY"),
-            function (e1, e2) string(paste(e1, as.character(e2), sep = "")))
+          function (e1, e2) string(paste(e1, as.character(e2), sep = "")))
 ## this doesnt!
 setMethod("+", signature(aaa = "character", e2 = "ANY"),
-            function (aaa, e2) string(paste(aaa, as.character(e2), sep = "")))
+          function (aaa, e2) string(paste(aaa, as.character(e2), sep = "")))
 ## check with
 getGeneric("+")
 
@@ -1374,9 +1379,9 @@ legend("bottomleft",paste(names,": S.E=",data$se),ncol=6,text.width=1)
 -------------
   
   
-# http://stackoverflow.com/questions/11562656/averaging-column-values-for-specific-sections-of-data-corresponding-to-other-col
-
-df=test  
+  # http://stackoverflow.com/questions/11562656/averaging-column-values-for-specific-sections-of-data-corresponding-to-other-col
+  
+  df=test  
 aggregate(value~content=="b",df,mean)## case sensitivy ignrored??????
 
 blaad="value"
