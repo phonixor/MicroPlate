@@ -99,23 +99,25 @@ library(gdata)
 #' @param name unused apperently... TODO CHECK!
 #' 
 #' @export
-#' @import gdata
 "novostar.xls"=function(path=NULL,name=NULL){
   print("novostar.xls!!!")
-  xls = read.xls(path,stringsAsFactors=FALSE) # FUCK FACTORS!!!
+#   xls = read.xls(path,stringsAsFactors=FALSE) # FUCK FACTORS!!!
+  xls = read.sheet(path,sheet = 1)
   # appears to ingnore empty rows
-  #   print(head(xls)[1:10])
+#   print(head(xls)[1:10])
   
 #   print(dim(xls))
+#   print(xls)
 #   print("cookies")
   
-  
-  if(xls[4,1]!="Well\nRow"){
+
+#   print(xls[5,1])
+  if(xls[5,1]!="Well\nRow"){
     stop("data not found!")
   }
   
   # get headers
-  header=xls[4,]
+  header=xls[5,]
   
 #   print(header)
   time=NULL
@@ -159,11 +161,12 @@ library(gdata)
 #   print(waveLength)
   
   l=list()
-  dataRows=5:dim(xls)[1]
+  dataRows=6:dim(xls)[1]
   for(row in dataRows){ # for each row
     l$row=append(l$row, xls[row,1])
     l$column=append(l$column,as.numeric(xls[row,2]))
     l$content=append(l$content,xls[row,3])
+    l$plate=append(l$plate,1) # foreign key
     
     
     temp=list()
@@ -173,10 +176,23 @@ library(gdata)
       temp$waveLength=append(temp$waveLength,waveLength[col-3])
       # no temperature!
     }
-    l[["measurement"]][[row-4]]=temp
+    l[["measurement"]][[row-5]]=temp
   }
   l$row=lettersToNumber(l$row)# change letters to numbers
-  return(l)
+  
+  # transform it into a MicroPlate
+  returnValue=new("MicroPlate")
+  returnValue@.data$data=l
+  
+  if(is.null(name)){
+    returnValue@.data$plate$plateName=basename(path)
+  }else{
+    returnValue@.data$plate@plateName=name
+  }
+
+  updateColnames(returnValue)
+
+  return(returnValue)
 }
 
 
