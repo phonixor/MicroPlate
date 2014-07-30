@@ -28,7 +28,6 @@
 
 
 
-library(gdata)
 library(readODS)
 #' readLayoutFile
 #' 
@@ -43,42 +42,41 @@ library(readODS)
 #'  
 #' @export
 #' @include MicroPlate.R
-#' @import gdata readODS
 setGeneric("readLayoutFile", function(file=NULL, existingMicroPlate) standardGeneric("readLayoutFile")) 
 setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=NULL){
   if(missing(existingMicroPlate)) existingMicroPlate=NULL
   # deteremine filetype
-  splitedFile=unlist(strsplit(file,split = ".",fixed=TRUE))
-  extention=casefold(splitedFile[length(splitedFile)], upper = FALSE)
+#   splitedFile=unlist(strsplit(file,split = ".",fixed=TRUE))
+#   extention=casefold(splitedFile[length(splitedFile)], upper = FALSE)
 #   print(extention)
-  spreadsheet=NULL
-  if(extention=="xls" || extention=="xlsx"){
-    # uses gdata
-    spreadsheet=list()
-    for(i in 1:sheetCount(file)){
-      spreadsheet[[i]]=read.xls(file, sheet=i, stringsAsFactors=FALSE, header=FALSE, blank.lines.skip=FALSE)
-      #does blank.lines.skip actually work?
-    }
-    
-  }else if(extention=="ods"){
-    # uses readODS
-    spreadsheet=read.ods(file)
-    
-  }else if(extention=="csv" || extention=="txt"){
-    # 
-#     print("csv / txt not implemented atm...")
-    # need to test this :)
-    spreadsheet=read.csv(file, stringsAsFactors=FALSE, header=FALSE)
-  }else{
-    stop("Unknown file type, please make sure the file has a proper extention.\n supported extentions are sheet formats: xls,xlsx & ods. comma seperated files: csv & txt")
-  }
-  
+#   spreadsheet=NULL
+#   if(extention=="xls" || extention=="xlsx"){
+#     # uses gdata
+#     spreadsheet=list()
+#     for(i in 1:sheetCount(file)){
+#       spreadsheet[[i]]=read.xls(file, sheet=i, stringsAsFactors=FALSE, header=FALSE, blank.lines.skip=FALSE)
+#       #does blank.lines.skip actually work?
+#     }
+#     
+#   }else if(extention=="ods"){
+#     # uses readODS
+#     spreadsheet=read.ods(file)
+#     
+#   }else if(extention=="csv" || extention=="txt"){
+#     # 
+# #     print("csv / txt not implemented atm...")
+#     # need to test this :)
+#     spreadsheet=read.csv(file, stringsAsFactors=FALSE, header=FALSE)
+#   }else{
+#     stop("Unknown file type, please make sure the file has a proper extention.\n supported extentions are sheet formats: xls,xlsx & ods. comma seperated files: csv & txt")
+#   }
+#   
   #TODO remove empty sheets
-  
+  spreadsheet=read.sheet(file)
 #   print(spreadsheet)
   
   nrOfPlates=length(spreadsheet)
-  
+#   print(spreadsheet)  
 
   for(sheet in spreadsheet){
     print("next sheet!")
@@ -241,10 +239,10 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
       layoutData=data[names(data)!="plate"]
 
       measuredData=eval(parse(text=paste(parser,"('",dirname(file),"/",dataFile,"')",sep="")))
-      addPlate(existingMicroPlate, newData=measuredData, layoutData=layoutData, plateName=plateName )
+#       addPlate(existingMicroPlate, newData=measuredData, layoutData=layoutData, plateName=plateName )
       print("___________________________________")
 #       print(measuredData)
-      
+      existingMicroPlate=measuredData
 
 #       existingMicroPlate@.data$data=measuredData
 

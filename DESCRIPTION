@@ -10,16 +10,17 @@ Depends:
     foreign,
     gtools,
     plyr,
-    gdata,
-    openxlsx,
-    readODS,
     grofit,
     methods
 License: GPL-3
 Suggests:
     devtools,
     testthat,
-    roxygen2
+    roxygen2,
+    openxlsx,
+    xlsx,
+    readODS,
+    gdata
 Collate:
     'MicroPlate.R'
     'generalFunctions.R'
