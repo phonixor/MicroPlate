@@ -1,4 +1,22 @@
 
+
+
+
+file=paste(path.package("microplate"),"/extdata/test.xlsx",sep="")
+
+# warnings are still thrown even in a try catch... FUCKING R!
+gdata::read.xls(file, stringsAsFactors=FALSE, header=FALSE)
+
+
+
+tryCatch(expr={gdata::read.xls(file, stringsAsFactors=FALSE, header=FALSE)},error=function(e)T,warning=function(w)F)
+
+tryCatch(expr={gdata::read.xls(file, stringsAsFactors=FALSE, header=FALSE)},error=function(e)F)
+
+
+
+
+
 file=paste(getwd(),"/tests/testdata/project/layout.xls",sep="")
 xls=read.xls(file, stringsAsFactors=FALSE, blank.lines.skip=FALSE,header=FALSE)
 

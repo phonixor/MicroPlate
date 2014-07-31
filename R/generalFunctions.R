@@ -128,15 +128,23 @@ setup = function(){
   .gdataWorksForXLSX<<-tryCatch({
     install.package("gdata")
     
+    
     file=paste(path.package("microplate"),"/extdata/test.xlsx",sep="")
+    
+    # warnings are still thrown even in a try catch... FUCKING R!
     gdata::read.xls(file, stringsAsFactors=FALSE, header=FALSE)
-  
+#     tryCatch(expr={gdata::read.xls(file, stringsAsFactors=FALSE, header=FALSE)},error=function(e)T,warning=function(w)F)
     message(" + gdata works for .xlsx files on this system.")
     T # if it got here without errors it works!
   }, error=function(e){
     message(" - gdata does not work for .xlsx files on this system.")
     return(F)
-  })
+  },warning=function(w){
+    # errors get priority over warning... so i guess if things go wrong it wont get here
+    message(" - gdata gave warning...")
+    return(F)
+  }
+  )
   #
   # xlsx
   .xlsxWorksForXLSX<<-tryCatch({
