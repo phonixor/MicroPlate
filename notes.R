@@ -1,5 +1,21 @@
 
 
+xlsFile=paste(getwd(),"/tests/testdata/project/layout.xls",sep="")
+xlsxFile=paste(getwd(),"/tests/testdata/project/layout.xlsx",sep="")
+odsFile=paste(getwd(),"/tests/testdata/project/layout.ods",sep="")
+
+xls=readLayoutFile(xlsFile)
+xlsx=readLayoutFile(xlsxFile)
+ods=readLayoutFile(odsFile)
+
+all(xls[]==xlsx[], na.rm=T)
+all(xls[]==ods[], na.rm=T)
+
+
+
+
+
+#################################
 
 
 file=paste(path.package("microplate"),"/extdata/test.xlsx",sep="")

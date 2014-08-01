@@ -66,6 +66,7 @@ setMethod("lettersToNumber", signature(listOfStrings="character"), function( lis
 
 #' onAttach
 #' 
+#' @rdname onAttach
 #' @keywords internal
 #' @description 
 #' http://stat.ethz.ch/R-manual/R-devel/library/base/html/ns-hooks.html
@@ -232,7 +233,7 @@ setup = function(){
 #' TODO: multi sheet... for openxml
 #' 
 #' @param file the spreadsheet file .ods, .xls or .xlsx
-#' @param the sheet or sheets you want from the spreadsheet
+#' @param sheet the sheet or sheets you want from the spreadsheet
 #' 
 #' @export
 read.sheet = function(file=NULL, sheet=NULL){
@@ -279,7 +280,7 @@ read.sheet = function(file=NULL, sheet=NULL){
 #' gdataInterface
 #' 
 #' @param file the spreadsheet file .ods, .xls or .xlsx
-#' @param the sheet or sheets you want from the spreadsheet
+#' @param sheet the sheet or sheets you want from the spreadsheet
 #' 
 #' @export
 gdataInterface=function(file=NULL,sheet=NULL){
@@ -307,7 +308,7 @@ gdataInterface=function(file=NULL,sheet=NULL){
 #'        so i dont parse everything for each sheet...
 #' 
 #' @param file the spreadsheet file .ods, .xls or .xlsx
-#' @param the sheet or sheets you want from the spreadsheet
+#' @param sheet the sheet or sheets you want from the spreadsheet
 #' 
 #' @export
 xlsxInterface=function(file=NULL,sheet=NULL){
@@ -337,16 +338,22 @@ xlsxInterface=function(file=NULL,sheet=NULL){
 #' 
 #' because R defaults R Ridiculous
 #' 
+#' https://bugs.r-project.org/bugzilla/show_bug.cgi?id=14776
+#' 
 #' @param packageName the name of the package you want to use
+#' 
 #' 
 #' @export
 install.package = function(packageName=NULL){
-  if(packageName %in% rownames(installed.packages()) == FALSE) {
+  methods=packageName # if i use packageName check will give warnings
+  # https://bugs.r-project.org/bugzilla/show_bug.cgi?id=14776
+  
+  if(methods %in% rownames(installed.packages()) == FALSE) {
 #     message(paste("installing package:",sep=""))
     lib=.libPaths()[[1]]
-    install.packages(packageName,lib=lib)
+    install.packages(methods,lib=lib) 
   }
-  library(packageName,character.only = T)
+  library(methods,character.only = T)
 }
 
 
