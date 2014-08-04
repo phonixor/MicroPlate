@@ -119,7 +119,7 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
           localIndex=localIndex+1
           #
           # check if done
-          if(index>=nrOfRows){
+          if(index>nrOfRows){
             rowLock=FALSE
             continue=FALSE
             break
@@ -218,12 +218,12 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
       
       layoutData=data[names(data)!="plate"]
 
-      measuredData=eval(parse(text=paste(parser,"('",dirname(file),"/",dataFile,"')",sep="")))
-
+      existingMicroPlate=eval(parse(text=paste(parser,"('",dirname(file),"/",dataFile,"')",sep="")))
+      
+      addLayoutDataToMicroPlate(existingMicroPlate,layoutData)
       
       print("___________________________________")
 
-      existingMicroPlate=measuredData
       
     } else {
       existingMicroPlate
@@ -241,10 +241,47 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
 })
 
 
-addLayoutDataToMicroPlate=function(microplate,layoutData){
+
+
+
+#' addLayoutDataToMicroPlate
+#' 
+#' @rdname addLayoutDataToMicroPlate
+#' @description
+#' ...
+#' 
+#' TODO add better support for multipleplate
+#' 
+#' 
+#' @param self the microplate you want to add things to
+#' @param layoutData the data from a layout file you want to add
+#' 
+#'  
+#' @export
+#' @include MicroPlate.R
+setGeneric("addLayoutDataToMicroPlate", function(self=NULL, layoutData=NULL) standardGeneric("addLayoutDataToMicroPlate")) 
+#' @rdname addLayoutDataToMicroPlate
+setMethod("addLayoutDataToMicroPlate", signature(self="MicroPlate"), function(self=NULL, layoutData=NULL){
   
+  print("addLayoutDataToMicroPlate!!")
+  index=which(self@.data$data$column==layoutData$column & self@.data$data$row==layoutData$row & self@.data$data$plate==self@.data$levelSize[self@.data$level=="plate"])
+  print(index)
+  #
   
-}
+  if(length(index)!=self@.data$wellsPerPlate[self@.data$levelSize[self@.data$level=="plate"]]){
+    stop("Layout and microplate sizes are not the same")
+  }
+  # add the data
+  layoutData=data.frame(layoutData,stringsAsFactors = F)
+  colNames=base::colnames(layoutData)[!base::colnames(layoutData) %in% c("row","column")] #everything except row, column, plate 
+  print(colNames)
+  print(layoutData)
+  print("---------------")
+  print(layoutData[colNames])
+  self[index,colNames,level="well"]=layoutData[colNames]
+  
+  updateColnames(self)
+})
 
 
 

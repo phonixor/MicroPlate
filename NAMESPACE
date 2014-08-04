@@ -2,6 +2,7 @@
 
 export("colnames<-")
 export(MPApply)
+export(addLayoutDataToMicroPlate)
 export(addPlate)
 export(addPlate2)
 export(colnames)

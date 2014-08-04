@@ -502,10 +502,19 @@ setMethod("addPlate2", signature(self = "MicroPlate"), function(self,newData=NUL
 #' this method is responsible for updating colnames and meta data
 #' to keep the Data from working properly
 #' 
+#' TODO make it so that the level meta data is sorted!
+#' this allowes the rest of the code to be optimized a bit more...
+#' self@@.data$levelSize[self@@.data$level=="plate"] would become self@@.data$levelSize[3]
+#' measurement=1, well=2, plate=3
+#' 
+#' 
+#' NEEDS BETTER NAME!!!
+#' 
 #' @param self the microplate object
 #' 
 #' internal only!
 #' @export
+#' @import plyr
 setGeneric("updateColnames", function(self) standardGeneric("updateColnames"))
 #' @rdname updateColnames
 setMethod("updateColnames", signature(self = "MicroPlate"), function(self){
@@ -526,6 +535,9 @@ setMethod("updateColnames", signature(self = "MicroPlate"), function(self){
   self@.data$colNames=append(self@.data$colNames,names(self@.data$data)[!is.element(names(self@.data$data),c("measurement","plate"))])  
   self@.data$colLevel=append(self@.data$colLevel,rep("well",length(self@.data$data)-2)) # ignore col plate and measurement
   self@.data$colLevelNr=append(self@.data$colLevelNr,rep(2,length(self@.data$data)-2))
+  #
+  # wellsPerPlate
+  self@.data$wellsPerPlate=plyr::count(self@.data$data$plate)[[2]]
   #
   # measurement
   self@.data$level=append(self@.data$level,"measurement")
@@ -1085,7 +1097,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
         stop(paste("level may only contain 1 of the following values: ", x@.data$level ,sep="",collapse=" "))
       }
     } else {
-      stop("invalid args given, only accepts i,j,level")
+      stop("invalid args given, only accepts i,j,level,value")
     } 
   }
   
@@ -1561,6 +1573,8 @@ setMethod("$<-", signature(x = "MicroPlate"), function(x, name, value) {
 #' @rdname colnames
 #' @description
 #' returns the column names (hiddes internal names)
+#' 
+#' TODO:make sure this does not overwrite data.frame/base colname function
 #' 
 #' @param x the MicroPlate object you want the column names from
 #' 
