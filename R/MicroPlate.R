@@ -126,18 +126,19 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
 #   self@.data$colNames
 #   other@.data$colNames
   
+  # new means that other has them and self does not
+  # missing means that other does not have them but self does
   
+  nrOfWells=self@.data$levelSize[self@.data$level=="well"]
+  nrOfPlates=self@.data$levelSize[self@.data$level=="plate"]  
   nrOfNewWells=other@.data$levelSize[other@.data$level=="well"]
   nrOfNewPlates=other@.data$levelSize[other@.data$level=="plate"]
-  nrOfWells=self@.data$levelSize[self@.data$level=="well"]
-  nrOfPlates=self@.data$levelSize[self@.data$level=="plate"]
+  
 #   plateNumber=self@.data$levelSize[self@.data$level=="plate"]+1 #this needs change
-  
-  
   
   colsPlate=names(other@.data$plate)
   colsWell=names(other@.data$data)
-  colsMeasurement=names(other@.data$measurement[[1]])
+  colsMeasurement=names(other@.data$data$measurement[[1]])
   newColsPlate=colsPlate[!(colsPlate %in% self@.data$colNames[self@.data$colLevel=="plate"])]
   newColsWell=colsWell[!(colsWell %in% self@.data$colNames[self@.data$colLevel=="well"])]
   newColsMeasurement=colsMeasurement[!(colsMeasurement %in% self@.data$colNames[self@.data$colLevel=="measurement"])]
@@ -180,6 +181,7 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
   }
   # 
   # 
+  print(paste("newColsWell",newColsWell))
   for(i in 1:length(newColsWell)){ # measurement is seen as a new column
     # create new column
     # fill the existing wells with NA and add the new data
@@ -187,19 +189,24 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
     # note that: newColsWell contains measurement!
     if(newColsWell[i]=="measurement"){
       # combine the measurement columns in at the well level
+#       print(length(self@.data$data$measurement))
+#       print(length(other@.data$data$measurement))
       self@.data$data$measurement=append(self@.data$data$measurement,other@.data$data$measurement)
+#       print(length(self@.data$data$measurement))
     } else if(newColsWell[i]=="plate"){
       # plate numbers have been changed above
     } else {
       self@.data$data[[newColsWell[i]]]=append(rep(x=NA,nrOfWells),other@.data$data[[newColsWell[i]]])
     }
   }
+#   print(paste("missingColsWell",missingColsWell))
   if(length(missingColsWell)>0){
     for(i in 1:length(missingColsWell)){
       # fill the existing columns for which the newData has no data with NA
       self@.data$data[[missingColsWell[i]]]=append(self@.data$data[[missingColsWell[i]]],rep(x=NA,nrOfNewWells))
     }
   }
+#   print(paste("existingColsWell",existingColsWell))
   if(length(existingColsWell)>0){ # this should always be the case as row and column are mandatory...
     for(i in 1:length(existingColsWell)){
       # add newData to existing columns
@@ -208,6 +215,7 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
   }
   # adding NA to empty spaces
   # update existing wells measurements with NA for new columns
+#   print(paste("newColsMeasurement",newColsMeasurement))
   if(length(newColsMeasurement)>0){
     for(i in 1:nrOfWells){ # for each well
       nrOfMeasurements=length(self@.data$data$measurement[[i]][[1]])
@@ -220,6 +228,7 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
     }
   }
   # add NA's to the newData
+#   print(paste("missingColsMeasurement",missingColsMeasurement))
   if(length(missingColsMeasurement)>0){
     for(i in nrOfWells:(nrOfWells+nrOfNewWells)){
       nrOfMeasurements=length(self@.data$data$measurement[[i]][[1]])
@@ -229,7 +238,7 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
     }
   }
   
-  updateColnames(self)
+  
   
   # remove other
   # TODO figure this thing out when stackexchange is not down!
@@ -243,8 +252,10 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
 #     print(match.call()[[3]])
 #     print(class(match.call()[[3]]))
 #     rm(match.call()[[3]])
-  }  
-
+  }
+  
+  updateColnames(self)
+  
   return(self)
 })
 
@@ -892,7 +903,7 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
     return(returnValue)
     
   }else if(lowestLevel==1){ # measurement
-    print("here?")
+#     print("here?")
   #   print(proc.time())
     #
     # fetch the requested data
@@ -1071,6 +1082,8 @@ setMethod("removeColumn", signature(self = "MicroPlate" ), function(self, colNam
 #' 
 #' todo: testData["content"]=1:12 -- content remains character instead of number/int
 #' 
+#' todo: better list vector support on plate level?
+#' 
 #' todo better row check... it is now pretty much assumed that user gives proper row numbers..
 #' which is a silly thing to assume... use unique / max / min / interger
 #' 
@@ -1233,6 +1246,9 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
   } else if (any(class(value) %in% c("character","numeric","integer"))) {
     
     if (length(col)!=1) {
+      # TODO THIS CAN STILL BE OK... vectors with names... are apperently a thing...
+      print(value)
+      print(class(value))
       stop("multiple columns given, while only a single dimensional data")
     }
     
@@ -1789,6 +1805,23 @@ setMethod("copy", signature(self = "MicroPlate"), function(self){
   return(copy)
 })
 
+
+#' dim
+#' @rdname dim
+#' @description
+#' return the diminsions of the microplate
+#' 
+#' @param x the MicroPlate object
+#' 
+#' TODO figure out if i can add level to this beauty
+#' TODO figure out about non primative columns
+#' 
+#' @export
+setMethod("dim", signature(x = "MicroPlate"), function(x){
+  level="measurement"
+  return(dim(x[level=level]))
+#   return(c( self@.data$levelSize[self@.data$level=="measurement"], length(self@.data$colNames) ) )
+})
 
 #' getGrowthRate
 #' @rdname getGrowthRate

@@ -103,7 +103,7 @@ setup = function(){
   # ODS
   #
   # readODS
-  .readODSWorks<<-tryCatch({
+  .readODSWorksForODS<<-tryCatch({
     install.package("readODS")
 
     file=paste(path.package("microplate"),"/extdata/test.ods",sep="")
@@ -117,7 +117,7 @@ setup = function(){
   })
   
   # check if anything worked
-  if(!.readODSWorks){
+  if(!.readODSWorksForODS){
     warning("no packages work on your system for .ods files, packages tried: readODS")
   }
   
@@ -226,7 +226,10 @@ setup = function(){
 #' a function that calls a ods, xls, xlsx parser that works on your system
 #' 
 #' since not all systems have JAVA or PERL installed. some of the parsers may not work out of the box
-#' 
+#' during the .onAttach fase of loading the package different parsers are tested and installed.
+#' the result of these test are stored in global variables like:
+#' .xlsxWorksForXLS & .openxlsxWorksForXLSX & .readODSWorksForODS
+#' in general "."+PackageName+"WorksFor"+format
 #' 
 #' TODO: decide if i want to support "..."
 #' TODO: support .csv ???
@@ -246,7 +249,7 @@ read.sheet = function(file=NULL, sheet=NULL){
   extention=casefold(splitedFile[length(splitedFile)], upper = FALSE)
   
   if(extention=="ods"){
-    if(.readODSWorks){
+    if(.readODSWorksForODS){
       return(readODS::read.ods(file))
     }else{
       stop("no valid ods parser")
@@ -318,7 +321,7 @@ xlsxInterface=function(file=NULL,sheet=NULL){
   }else if (length(sheet)==1){
     # only 1 sheet, return it as a df not as a list of df
     return(xlsx::read.xlsx(file, sheetIndex=sheet, stringsAsFactors=FALSE, header=FALSE))
-  }      
+  }
   returnValue=list()
   index=0 # sheet does not have to start with 1, so we need an other counter
   for(i in sheet){

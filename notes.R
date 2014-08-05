@@ -12,6 +12,52 @@ all(xls[]==xlsx[], na.rm=T)
 all(xls[]==ods[], na.rm=T)
 
 
+file=paste(getwd(),"/tests/testdata/project/KineticData.xls",sep="")
+mp=novostar.xls(file)
+
+test=NULL
+test$test1="123"
+test$test2="456"
+test$test3="5323"
+# first try this
+colNames=names(test)
+mp[1,colNames,level="plate"]=test[colNames]
+
+#somehow this is done
+utest=unlist(test)
+colNames=names(utest)
+mp[1,colNames,level="plate"]=utest[colNames]
+
+# ok... both don't work
+# lets see how data.frame handles it...
+df=data.frame(a=1,b=2)
+df[1,colNames]=test[colNames]#ok that doesnt work
+df[[1,colNames]]=test[colNames]#thats worse!
+df[1,colNames]=utest[colNames] # same error as the first
+# error: Error in `*tmp*`[[j]] : recursive indexing failed at level 2
+df[colNames]=test[colNames] # ... this does work!?!?!?! WHY?!??!?!
+# i already hated R and data.frames....
+# but... WHY?!?!??!?!?!?
+
+
+
+df=data.frame(a=1:2,b=2:3)
+df[1,3]=1# this is actually allowed...
+
+df=data.frame(a=1:2,b=2:3)
+df[1,3:4]=1 # is not
+df[1,3:4]=1:2 # is not
+df[1:2,3:4]=1:4 # is not
+
+
+
+test=NULL
+test$test1=1:4
+test$test2=2:5
+test$test3=3:6
+test
+
+
 
 
 

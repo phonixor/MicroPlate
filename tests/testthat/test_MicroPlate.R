@@ -110,6 +110,7 @@ test_that("MicroPlate.R_ basic tests",{
 
 })
 
+
 test_that("MicroPlate.R_additional_functions",{
 #   testData=new("MicroPlate")
 #   test=list(row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )
