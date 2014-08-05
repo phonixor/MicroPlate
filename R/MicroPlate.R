@@ -1111,7 +1111,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
       }
     } else {
       stop("invalid args given, only accepts i,j,level,value")
-    } 
+    }
   }
   
   # check if the level exist and convert to number levels if they were string levels
@@ -1170,9 +1170,12 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
     row=i
     col=j
   }
-  row=unique(row) # maybe throw error if this does anything...
-  col=unique(col)
-  
+  if(row!=unique(row)){
+    stop("duplicate rows selected")
+  }
+  if(col!=unique(col)){
+    stop("duplicate columns selected")
+  }
 
   
   # check col
@@ -1233,11 +1236,11 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
     
     if(!is.null(row)){
       if((length(row)!=dim(value)[1])){
-        stop(paste("incorrect nr of rows, asked for ",length(row)," rows, while the size of data is: ",dim(value)[1],"",sep=""))
+        stop(paste("incorrect nr of rows, selected ",length(row)," rows, while the size of data is: ",dim(value)[1],"",sep=""))
       }
     }
     if((length(col)!=dim(value)[2])){
-      stop(paste("incorrect nr of columns, asked for ",length(col)," cols, while the size of data is: ",dim(value)[2],"",sep=""))
+      stop(paste("incorrect nr of columns, selected ",length(col)," cols, while the size of data is: ",dim(value)[2],"",sep=""))
     }
     dataLength=dim(value)[1]
         
@@ -1270,7 +1273,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
     stop(paste("data type of class: ",class(value)," not supported", sep="",collapse=""))
   }
   
-
+  
   #
   #  
   # determine level
