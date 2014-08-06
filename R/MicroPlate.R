@@ -780,20 +780,29 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
     row=i
     col=j
   }
-  col=unique(col)
-  row=unique(row)
+
+  
   
 
   # check col
-  if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character")){
+  if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character" | class(col)=="logical")){
     stop(paste("col index should be a number or char, not a: ",class(col)))
   }
+  if(is.logical(col)){
+    col=(1:length(col))[col]
+  }else{
+    #... i could do a unique check here... but... why not allow it
+    #   col=unique(col)
+  }
+
+
   if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
     stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
   }
   if((class(col)=="numeric" | class(col)=="integer") & !all(is.element(col,1:nrOfCol))  ) {
     stop(paste("column number(s) given that does not exist!\n number(s) given:",paste(col,collapse=", "),"\n max col number in data:",nrOfCol, sep=""))
   }
+
   # todo add col number check..
 
   # also change to names if numbers
@@ -843,23 +852,29 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
       
     }
   }
-
-
+  
+  
   # check row
   nrOfRows=x@.data$levelSize[x@.data$levelNr==lowestLevel]
   if(!is.null(row)){
-    if(!(class(row)=="numeric"|class(row)=="integer")){
+    if(!(class(row)=="numeric" | class(row)=="integer" | is.logical(row) )){
       stop(paste("row index should be a number, not a: ",class(row)))
     }
-    if(nrOfRows<length(row)){
-      stop(paste("Data only has ",paste(nrOfRows, sep="",collapse=" ")," rows, you asked for row(s):",paste(row, sep="",collapse=" ")))
+    if(is.logical(row)){
+      row=(1:length(row))[row]
     }
-    if(max(row)>x@.data$levelSize[x@.data$levelNr==lowestLevel]){
+    
+#     if(nrOfRows<max(row)){
+#       stop(paste("Data only has ",paste(nrOfRows, sep="",collapse=" ")," rows, you asked for row(s):",paste(row, sep="",collapse=" ")))
+#     }
+
+    if(max(row)>nrOfRows){
       stop(paste("Asked for row number ",max(row)," while the level only has ",x@.data$levelSize[x@.data$levelNr==lowestLevel]," rows",sep=""))
     }
   }
-  row=unique(row)
-  
+#   row=unique(row)
+
+
   print(paste("returning data at min column level:",x@.data$level[x@.data$levelNr==lowestLevel]))
     
   if(lowestLevel==3){ # plate
@@ -1170,24 +1185,44 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
     row=i
     col=j
   }
-  if(row!=unique(row)){
-    stop("duplicate rows selected")
-  }
-  if(col!=unique(col)){
-    stop("duplicate columns selected")
-  }
-
   
+
+
   # check col
   if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character" | class(col)=="logical")){
     stop(paste("col index should be a number a char or a logical, not a: ",class(col)))
   }
-  
   if(class(col)=="logical"){
-    
-    col=x@.data$colNames[col]
+    col=(1:length(col))[col]
+  }else{
+    if(col!=unique(col)){
+      stop("duplicate columns selected")
+    }
+  }
+  
+  # check if its a column remove df[names]=NULL
+  if(is.null(value)){
+    if(is.null(row)){
+      return(removeColumn(x,col)) 
+    }
+    else{
+      stop("you cannot delete rows or individual values")
+    }
   }
 
+  # check row
+  if(!is.null(row)){
+    if(!(class(row)=="numeric" | class(row)=="integer" | class(row)=="logical")){
+      stop(paste("row index should be a number or a logical, not a: ",class(row)))
+    }
+    if(is.logical(row)){
+      row=(1:length(row))[row] # convert it for now determine if it is valid later after level has been determined
+    }else{
+      if(row!=unique(row)){
+        stop("duplicate rows selected")
+      }
+    }
+  }
   # also change to names if numbers
   if(class(col)!="character"){
     col=x@.data$colNames[col]
@@ -1197,8 +1232,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
     stop(paste("The following names are reserved for other purposes!: ",paste(x@.data$reservedNames,sep=", "), sep=""))
   }
   
-  # check if its a column remove df[names]=NULL
-  if(is.null(value)) return(removeColumn(x,col))
+
 
 #   print(col)
 
@@ -1258,7 +1292,13 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
     # todo []
     if(!is.null(row)){
       if (length(row)!=length(value)){
-        stop("invalid number of rows")
+        if(length(value)!=1){
+          stop(paste("invalid number of rows given:",length(value),"rows selected:",length(row)))
+        }
+        else{
+          # make sure the selection size = value size
+          value=rep(value,length(row))
+        }
       }
     }
     
@@ -1385,8 +1425,8 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
       stop("all new columns, and no level given... please use the level argument df['newColumn', level='well']")
     }
   }
-  
 
+  
   allRowsSelected=F
   if (is.null(row)){
     row=1:x@.data$levelSize[x@.data$levelNr==level]
@@ -1404,8 +1444,10 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
   # mmmh maybe add a check and stop there...
   # add/change the data
   for(colnr in 1:length(col)){ # for each column
-#     # check if new
-    new=!is.element(col[colnr],x@.data$colNames)
+    # check if new column
+    newColumn=!is.element(col[colnr],x@.data$colNames)
+    print(row)
+    print(col)
     
     if (level==3){ # plate 
       if(class(data)=="data.frame"){
@@ -1413,7 +1455,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
       }else{
         x@.data$plate[[col]][row]=data
       }
-      if(!allRowsSelected & new){
+      if(!allRowsSelected & newColumn){
         x@.data$plate[[col[colnr]]][notSelectedRows]=NA #this is repeated if needed
       }
     } else if (level==2){ # well
@@ -1422,7 +1464,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
       }else{
         x@.data$data[[col]][row]=data
       }
-      if(!allRowsSelected & new){
+      if(!allRowsSelected & newColumn){
 #         print(notSelectedRows)
         x@.data$data[[col[colnr]]][notSelectedRows]=NA #this is repeated if needed
       }
@@ -1442,7 +1484,8 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
               x@.data$data$measurement[[i]][[j,col[colnr]]]=data[dataIndex]
             }
           } else {
-            if (!new){
+            # the row of that column was not selected
+            if (newColumn){ # if its a new column, make sure every thing has at least a NA value
               x@.data$data$measurement[[i]][[j,col[colnr]]]=NA
             }
           }
@@ -1540,6 +1583,10 @@ setMethod("$", signature(x = "MicroPlate"), function(x, name) {
 #' if given a new column name, the data will use row number to determine the level
 #' if the row number does not equal the size of any of the data levels, an error is thrown
 #' 
+#' for known columns a single value can be given that will be replicated
+#' =NULL will remove the column
+#' 
+#' 
 #' @param x the MicroPlate object
 #' @param name the name of the column you want to create/add to
 #' @param value the new value, this should be of the correct length
@@ -1550,17 +1597,41 @@ setMethod("$<-", signature(x = "MicroPlate"), function(x, name, value) {
   if (any(x@.data$reservedNames==name)){
     stop(paste("The following names are reserved for other purposes!: ",paste(x@.data$reservedNames,sep=", "), sep=""))
   }
-    
-  if(!any(x@.data$levelSize==length(value))){
-    stop(paste("given rows do not match any of the levels!"))
-  }
-  level=x@.data$level[x@.data$levelSize==length(value)]
-  if(length(level)>1){
-    # multiple levels had the same sizes...
-    # add it to the highest
-    level=x@.data$level[x@.data$levelNr==max(x@.data$levelNr[x@.data$level %in% level])]
+  # check if mp$name=NULL
+  if(is.null(value)){
+    return(removeColumn(x,name))
   }
   
+  # determine level
+  level=NULL
+  if(any(x@.data$colNames==name)){ # is it an existing variable?
+    level=x@.data$colLevel[x@.data$colNames==name]
+    #
+    # overwrite is more flexible in that a single value can be repeated
+    levelSize=x@.data$levelSize[x@.data$levelNr==x@.data$colLevelNr[x@.data$colNames==name]]
+    if(levelSize!=length(value)){
+      if(length(value)==1){
+        value=rep(value,levelSize)
+      }else{
+        stop("levelsize does not match valuesize")
+      }
+    }
+    
+  }else if(!any(x@.data$levelSize==length(value))){ # does the data size match any of the level sizes
+    stop(paste("given rows do not match any of the levels!"))
+  }else{
+    level=x@.data$level[x@.data$levelSize==length(value)]
+  }
+  
+  if(length(level)>1){
+    # multiple levels had the same sizes...
+    # add it to the highest #TODO or add it to the lowest??? that has its advantages...
+    level=x@.data$level[x@.data$levelNr==max(x@.data$levelNr[x@.data$level %in% level])]
+  }
+    
+  # check if the name matches the level size...
+
+
   
   if (level=="plate") {
     x@.data$plate[name]=value
@@ -1569,8 +1640,8 @@ setMethod("$<-", signature(x = "MicroPlate"), function(x, name, value) {
   } else if (level=="measurement") {
     index=1
     for(i in 1:length(x@.data$data$measurement)){#for each well
-      len=length(x@.data$data$measurement[[i]][[name]])
-      print(len)
+      len=length(x@.data$data$measurement[[i]][[1]])
+#       print(len)
       x@.data$data$measurement[[i]][[name]]=value[index:(index+len-1)]
       index=index+len
     }
@@ -1587,7 +1658,8 @@ setMethod("$<-", signature(x = "MicroPlate"), function(x, name, value) {
   return(x)
 })
 
-
+#setGeneric("colnames", function(x) standardGeneric("colnames")) 
+#rdname colnames
 #' overwrite colnames()
 #' @rdname colnames
 #' @description
@@ -1598,8 +1670,6 @@ setMethod("$<-", signature(x = "MicroPlate"), function(x, name, value) {
 #' @param x the MicroPlate object you want the column names from
 #' 
 #' @export
-setGeneric("colnames", function(x) standardGeneric("colnames")) 
-#' @rdname colnames
 setMethod("colnames", signature(x = "MicroPlate"), function(x) {
   return(x@.data$colNames)
 })
@@ -1607,7 +1677,9 @@ setMethod("colnames", signature(x = "MicroPlate"), function(x) {
 
 #' overwrite colnames<-
 #' 
-#' BROKEN!
+#' TODO: BROKEN!
+#' TODO: decide if i want this funtion
+#' 
 #' @rdname colnamesis
 #' @description
 #' overwrite the column names 

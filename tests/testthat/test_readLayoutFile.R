@@ -5,6 +5,9 @@ test_that("readLayoutFile.R_basic_tests",{
   # test differnt file format
   # TODO test different parsers
   #
+  # xlsFile=paste(getwd(),"/tests/testdata/project/layout.xls",sep="")
+  # xlsxFile=paste(getwd(),"/tests/testdata/project/layout.xlsx",sep="")
+  # odsFile=paste(getwd(),"/tests/testdata/project/layout.ods",sep="")  
   xlsFile=paste(getwd(),"/../testdata/project/layout.xls",sep="")
   xlsxFile=paste(getwd(),"/../testdata/project/layout.xlsx",sep="")
   odsFile=paste(getwd(),"/../testdata/project/layout.ods",sep="")

@@ -64,6 +64,38 @@ setMethod("lettersToNumber", signature(listOfStrings="character"), function( lis
 })
 
 
+#' extractPlateCoordinates()
+#' @description
+#' extracts row and column from something like "A11"
+#' 
+#' it then transforms A into 1 B into 2 etc...
+#' 
+#' and puts both in a list
+#' return(c(row,column))
+#' if row contains more then 1, return it as a data.frame
+#' 
+#' @param wellName the name of the well you want to convert
+#' 
+#' 
+#' @export
+extractPlateCoordinates=function(wellName){
+  column=regmatches(wellName,regexpr("[[:digit:]]+", wellName)) # extract 11
+  column=as.numeric(column)
+  row=regmatches(wellName,regexpr("[[:alpha:]]+", wellName)) # ectraxt B
+  row=lettersToNumber(row) # convert B to 2
+  
+  if(length(row)>1){
+    returnValue=NULL
+    returnValue$row=row
+    returnValue$column=column
+    return(data.frame(returnValue))
+  }else{
+    return(c(row=row,column=column))
+  }
+
+}
+
+
 #' onAttach
 #' 
 #' @rdname onAttach
@@ -98,7 +130,7 @@ setMethod("lettersToNumber", signature(listOfStrings="character"), function( lis
 setup = function(){
   # check the current OS/Environment to determine which packages are used to load
   # 
-  message("*** setup microplate ***")
+  message("*** microplate setup ***")
   message("- seaching for an ODS parser")
   # ODS
   #
@@ -216,7 +248,7 @@ setup = function(){
   if(!any(.gdataWorksForXLSX, .openxlsxWorksForXLSX, .xlsxWorksForXLSX)){
     warning("no packages work on your system for .xls files, packages tried: gdata, xlsx")
   }
-  
+  message("*** finished microplate setup ***")
 }
 
 
@@ -240,8 +272,8 @@ setup = function(){
 #' 
 #' @export
 read.sheet = function(file=NULL, sheet=NULL){
-  if(!exists(".readODSWorks")) {
-    warning(".readODSWorks undefined, setup() did not run properely, or variables where removed")
+  if(!exists(".readODSWorksForODS")) {
+    warning(".readODSWorksForODS undefined, setup() did not run properely, or variables where removed")
     setup()
   }
   
@@ -330,8 +362,6 @@ xlsxInterface=function(file=NULL,sheet=NULL){
   }
   return(returnValue)
 }
-
-
 
 
 #' install.package
