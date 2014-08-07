@@ -178,28 +178,32 @@ library(gdata)
 #   print(waveLength)
   
   l=list()
+  m=list()
   dataRows=6:dim(xls)[1]
+  nrOfDataCols=dim(xls)[2]-3
+  measurementIndex=1
   for(row in dataRows){ # for each row
     l$row=append(l$row, xls[row,1])
     l$column=append(l$column,as.numeric(xls[row,2]))
     l$content=append(l$content,xls[row,3])
     l$plate=append(l$plate,1) # foreign key
-    
-    
-    temp=list()
+    l$measurement=append(l$measurement,measurementIndex) # kind of a foreign key
+    measurementIndex=measurementIndex+nrOfDataCols
+
+    # TODO RESERVE SPACE AND FILL INSTEAD OF APPEND
     for(col in 4:dim(xls)[2]){ # for each column
-      temp$value=append(temp$value,xls[row,col])
-      temp$time=append(temp$time,time[col-3])
-      temp$waveLength=append(temp$waveLength,waveLength[col-3])
+      m$value=append(m$value,xls[row,col])
+      m$time=append(m$time,time[col-3])
+      m$waveLength=append(m$waveLength,waveLength[col-3])
       # no temperature!
     }
-    l[["measurement"]][[row-5]]=temp
   }
   l$row=lettersToNumber(l$row)# change letters to numbers
   
   # transform it into a MicroPlate
   returnValue=new("MicroPlate")
-  returnValue@.data$data=l
+  returnValue@.data$well=l
+  returnValue@.data$measurement=m
   
   if(is.null(name)){
     returnValue@.data$plate$plateName=basename(path)
@@ -207,7 +211,7 @@ library(gdata)
     returnValue@.data$plate@plateName=name
   }
 
-  updateColnames(returnValue)
+  updateMetaData(returnValue)
 
   return(returnValue)
 }

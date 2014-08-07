@@ -1,6 +1,10 @@
+### test the new stuff
+
+file=paste(getwd(),"/tests/testdata/project/KineticData.xls",sep="")
+mp=novostar.xls(file)
 
 
-
+#################################
 
 testData@.data$data$measurement[[1]][[1,"newColumn"]]=(1:24000)[1]
 testData@.data$data$measurement[[1]][[1,"newColumn"]]=1

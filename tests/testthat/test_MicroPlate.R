@@ -38,7 +38,7 @@ test_that("MicroPlate.R_basic_tests",{
   file=paste(getwd(),"/../testdata/project/KineticData.xls",sep="")
   testData=novostar.xls(file)
   ### colnames
-  expect_true(any(colnames(testData)=="test")) # test the colname
+  expect_true(any(colnames(testData)=="value")) # test the colname
 #   expect_error((colnames(testData)="cookies")) # only 1 element while data has 8 columns # NOTE: currently it just returns an error in any case
   #   expect_warning((colnames(testData)=c(1,"cookies",3,4,5,6,7,8)))
   #   expect_true(any(colnames(testData)=="cookies")) # test if the colname was changed
@@ -104,8 +104,9 @@ test_that("MicroPlate.R_[]_tests",{
   
   ### row
   # plate
-  
-  
+  testData[1,"newColumn",level="plate"]=5
+  expect_equal(testData[["newColumn"]],5)
+  testData[1,"newColumn"]=NULL
   
   ### multiple column
   

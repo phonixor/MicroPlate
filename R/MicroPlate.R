@@ -513,9 +513,9 @@ setMethod("addPlate2", signature(self = "MicroPlate"), function(self,newData=NUL
 #' this method is responsible for updating colnames and meta data
 #' to keep the Data from working properly
 #' 
-#' TODO make it so that the level meta data is sorted!
+#' TODO make it so that the level meta data is sorted! --DONE!!!
 #' this allowes the rest of the code to be optimized a bit more...
-#' self@@.data$levelSize[self@@.data$level=="plate"] would become self@@.data$levelSize[3]
+#' self@@.data$levelSize[self@@.data$level=="plate"] would become self@@.data$levelSize[3] -- not done yet!
 #' measurement=1, well=2, plate=3
 #' 
 #' 
@@ -526,41 +526,53 @@ setMethod("addPlate2", signature(self = "MicroPlate"), function(self,newData=NUL
 #' internal only!
 #' @export
 #' @import plyr
-setGeneric("updateColnames", function(self) standardGeneric("updateColnames"))
+setGeneric("updateMetaData", function(self) standardGeneric("updateMetaData"))
 #' @rdname updateColnames
-setMethod("updateColnames", signature(self = "MicroPlate"), function(self){
-  # TODO maybe add custom levels???
-  # 
-  # plate
-  self@.data$level="plate"
-  self@.data$levelNr=3 # measurement=1, well=2, plate=3
-  self@.data$levelSize=length(self@.data$plate[[1]])
-  self@.data$colNames=names(self@.data$plate)
-  self@.data$colLevel=rep("plate",length(self@.data$plate))
-  self@.data$colLevelNr=rep(3,length(self@.data$plate))
+setMethod("updateMetaData", signature(self = "MicroPlate"), function(self){
+  # measurement
+  self@.data$level="measurement"
+  self@.data$levelNr=1 # measurement=1, well=2, plate=3
+  self@.data$levelSize=length(self@.data$measurement[[1]])
+  self@.data$colNames=names(self@.data$measurement)
+  self@.data$colLevel=rep("measurement",length(self@.data$measurement))
+  self@.data$colLevelNr=rep(1,length(self@.data$measurement))
   #
   # well
   self@.data$level=append(self@.data$level,"well")
   self@.data$levelNr=append(self@.data$levelNr,2)
-  self@.data$levelSize=append(self@.data$levelSize,length(self@.data$data[[1]]))
-  self@.data$colNames=append(self@.data$colNames,names(self@.data$data)[!is.element(names(self@.data$data),c("measurement","plate"))])  
-  self@.data$colLevel=append(self@.data$colLevel,rep("well",length(self@.data$data)-2)) # ignore col plate and measurement
-  self@.data$colLevelNr=append(self@.data$colLevelNr,rep(2,length(self@.data$data)-2))
+  self@.data$levelSize=append(self@.data$levelSize,length(self@.data$well[[1]]))
+  self@.data$colNames=append(self@.data$colNames,names(self@.data$well)[!is.element(names(self@.data$well),c("measurement","plate"))])  
+  self@.data$colLevel=append(self@.data$colLevel,rep("well",length(self@.data$well)-2)) # ignore col plate and measurement
+  self@.data$colLevelNr=append(self@.data$colLevelNr,rep(2,length(self@.data$well)-2))
   #
+  # plate
+  self@.data$level=append(self@.data$level,"plate")
+  self@.data$levelNr=append(self@.data$levelNr,3) # measurement=1, well=2, plate=3
+  self@.data$levelSize=append(self@.data$levelSize,length(self@.data$plate[[1]]))
+  self@.data$colNames=append(self@.data$colNames,names(self@.data$plate))
+  self@.data$colLevel=append(self@.data$colLevel,rep("plate",length(self@.data$plate)))
+  self@.data$colLevelNr=append(self@.data$colLevelNr,rep(3,length(self@.data$plate)))
   # wellsPerPlate
-  self@.data$wellsPerPlate=plyr::count(self@.data$data$plate)[[2]]
-  #
-  # measurement
-  self@.data$level=append(self@.data$level,"measurement")
-  self@.data$levelNr=append(self@.data$levelNr,1)
-  size=0
-  for(i in 1:length(self@.data$data$measurement)){#check each well for measurements
-    size=size+length(self@.data$data$measurement[[i]][[1]])
+  self@.data$wellsPerPlate=plyr::count(self@.data$well$plate)[[2]]
+  # measurementsPerPlate
+  
+  currentWellNr=1
+  nextWellNr=1
+  self@.data$measurementsPerPlate=NULL
+  for(i in 1:length(self@.data$plate[[1]])){# for each plate
+    currentWellNr=nextWellNr
+    nextWellNr=currentWellNr+self@.data$wellsPerPlate[i]# nrOfWells
+    print(nextWellNr)
+    nrOfMeasurement=0
+    if(!is.na(x@.data$well$measurement[nextWellNr])){
+      nrOfMeasurement=x@.data$well$measurement[nextWellNr]-x@.data$well$measurement[currentWellNr]
+    }else{
+      nrOfMeasurement=length(x@.data$measurement[1])-x@.data$well$measurement[currentWellNr]+1
+      print(nrOfMeasurement)
+    }
+    self@.data$measurementsPerPlate=append(self@.data$measurementsPerPlate,nrOfMeasurement)
   }
-  self@.data$levelSize=append(self@.data$levelSize,size)
-  self@.data$colNames=append(self@.data$colNames,names(self@.data$data$measurement[[1]]))
-  self@.data$colLevel=append(self@.data$colLevel,rep("measurement",length(self@.data$data$measurement[[1]])))
-  self@.data$colLevelNr=append(self@.data$colLevelNr,rep(1,length(self@.data$data$measurement[[1]])))
+  print(self@.data$measurementsPerPlate)
 })
 
 
@@ -574,7 +586,7 @@ setMethod("updateColnames", signature(self = "MicroPlate"), function(self){
 #' @param wellData the extra data from layoutfiles????
 #' @param plateData a list of plate data
 #' 
-#' TODO TEST!!!
+#' no longer used!!!???
 #'
 setGeneric("bindParsedData", function(self,wellData=NULL, plateData=NULL) standardGeneric("bindParsedData"))
 #' @rdname bindParsedData
@@ -897,12 +909,12 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
       if(requestedColLevels[colnr]=="plate"){
         # repeat for each well
         for(i in 1:length(x@.data$plate[[1]])){
-          tempData=append(tempData,rep(x@.data$plate[[col[colnr]]][i],count(x@.data$data$plate)[[2]][i]))
+          tempData=append(tempData,rep(x@.data$plate[[col[colnr]]][i],count(x@.data$well$plate)[[2]][i]))
         }
 #         tempData=lapply(x@.data$data, function(x)returnValue=append(returnValue,x[[name]]))
         tempData=c(tempData,recursive=T)        
       }else if(requestedColLevels[colnr]=="well"){
-        tempData=x@.data$data[[col[colnr]]]
+        tempData=x@.data$well[[col[colnr]]]
       }else{
         stop("WEIRD ERROR !@#!")
       }
@@ -929,23 +941,39 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
       # then do the row select
       level=x@.data$colLevel[x@.data$colNames==col[colnr]]
       tempData=NULL
-      if (level=="well"){
+      if(level=="measurement"){
+        # get whole column
+        tempData=x@.data$measurement[[col[colnr]]]
+      } else if(level=="well"){
         # data at top level
         #
         # data has to be repeated for each measurement
-        for (i in 1:length(x@.data$data$measurement)){ # for each measurement
-          tempData=append(tempData,rep(x@.data$data[[col[colnr]]][[i]],length(x@.data$data$measurement[[i]][[1]])))
-        }
-      } else if(level=="measurement"){
-        # get whole column
-        for(i in 1:length(x@.data$data$measurement)){
-          tempData=append(tempData, x@.data$data$measurement[[i]][[col[colnr]]])
+        for (i in 1:length(x@.data$well$measurement)){ # for each well
+          nrOfMeasurement=0
+          if(!is.na(x@.data$well$measurement[i+1])){
+            nrOfMeasurement=x@.data$well$measurement[i+1]-x@.data$well$measurement[i]
+          }else{
+            nrOfMeasurement=x@.data$well$measurement[i]-length(x@.data$measurement[1])
+          }
+          tempData=append(tempData,rep(x@.data$well[[col[colnr]]][[i]],nrOfMeasurement))
         }
       } else if(level=="plate"){
         # repeat for each well*each measurement
-        for(i in 1:length(x@.data$data[[1]])){ # for each well
+        for(i in 1:x@.data$levelSize[2]){ # for each well
           # get the corresponding plate values
-          data=as.data.frame(x@.data$plate,stringsAsFactors = FALSE)[x@.data$data$plate[[i]],col[colnr]]
+          
+          x@.data$plate[[col[colnr]]]
+          x@.data$wellsPerPlate
+          
+          nrOfMeasurement=0
+          if(!is.na(x@.data$well$measurement[i+1])){
+            nrOfMeasurement=x@.data$well$measurement[i+1]-x@.data$well$measurement[i]
+          }else{
+            nrOfMeasurement=x@.data$well$measurement[i]-length(x@.data$measurement[1])
+          }
+          
+#           data=as.data.frame(x@.data$plate,stringsAsFactors = FALSE)[x@.data$well$plate[[i]],col[colnr]]
+          
           tempData=append(tempData,rep(data,length(x@.data$data$measurement[[i]][[1]]))) # for each measurement
         }
         #         tempData=lapply(x@.data$data, function(x)returnValue=append(returnValue,x[[name]]))
@@ -1057,15 +1085,13 @@ setMethod("removeColumn", signature(self = "MicroPlate" ), function(self, colNam
     if (level=="plate") {
       self@.data$plate[[col[i]]]=NULL
     } else if(level=="well") {
-      self@.data$data[[col[i]]]=NULL
+      self@.data$well[[col[i]]]=NULL
     } else if (level=="measurement") {
-      for(j in 1:length(self@.data$data$measurement)){
-        self@.data$data$measurement[[j]][[col[i]]]=NULL
-      }
+      self@.data$measurement[[col[i]]]=NULL
     }
   }
   # restore the balance
-  updateColnames(self)
+  updateMetaData(self)
   return(self)
 })
 
@@ -1467,48 +1493,23 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
       }
     } else if (level==2){ # well
       if(class(value)=="data.frame"){
-        x@.data$data[[col[colnr]]][row]=value[[col[colnr]]]
+        x@.data$well[[col[colnr]]][row]=value[[col[colnr]]]
       }else{
-        x@.data$data[[col]][row]=value
+        x@.data$well[[col]][row]=value
       }
       if(!allRowsSelected & newColumn){
-#         print(notSelectedRows)
-        x@.data$data[[col[colnr]]][notSelectedRows]=NA #this is repeated if needed
+        x@.data$well[[col[colnr]]][notSelectedRows]=NA #this is repeated if needed
       }
     } else if(level==1){ # measurement
-      # this is slow and annoying... 
-      # but shame on you for changing measurements anyways!
-      index=0
-      dataIndex=0
-      for(i in 1:length(x@.data$data$measurement)){ # for each well
-        for(j in 1:length(x@.data$data$measurement[[i]][[1]])){ # for each measurement
-          index=index+1
-          if(is.element(index,row)){
-            dataIndex=dataIndex+1
-            if(class(value)=="data.frame"){
-              x@.data$data$measurement[[i]][[col[colnr]]][[j]]=value[dataIndex,colnr]
-            } else {
-#               print("here")
-# #               print(head(value))
-#               print(dataIndex)
-#               print(colnr)
-#               print(i)
-#               print(j)
-#               print(col)
-              x@.data$data$measurement[[i]][[col[colnr]]][[j]]=value[dataIndex]
-#               x@.data$data$measurement[[i]][[j,col[colnr]]]=value[dataIndex]
-#               print("there")
-            }
-          } else {
-            # the row of that column was not selected
-            if (newColumn){ # if its a new column, make sure every thing has at least a NA value
-              x@.data$data$measurement[[i]][[col[colnr]]][[j]]=NA
-#               x@.data$data$measurement[[i]][[j,col[colnr]]]=NA
-              
-            }
-          }
-        } # for each measurement
-      } # for each well
+      
+      if(class(value)=="data.frame"){
+        x@.data$measurement[[col[colnr]]][row]=value[[col[colnr]]]
+      }else{
+        x@.data$measurement[[col]][row]=value
+      }
+      if(!allRowsSelected & newColumn){
+        x@.data$measurement[[col[colnr]]][notSelectedRows]=NA #this is repeated if needed
+      }
     } else {
       stop("data at unknown level... this error means a coding error as it should have been cought above!")
     }
@@ -1525,7 +1526,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
     
   }
 
-  updateColnames(x) # TODO maybe only if new cols?
+  updateMetaData(x) # TODO maybe only if new cols?
   return(x) 
 })
 
@@ -1568,23 +1569,14 @@ setMethod("$", signature(x = "MicroPlate"), function(x, name) {
   if (is.null(level)){
     # remove this once i implemented $= properly
     print("ok this shouldn't happen... but it did!") # change in a warning later...
-    return(x@.data$data[[name]])
+    return(x@.data$well[[name]])
   }
   
-  
+  # return the column
   if (level=="well"){
-    return(x@.data$data[[name]])
+    return(x@.data$well[[name]])
   } else if(level=="measurement"){
-    # data is hidden in lists in the column measurement
-    returnValue=NULL
-    returnValue=lapply(x@.data$data$measurement, function(x)returnValue=append(returnValue,x[[name]]))
-    returnValue=c(returnValue,recursive=T)
-     
-#     returnValue=NULL
-#     for(i in 1:length(x@.data$data$measurement)){
-#       returnValue=append(returnValue,x@.data$data$measurement[[i]][[name]])
-#     }  
-    return(returnValue)
+    return(x@.data$measurement[[name]])
   } else if(level=="plate") {
     return(x@.data$plate[[name]])
   } else {
@@ -1654,22 +1646,16 @@ setMethod("$<-", signature(x = "MicroPlate"), function(x, name, value) {
   if (level=="plate") {
     x@.data$plate[name]=value
   } else if (level=="well") {
-    x@.data$data[[name]]=value
+    x@.data$well[[name]]=value
   } else if (level=="measurement") {
-    index=1
-    for(i in 1:length(x@.data$data$measurement)){#for each well
-      len=length(x@.data$data$measurement[[i]][[1]])
-#       print(len)
-      x@.data$data$measurement[[i]][[name]]=value[index:(index+len-1)]
-      index=index+len
-    }
+    x@.data$measurement[[name]]=value
   } else {
     stop("unknown level!!!")
   }
   
   # check if was an existing colname
   if(!any(x@.data$colNames==name)){
-    updateColnames(x)
+    updateMetaData(x)
     print(paste("new column:",name," added at level:",level,sep=""))
   }
 
