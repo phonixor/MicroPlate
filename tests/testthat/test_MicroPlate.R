@@ -74,20 +74,42 @@ test_that("MicroPlate.R_[]_tests",{
   file=paste(getwd(),"/../testdata/project/KineticData.xls",sep="")
   testData=novostar.xls(file)
   
+  ### singel column
   # plate
   testData["newColumn"]=1
   expect_equal(testData[["newColumn"]],1)
   testData["newColumn"]=2 # overwrite
+  expect_equal(testData[["newColumn"]],2)
+  expect_error((testData["newColumn"]=1:24000))# try to add data at wrong level
+  testData["newColumn"]=NULL # remove
+  expect_true(is.null(testData$newColumn)) # does give a warning
   
   # well
-  
-  
+  testData["newColumn"]=1:96 # reuse column name at different level
+  expect_true(all(testData["newColumn"]==1:96))
+  testData["newColumn"]=500 # single value overwrite
+  expect_true(all(testData["newColumn"]==rep(500,96)))
+  expect_error((testData["newColumn"]=1:24000))# try to add data at wrong level
+  testData["newColumn"]=NULL
+  expect_true(is.null(testData$newColumn)) # does give a warning
   
   # measurement
+  testData["newColumn"]=1:24000 # damn this takes a while -- over a min...
+  expect_true(all(testData["newColumn"]==1:24000))
+  testData["newColumn"]=500 # single value overwrite -- this takes as long as 2 above...
+  expect_true(all(testData["newColumn"]==rep(500,24000)))
+  expect_error((testData["newColumn"]=1:96))# try to add data at wrong level
+  testData["newColumn"]=NULL
+  expect_true(is.null(testData$newColumn)) # does give a warning
+  
+  ### row
+  # plate
   
   
   
-
+  ### multiple column
+  
+  
   
   # test reading [
   expect_equal(dim(testData[]),c(24000,9))    # everything

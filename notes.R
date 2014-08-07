@@ -1,5 +1,13 @@
 
 
+
+
+testData@.data$data$measurement[[1]][[1,"newColumn"]]=(1:24000)[1]
+testData@.data$data$measurement[[1]][[1,"newColumn"]]=1
+
+
+#############################
+
 xlsFile=paste(getwd(),"/tests/testdata/project/layout.xls",sep="")
 xlsxFile=paste(getwd(),"/tests/testdata/project/layout.xlsx",sep="")
 odsFile=paste(getwd(),"/tests/testdata/project/layout.ods",sep="")

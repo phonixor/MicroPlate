@@ -955,7 +955,7 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
       }
   
       if(is.null(row)){
-        # whole column
+        # whole column       
         returnValue[,colnr]=tempData
       } else {
         # specific rows
@@ -1113,7 +1113,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
   args <- list(...)
   col=NULL
   row=NULL
-  data=value
+#   data=value
   dataLength=NULL
   level=NULL
   
@@ -1209,7 +1209,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
       stop("you cannot delete rows or individual values")
     }
   }
-
+  
   # check row
   if(!is.null(row)){
     if(!(class(row)=="numeric" | class(row)=="integer" | class(row)=="logical")){
@@ -1336,7 +1336,13 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
     #
     # if the rows were not specified, the row dim could not have been checked before
     if (is.null(row) & (dataLength!=x@.data$levelSize[x@.data$levelNr==colLevel]) ) {
-      stop(paste("no rows given and so rows expected to be equal to level size: ",x@.data$levelSize[x@.data$levelNr==colLevel]," rows supplied: ",dataLength,sep=""))
+      if(dataLength==1){
+        # single value repeat is allowed!
+        value=rep(value,x@.data$levelSize[x@.data$levelNr==colLevel])
+        dataLength=length(value)
+      }else{
+        stop(paste("no rows given and so rows expected to be equal to level size: ",x@.data$levelSize[x@.data$levelNr==colLevel]," rows supplied: ",dataLength,sep=""))
+      }
     }
 #     #
 #     if( dataLength>x@.data$levelSize[x@.data$levelNr==colLevel] ){
@@ -1446,23 +1452,24 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
   for(colnr in 1:length(col)){ # for each column
     # check if new column
     newColumn=!is.element(col[colnr],x@.data$colNames)
-    print(row)
-    print(col)
+#     print(row)
+#     print(col)
+#     print(level)
     
     if (level==3){ # plate 
-      if(class(data)=="data.frame"){
-        x@.data$plate[[col[colnr]]][row]=data[[col[colnr]]]
+      if(class(value)=="data.frame"){
+        x@.data$plate[[col[colnr]]][row]=value[[col[colnr]]]
       }else{
-        x@.data$plate[[col]][row]=data
+        x@.data$plate[[col]][row]=value
       }
       if(!allRowsSelected & newColumn){
         x@.data$plate[[col[colnr]]][notSelectedRows]=NA #this is repeated if needed
       }
     } else if (level==2){ # well
-      if(class(data)=="data.frame"){
-        x@.data$data[[col[colnr]]][row]=data[[col[colnr]]]
+      if(class(value)=="data.frame"){
+        x@.data$data[[col[colnr]]][row]=value[[col[colnr]]]
       }else{
-        x@.data$data[[col]][row]=data
+        x@.data$data[[col]][row]=value
       }
       if(!allRowsSelected & newColumn){
 #         print(notSelectedRows)
@@ -1474,19 +1481,30 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
       index=0
       dataIndex=0
       for(i in 1:length(x@.data$data$measurement)){ # for each well
-        for(j in 1:length(x@.data$data$measurement[[i]])){ # for each measurement
+        for(j in 1:length(x@.data$data$measurement[[i]][[1]])){ # for each measurement
           index=index+1
           if(is.element(index,row)){
             dataIndex=dataIndex+1
-            if(class(data)=="data.frame"){
-              x@.data$data$measurement[[i]][[j,col[colnr]]]=data[dataIndex,colnr]
-            } else {   
-              x@.data$data$measurement[[i]][[j,col[colnr]]]=data[dataIndex]
+            if(class(value)=="data.frame"){
+              x@.data$data$measurement[[i]][[col[colnr]]][[j]]=value[dataIndex,colnr]
+            } else {
+#               print("here")
+# #               print(head(value))
+#               print(dataIndex)
+#               print(colnr)
+#               print(i)
+#               print(j)
+#               print(col)
+              x@.data$data$measurement[[i]][[col[colnr]]][[j]]=value[dataIndex]
+#               x@.data$data$measurement[[i]][[j,col[colnr]]]=value[dataIndex]
+#               print("there")
             }
           } else {
             # the row of that column was not selected
             if (newColumn){ # if its a new column, make sure every thing has at least a NA value
-              x@.data$data$measurement[[i]][[j,col[colnr]]]=NA
+              x@.data$data$measurement[[i]][[col[colnr]]][[j]]=NA
+#               x@.data$data$measurement[[i]][[j,col[colnr]]]=NA
+              
             }
           }
         } # for each measurement

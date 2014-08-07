@@ -29,7 +29,7 @@
   }
   plateCoordinates=extractPlateCoordinates(header[3:length(header)])
   time=table[[1]]
-  temp=table[[2]]
+  temperature=table[[2]]
   data=table[3:ncol(table)]
   
   # create a proper microplate object
@@ -43,7 +43,7 @@
 #     l$measurement[[i]]$value=data[[i]]
     temp=list()
     temp$time=time
-    temp$temp=temp
+    temp$temp=temperature
     temp$value=data[[i]]
     l[["measurement"]][[i]]=temp
 # for(j in 1:nrow(data)){ # for each measurement
