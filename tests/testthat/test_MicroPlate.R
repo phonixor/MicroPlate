@@ -6,46 +6,133 @@ library(testthat)
 #
 #
 #
-test_that("MicroPlate.R_ basic tests",{
-  
+test_that("MicroPlate.R_$_tests",{
+  # file=paste(getwd(),"/tests/testdata/project/KineticData.xls",sep="")
   file=paste(getwd(),"/../testdata/project/KineticData.xls",sep="")
   testData=novostar.xls(file)
+  
+  ### $ tests
+  # Plate
+  testData$test=1234567 # write
+  expect_equal(testData$test,1234567) # read
+  #TODO ADD OVERWRITE TEST...
+  testData$test=NULL # test remove
+  expect_true(is.null(testData$test)) # does give a warning
+  # well
+  testData$testw=1:96 # write
+  expect_true(all(testData$testw==1:96)) # read
+  testData$testw=20 # overwrite all same value
+  expect_true(all(testData$testw==20)) # read
+  testData$testw=NULL # test remove
+  expect_true(is.null(testData$testw)) # does give a warning
+  # measurement
+  testData$testm=1:24000 # write
+  expect_true(all(testData$testm==1:24000)) # read
+  testData$testm=20 # overwrite all same value
+  expect_true(all(testData$testm==20)) # read
+  testData$testm=NULL # test remove
+  expect_true(is.null(testData$testm)) # does give a warning
+})
 
+test_that("MicroPlate.R_basic_tests",{
+  file=paste(getwd(),"/../testdata/project/KineticData.xls",sep="")
+  testData=novostar.xls(file)
+  ### colnames
+  expect_true(any(colnames(testData)=="value")) # test the colname
+#   expect_error((colnames(testData)="cookies")) # only 1 element while data has 8 columns # NOTE: currently it just returns an error in any case
+  #   expect_warning((colnames(testData)=c(1,"cookies",3,4,5,6,7,8)))
+  #   expect_true(any(colnames(testData)=="cookies")) # test if the colname was changed
+  #   expect_equal(testData$cookies,1234567) # test if the data also changed...
+  
+  ### dim
+  #TODO level support?
+  expect_true(all(dim(testData)==c(24000,7)))
 
-  testData$test=1234567 # at plate level
-  expect_equal(testData$test,1234567)
-  expect_true(any(colnames(testData)=="test")) # test the colname
-  expect_error((colnames(testData)="cookies")) # only 1 element while data has 8 columns # NOTE: currently it just returns an error in any case
-#   expect_warning((colnames(testData)=c(1,"cookies",3,4,5,6,7,8)))
-#   expect_true(any(colnames(testData)=="cookies")) # test if the colname was changed
-#   expect_equal(testData$cookies,1234567) # test if the data also changed...
-   
-#   # change in one instance effectes the other
+  ### instance tests
+  # change in one instance effectes the other
   testData2=testData
   testData$cookies=123 # once again at plate level
   expect_equal(testData2$cookies,123) # note that we changed test and check test2
-
+  
   # test that you can have multiple instances that dont influence eachother
   testData3=novostar.xls(file)
   testData3$cookies=1234
   expect_false(testData2$cookies==1234) 
+
+  ### copy
+  testData4=copy(testData)
+  testData4$cookies=123456 
+  expect_false(testData$cookies==123456) # same kinda instance test
+
+
+
+})
+
+
+test_that("MicroPlate.R_[]_tests",{
+  # file=paste(getwd(),"/tests/testdata/project/KineticData.xls",sep="")
+  file=paste(getwd(),"/../testdata/project/KineticData.xls",sep="")
+  testData=novostar.xls(file)
   
-#   # test reading [
+  ### singel column
+  # plate
+  testData["newColumn"]=1
+  expect_equal(testData[["newColumn"]],1)
+  testData["newColumn"]=2 # overwrite
+  expect_equal(testData[["newColumn"]],2)
+  expect_error((testData["newColumn"]=1:24000))# try to add data at wrong level
+  testData["newColumn"]=NULL # remove
+  expect_true(is.null(testData$newColumn)) # does give a warning
+  
+  # well
+  testData["newColumn"]=1:96 # reuse column name at different level
+  expect_true(all(testData["newColumn"]==1:96))
+  testData["newColumn"]=500 # single value overwrite
+  expect_true(all(testData["newColumn"]==rep(500,96)))
+  expect_error((testData["newColumn"]=1:24000))# try to add data at wrong level
+  testData["newColumn"]=NULL
+  expect_true(is.null(testData$newColumn)) # does give a warning
+  
+  # measurement
+  testData["newColumn"]=1:24000 # damn this takes a while -- over a min...
+  expect_true(all(testData["newColumn"]==1:24000))
+  testData["newColumn"]=500 # single value overwrite -- this takes as long as 2 above...
+  expect_true(all(testData["newColumn"]==rep(500,24000)))
+  expect_error((testData["newColumn"]=1:96))# try to add data at wrong level
+  testData["newColumn"]=NULL
+  expect_true(is.null(testData$newColumn)) # does give a warning
+  
+  ### row
+  # plate
+  testData[1,"newColumn",level="plate"]=5
+  expect_equal(testData[["newColumn"]],5)
+  testData[1,"newColumn"]=NULL
+  
+  ### multiple column
+  
+  
+  
+  # test reading [
   expect_equal(dim(testData[]),c(24000,9))    # everything
   expect_equal(testData[[1]],"KineticData.xls") # first col # plateName
   expect_equal(dim(testData[1,]),c(1,9)) # first row
 #   expect_equal(testData[,1],"KineticData.xls") # first col
   expect_equal(testData[1,2], 1234567)   # first row 2nd col # the test i just added
   expect_equal(dim(testData[,]),c(24000,9))  # everything
-# 
+ 
   expect_equal(testData[level=1],testData[level="measurement"]) # test level select
   expect_equal(testData[level=2],testData[level="well"])
-# #   testData[level=2] # TODO decide what todo if levelSize well=measurement...testData[level=2] # TODO decide what todo if levelSize well=measurement...
+#   testData[level=2] # TODO decide what todo if levelSize well=measurement...testData[level=2] # TODO decide what todo if levelSize well=measurement...
   expect_equal(testData[level=3],testData[level="plate"])
   expect_equal(dim(testData[c(1,3,5)])[2],3) # test column select
   expect_equal(dim(testData[,c(1,3,5)])[2],3) # test column select
   expect_equal(dim(testData[c(1,2),])[1],2) # test row select 
-  
+  #
+  # test logical
+  testData[testData$value>0.4,]
+  testData[testData$value>0.4,"value"]=0.4
+
+
   # test writing [<- 
   testData=novostar.xls(file)
   expect_error(testData[93:97,"row"]) #  only 96 at well level...
@@ -101,7 +188,7 @@ test_that("MicroPlate.R_ basic tests",{
 #   expect_error(removeColumn(testData,1000000000)) # invalid column number
 #   expect_error(removeColumn(testData,testData)) # wrong data type
 #   
-#   # multiple row delete
+#   # multiple column delete
 #   testData=new("MicroPlate")
 #   test=list(row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )
 #   testData=addPlate(testData,newData=test)
@@ -109,6 +196,7 @@ test_that("MicroPlate.R_ basic tests",{
 #   expect_equal(dim(testData[]),c(2,4))
 
 })
+
 
 test_that("MicroPlate.R_additional_functions",{
 #   testData=new("MicroPlate")

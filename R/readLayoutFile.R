@@ -61,6 +61,7 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
     nrOfColumns=dim(sheet)[2] # cols of the sheet = cols of the plate
     
     data=NULL
+#     data$plate=list()
     dataNames=NULL
     
     cols=NULL # store the col numbers
@@ -149,14 +150,11 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
         
         }# data section loop
       # data section including >
-      } else {
+      } else { # plate data
         # asume new plate variable
         variableName=sheet[index,1]
         value=sheet[index,2]
         data$plate[[variableName]]=value
-        
-        
-        
         
       }  
       #stop condition
@@ -201,7 +199,8 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
       }
     }
     
-    print(data)
+#     print(data)
+#     print(data$plate)
 #     print("_________________")
     print("data parsed...")
     
@@ -216,8 +215,10 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
       parser=data$plate[["parser"]]
       plateName=data$plate[["plateName"]]
       
-      layoutData=data[names(data)!="plate"]
-
+#       layoutData=data[names(data)!="plate"]
+      layoutData=data
+      print(layoutData)
+      
       existingMicroPlate=eval(parse(text=paste(parser,"('",dirname(file),"/",dataFile,"')",sep="")))
       
       addLayoutDataToMicroPlate(existingMicroPlate,layoutData)
@@ -246,6 +247,7 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
 
 #' addLayoutDataToMicroPlate
 #' 
+#' @keywords internal
 #' @rdname addLayoutDataToMicroPlate
 #' @description
 #' ...
@@ -262,25 +264,39 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
 setGeneric("addLayoutDataToMicroPlate", function(self=NULL, layoutData=NULL) standardGeneric("addLayoutDataToMicroPlate")) 
 #' @rdname addLayoutDataToMicroPlate
 setMethod("addLayoutDataToMicroPlate", signature(self="MicroPlate"), function(self=NULL, layoutData=NULL){
-  
   print("addLayoutDataToMicroPlate!!")
-  index=which(self@.data$data$column==layoutData$column & self@.data$data$row==layoutData$row & self@.data$data$plate==self@.data$levelSize[self@.data$level=="plate"])
-  print(index)
+  wellData=layoutData[names(layoutData)!="plate"]
+  plateData=layoutData$plate
+  
+  # well + measurement
+  index=which(self@.data$data$column==wellData$column & self@.data$data$row==wellData$row & self@.data$data$plate==self@.data$levelSize[self@.data$level=="plate"])
+#   print(index)
   #
   
   if(length(index)!=self@.data$wellsPerPlate[self@.data$levelSize[self@.data$level=="plate"]]){
     stop("Layout and microplate sizes are not the same")
   }
   # add the data
-  layoutData=data.frame(layoutData,stringsAsFactors = F)
-  colNames=base::colnames(layoutData)[!base::colnames(layoutData) %in% c("row","column")] #everything except row, column, plate 
+  #data[names(data)!="plate"]
+  wellData=data.frame(wellData,stringsAsFactors = F)
+  colNames=base::colnames(wellData)[!base::colnames(wellData) %in% c("row","column")] #everything except row, column, plate 
   print(colNames)
-  print(layoutData)
+#   print(wellData)
   print("---------------")
-  print(layoutData[colNames])
-  self[index,colNames,level="well"]=layoutData[colNames]
+#   print(wellData[colNames])
+  self[index,colNames,level="well"]=wellData[colNames]
   
-  updateColnames(self)
+  # plate data
+  colNames=names(plateData)
+  index=self@.data$levelSize[self@.data$level=="plate"]
+  print("___________________________________")
+  print(index)
+  print(colNames)
+  print(plateData[colNames])
+  print("___________________________________")
+#   self[index,colNames,level="plate"]=plateData[colNames]
+  self[colNames,level="plate"]=plateData[colNames]
+#   updateColnames(self) # already done with self[]=...
 })
 
 

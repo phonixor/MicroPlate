@@ -2,4 +2,8 @@
 .Rhistory
 .RData
 man
+<<<<<<< HEAD
 NAMESPACE
+=======
+.~lock*
+>>>>>>> 91102c9e70b652d97dc550b87a2832fe243f2352

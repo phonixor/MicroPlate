@@ -31,7 +31,7 @@ library(foreign)
 #' TODO better plate identification
 #' 
 #' @param path path to the novostar .dbf file.
-#' @param name unused TODO CHECK!
+#' @param name becomes the plateName
 #' 
 #' @export
 #' @import foreign
@@ -73,6 +73,8 @@ library(foreign)
     l$row[i]=coordinates[1]
     l$column[i]=coordinates[2]
     l$content[i]=content[i]
+    l$plate[i]=1 # foreign key
+    
     #     print(l)
     #     print(i)
     #     l[["measurement"]][1]=list()
@@ -84,7 +86,22 @@ library(foreign)
     } 
     l[["measurement"]][[i]]=temp
   }
-  return(l)
+  
+  # transform it into a MicroPlate
+  returnValue=new("MicroPlate")
+  returnValue@.data$data=l
+  
+  if(is.null(name)){
+    returnValue@.data$plate$plateName=basename(path)
+  }else{
+    returnValue@.data$plate@plateName=name
+  }
+  
+  updateColnames(returnValue)
+  
+  
+  
+  return(returnValue)
 }
 
 
@@ -96,7 +113,7 @@ library(gdata)
 #' TODO: seconds/days
 #' 
 #' @param path the path to the novostar excel file
-#' @param name unused apperently... TODO CHECK!
+#' @param name become the plateName
 #' 
 #' @export
 "novostar.xls"=function(path=NULL,name=NULL){
@@ -161,28 +178,32 @@ library(gdata)
 #   print(waveLength)
   
   l=list()
+  m=list()
   dataRows=6:dim(xls)[1]
+  nrOfDataCols=dim(xls)[2]-3
+  measurementIndex=1
   for(row in dataRows){ # for each row
     l$row=append(l$row, xls[row,1])
     l$column=append(l$column,as.numeric(xls[row,2]))
     l$content=append(l$content,xls[row,3])
     l$plate=append(l$plate,1) # foreign key
-    
-    
-    temp=list()
+    l$measurement=append(l$measurement,measurementIndex) # kind of a foreign key
+    measurementIndex=measurementIndex+nrOfDataCols
+
+    # TODO RESERVE SPACE AND FILL INSTEAD OF APPEND
     for(col in 4:dim(xls)[2]){ # for each column
-      temp$value=append(temp$value,xls[row,col])
-      temp$time=append(temp$time,time[col-3])
-      temp$waveLength=append(temp$waveLength,waveLength[col-3])
+      m$value=append(m$value,xls[row,col])
+      m$time=append(m$time,time[col-3])
+      m$waveLength=append(m$waveLength,waveLength[col-3])
       # no temperature!
     }
-    l[["measurement"]][[row-5]]=temp
   }
   l$row=lettersToNumber(l$row)# change letters to numbers
   
   # transform it into a MicroPlate
   returnValue=new("MicroPlate")
-  returnValue@.data$data=l
+  returnValue@.data$well=l
+  returnValue@.data$measurement=m
   
   if(is.null(name)){
     returnValue@.data$plate$plateName=basename(path)
@@ -190,7 +211,7 @@ library(gdata)
     returnValue@.data$plate@plateName=name
   }
 
-  updateColnames(returnValue)
+  updateMetaData(returnValue)
 
   return(returnValue)
 }
@@ -248,28 +269,7 @@ library(gdata)
 #   return(df)
 # }
 
-#' extractPlateCoordinates()
-#' @description
-#' extracts row and column from something like "A11"
-#' 
-#' it then transforms A into 1 B into 2 etc...
-#' 
-#' TODO what if AA? or more then Z??
-#' 
-#' and puts both in a list
-#' return(c(row,column))
-#' @param wellName the name of the well you want to convert
-#' 
-#' 
-#' @export
-extractPlateCoordinates=function(wellName){
-  # example B11
-  column=regmatches(wellName,regexpr("[[:digit:]]+", wellName)) # extract 11
-  column=as.numeric(column)
-  row=regmatches(wellName,regexpr("[[:alpha:]]+", wellName)) # ectraxt B
-  row=match(casefold(row),letters) # convert B to 2
-  return(c(row,column))
-}
+
 
 # 
 # #' The SampleFrame class
