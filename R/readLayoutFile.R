@@ -217,13 +217,13 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
       
 #       layoutData=data[names(data)!="plate"]
       layoutData=data
-      print(layoutData)
+#       print(layoutData)
       
       existingMicroPlate=eval(parse(text=paste(parser,"('",dirname(file),"/",dataFile,"')",sep="")))
       
       addLayoutDataToMicroPlate(existingMicroPlate,layoutData)
       
-      print("___________________________________")
+#       print("___________________________________")
 
       
     } else {
@@ -280,20 +280,20 @@ setMethod("addLayoutDataToMicroPlate", signature(self="MicroPlate"), function(se
   #data[names(data)!="plate"]
   wellData=data.frame(wellData,stringsAsFactors = F)
   colNames=base::colnames(wellData)[!base::colnames(wellData) %in% c("row","column")] #everything except row, column, plate 
-  print(colNames)
+#   print(colNames)
 #   print(wellData)
-  print("---------------")
+#   print("---------------")
 #   print(wellData[colNames])
   self[index,colNames,level="well"]=wellData[colNames]
   
   # plate data
   colNames=names(plateData)
   index=self@.data$levelSize[3]
-  print("___________________________________")
-  print(index)
-  print(colNames)
-  print(plateData[colNames])
-  print("___________________________________")
+#   print("___________________________________")
+#   print(index)
+#   print(colNames)
+#   print(plateData[colNames])
+#   print("___________________________________")
 #   self[index,colNames,level="plate"]=plateData[colNames]
   self[colNames,level="plate"]=plateData[colNames]
 #   updateColnames(self) # already done with self[]=...

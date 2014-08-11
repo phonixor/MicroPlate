@@ -17,21 +17,21 @@ test_that("MicroPlate.R_$_tests",{
   expect_equal(testData$test,1234567) # read
   #TODO ADD OVERWRITE TEST...
   testData$test=NULL # test remove
-  expect_true(is.null(testData$test)) # does give a warning
+  suppressWarnings(expect_true(is.null(testData$test))) # does give a warning
   # well
   testData$testw=1:96 # write
   expect_true(all(testData$testw==1:96)) # read
   testData$testw=20 # overwrite all same value
   expect_true(all(testData$testw==20)) # read
   testData$testw=NULL # test remove
-  expect_true(is.null(testData$testw)) # does give a warning
+  suppressWarnings(expect_true(is.null(testData$testw))) # does give a warning
   # measurement
   testData$testm=1:24000 # write
   expect_true(all(testData$testm==1:24000)) # read
   testData$testm=20 # overwrite all same value
   expect_true(all(testData$testm==20)) # read
   testData$testm=NULL # test remove
-  expect_true(is.null(testData$testm)) # does give a warning
+  suppressWarnings(expect_true(is.null(testData$testm))) # does give a warning
 })
 
 test_that("MicroPlate.R_basic_tests",{
@@ -82,7 +82,7 @@ test_that("MicroPlate.R_[]_tests",{
   expect_equal(testData[["newColumn"]],2)
   expect_error((testData["newColumn"]=1:24000))# try to add data at wrong level
   testData["newColumn"]=NULL # remove
-  expect_true(is.null(testData$newColumn)) # does give a warning
+  suppressWarnings(expect_true(is.null(testData$newColumn))) # does give a warning
   
   # well
   testData["newColumn"]=1:96 # reuse column name at different level
@@ -91,7 +91,7 @@ test_that("MicroPlate.R_[]_tests",{
   expect_true(all(testData["newColumn"]==rep(500,96)))
   expect_error((testData["newColumn"]=1:24000))# try to add data at wrong level
   testData["newColumn"]=NULL
-  expect_true(is.null(testData$newColumn)) # does give a warning
+  suppressWarnings(expect_true(is.null(testData$newColumn))) # does give a warning
   
   # measurement
   testData["newColumn"]=1:24000 # GOES WITH BLAZING SPEED!
@@ -100,45 +100,52 @@ test_that("MicroPlate.R_[]_tests",{
   expect_true(all(testData["newColumn"]==rep(500,24000)))
   expect_error((testData["newColumn"]=1:96))# try to add data at wrong level
   testData["newColumn"]=NULL
-  expect_true(is.null(testData$newColumn)) # does give a warning
+  suppressWarnings(expect_true(is.null(testData$newColumn))) # does give a warning
   
   ### row
   # plate
   testData[1,"newColumn",level="plate"]=5
-  expect_equal(testData[["newColumn"]],5)
-  expect_error(testData[1,"newColumn"]=NULL) # you are not allowed to delete individual values
+  expect_equal(testData[1,"newColumn"],5)
+  expect_error((testData[1,"newColumn"]=NULL)) # you are not allowed to delete individual values
+  
+  # well
+  testData[5,"newColumn",level="well"]=5
+  expect_equal(testData[[5,"newColumn"]],5)
   
   ### multiple column
   
   
   
-  # test reading [
-  expect_equal(dim(testData[]),c(24000,9))    # everything
-  expect_equal(testData[[1]],"KineticData.xls") # first col # plateName
-  expect_equal(dim(testData[1,]),c(1,9)) # first row
-#   expect_equal(testData[,1],"KineticData.xls") # first col
-  expect_equal(testData[1,2], 1234567)   # first row 2nd col # the test i just added
-  expect_equal(dim(testData[,]),c(24000,9))  # everything
- 
-  expect_equal(testData[level=1],testData[level="measurement"]) # test level select
-  expect_equal(testData[level=2],testData[level="well"])
-#   testData[level=2] # TODO decide what todo if levelSize well=measurement...testData[level=2] # TODO decide what todo if levelSize well=measurement...
-  expect_equal(testData[level=3],testData[level="plate"])
-  expect_equal(dim(testData[c(1,3,5)])[2],3) # test column select
-  expect_equal(dim(testData[,c(1,3,5)])[2],3) # test column select
-  expect_equal(dim(testData[c(1,2),])[1],2) # test row select 
-  #
-  # test logical
-  testData[testData$value>0.4,]
-  testData[testData$value>0.4,"value"]=0.4
-
-
-  # test writing [<- 
-  testData=novostar.xls(file)
-  expect_error(testData[93:97,"row"]) #  only 96 at well level...
-  expect_error((testData[93:97,"row"]=93:97))
-  testData[2:3,"row"]=10:11 # should just work
-  expect_true(all(testData[2:3,"row"]==10:11))
+  
+  
+  
+#   # test reading [
+#   expect_equal(dim(testData[]),c(24000,9))    # everything
+#   expect_equal(testData[[1]],"KineticData.xls") # first col # plateName
+#   expect_equal(dim(testData[1,]),c(1,9)) # first row
+# #   expect_equal(testData[,1],"KineticData.xls") # first col
+#   expect_equal(testData[1,2], 1234567)   # first row 2nd col # the test i just added
+#   expect_equal(dim(testData[,]),c(24000,9))  # everything
+#  
+#   expect_equal(testData[level=1],testData[level="measurement"]) # test level select
+#   expect_equal(testData[level=2],testData[level="well"])
+# #   testData[level=2] # TODO decide what todo if levelSize well=measurement...testData[level=2] # TODO decide what todo if levelSize well=measurement...
+#   expect_equal(testData[level=3],testData[level="plate"])
+#   expect_equal(dim(testData[c(1,3,5)])[2],3) # test column select
+#   expect_equal(dim(testData[,c(1,3,5)])[2],3) # test column select
+#   expect_equal(dim(testData[c(1,2),])[1],2) # test row select 
+#   #
+#   # test logical
+#   testData[testData$value>0.4,]
+#   testData[testData$value>0.4,"value"]=0.4
+# 
+# 
+#   # test writing [<- 
+#   testData=novostar.xls(file)
+#   expect_error(testData[93:97,"row"]) #  only 96 at well level...
+#   expect_error((testData[93:97,"row"]=93:97))
+#   testData[2:3,"row"]=10:11 # should just work
+#   expect_true(all(testData[2:3,"row"]==10:11))
 
 #   # test levelSize of well=plate=measurement
 #   testData=new("MicroPlate")
