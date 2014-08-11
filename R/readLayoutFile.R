@@ -269,11 +269,11 @@ setMethod("addLayoutDataToMicroPlate", signature(self="MicroPlate"), function(se
   plateData=layoutData$plate
   
   # well + measurement
-  index=which(self@.data$data$column==wellData$column & self@.data$data$row==wellData$row & self@.data$data$plate==self@.data$levelSize[self@.data$level=="plate"])
+  index=which(self@.data$well$column==wellData$column & self@.data$well$row==wellData$row & self@.data$well$plate==self@.data$levelSize[3])
 #   print(index)
   #
   
-  if(length(index)!=self@.data$wellsPerPlate[self@.data$levelSize[self@.data$level=="plate"]]){
+  if(length(index)!=self@.data$wellsPerPlate[self@.data$levelSize[3]]){
     stop("Layout and microplate sizes are not the same")
   }
   # add the data
@@ -288,7 +288,7 @@ setMethod("addLayoutDataToMicroPlate", signature(self="MicroPlate"), function(se
   
   # plate data
   colNames=names(plateData)
-  index=self@.data$levelSize[self@.data$level=="plate"]
+  index=self@.data$levelSize[3]
   print("___________________________________")
   print(index)
   print(colNames)

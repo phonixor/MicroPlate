@@ -89,7 +89,8 @@ MicroPlate=setClass(
 setMethod("initialize", "MicroPlate", function(.Object){
   # initialize the love!
   .Object@.data=new.env() # make sure it has its own little space
-  .Object@.data$data=NULL # stores all well and measurement data!
+  .Object@.data$measurement=NULL # stores all measurement data!
+  .Object@.data$well=NULL # stores all well data!
   .Object@.data$plate=NULL # stores all plate data!
   # per column
   .Object@.data$colNames=NULL # stores the colnames!
@@ -129,16 +130,16 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
   # new means that other has them and self does not
   # missing means that other does not have them but self does
   
-  nrOfWells=self@.data$levelSize[self@.data$level=="well"]
-  nrOfPlates=self@.data$levelSize[self@.data$level=="plate"]  
-  nrOfNewWells=other@.data$levelSize[other@.data$level=="well"]
-  nrOfNewPlates=other@.data$levelSize[other@.data$level=="plate"]
-  
+  nrOfWells=self@.data$levelSize[2]
+  nrOfPlates=self@.data$levelSize[3]
+  nrOfNewWells=other@.data$levelSize[2]
+  nrOfNewPlates=other@.data$levelSize[3]
+  nrOfNewMeasurements=other@.data$levelSize[1]
 #   plateNumber=self@.data$levelSize[self@.data$level=="plate"]+1 #this needs change
   
   colsPlate=names(other@.data$plate)
-  colsWell=names(other@.data$data)
-  colsMeasurement=names(other@.data$data$measurement[[1]])
+  colsWell=names(other@.data$well)
+  colsMeasurement=names(other@.data$measurement[[1]])
   newColsPlate=colsPlate[!(colsPlate %in% self@.data$colNames[self@.data$colLevel=="plate"])]
   newColsWell=colsWell[!(colsWell %in% self@.data$colNames[self@.data$colLevel=="well"])]
   newColsMeasurement=colsMeasurement[!(colsMeasurement %in% self@.data$colNames[self@.data$colLevel=="measurement"])]
@@ -147,7 +148,9 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
   missingColsMeasurement=self@.data$colNames[self@.data$colLevel=="measurement"][!(self@.data$colNames[self@.data$colLevel=="measurement"] %in% colsMeasurement)]
   existingColsPlate=colsPlate[(colsPlate %in% self@.data$colNames[self@.data$colLevel=="plate"])]
   existingColsWell=colsWell[(colsWell %in% self@.data$colNames[self@.data$colLevel=="well"])]
-  
+  existingColsMeasurement=colsMeasurement[(colsMeasurement %in% self@.data$colNames[self@.data$colLevel=="measurement"])]
+
+
   # plate
   if(length(newColsPlate)>0){
     for(i in 1:length(newColsPlate)){
@@ -168,19 +171,9 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
       self@.data$plate[[existingColsPlate[i]]]=append(self@.data$plate[[existingColsPlate[i]]],other@.data$plate[[existingColsPlate[i]]])
     }
   }
-  
+
+
   # Well
-  #
-  # plate number reference
-  # plate numbers need to match row numbers, so you cannot use the row numbers from other.
-  # the row numbers need to continue from the last self plate row number
-  for(i in 1:nrOfNewPlates){
-    # get number of wells per plate
-    nrOfWellsPerPlate=sum(other@.data$data$plate==i)
-    self@.data$data$plate=append(self@.data$data$plate, rep(x=nrOfPlates+i,nrOfWellsPerPlate))
-  }
-  # 
-  # 
   print(paste("newColsWell",newColsWell))
   for(i in 1:length(newColsWell)){ # measurement is seen as a new column
     # create new column
@@ -188,73 +181,64 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
     
     # note that: newColsWell contains measurement!
     if(newColsWell[i]=="measurement"){
-      # combine the measurement columns in at the well level
-#       print(length(self@.data$data$measurement))
-#       print(length(other@.data$data$measurement))
-      self@.data$data$measurement=append(self@.data$data$measurement,other@.data$data$measurement)
-#       print(length(self@.data$data$measurement))
+      # starting positions of other are increased by nrOfMeasurements of self
+      self@.data$well$measurement=append(self@.data$well$measurement,(other@.data$well$measurement+self@.data$levelSize[1]))
     } else if(newColsWell[i]=="plate"){
-      # plate numbers have been changed above
+      # plate number reference
+      # plate numbers need to match row numbers, so you cannot use the row numbers from other.
+      # the row numbers need to continue from the last self plate row number
+      for(i in 1:nrOfNewPlates){
+        # get number of wells per plate
+        #     nrOfWellsPerPlate=sum(other@.data$data$plate==i) 
+        self@.data$well$plate=append(self@.data$well$plate, rep(x=nrOfPlates+i,other@.data$wellsPerPlate[[i]]))
+      }
     } else {
-      self@.data$data[[newColsWell[i]]]=append(rep(x=NA,nrOfWells),other@.data$data[[newColsWell[i]]])
+      self@.data$well[[newColsWell[i]]]=append(rep(x=NA,nrOfWells),other@.data$well[[newColsWell[i]]])
     }
   }
 #   print(paste("missingColsWell",missingColsWell))
   if(length(missingColsWell)>0){
     for(i in 1:length(missingColsWell)){
       # fill the existing columns for which the newData has no data with NA
-      self@.data$data[[missingColsWell[i]]]=append(self@.data$data[[missingColsWell[i]]],rep(x=NA,nrOfNewWells))
+      self@.data$well[[missingColsWell[i]]]=append(self@.data$well[[missingColsWell[i]]],rep(x=NA,nrOfNewWells))
     }
   }
 #   print(paste("existingColsWell",existingColsWell))
   if(length(existingColsWell)>0){ # this should always be the case as row and column are mandatory...
     for(i in 1:length(existingColsWell)){
       # add newData to existing columns
-      self@.data$data[[existingColsWell[i]]]=append(self@.data$data[[existingColsWell[i]]],other@.data$data[[existingColsWell[i]]])
+      self@.data$well[[existingColsWell[i]]]=append(self@.data$well[[existingColsWell[i]]],other@.data$well[[existingColsWell[i]]])
     }
   }
-  # adding NA to empty spaces
-  # update existing wells measurements with NA for new columns
-#   print(paste("newColsMeasurement",newColsMeasurement))
+
+  # measurement
   if(length(newColsMeasurement)>0){
-    for(i in 1:nrOfWells){ # for each well
-      nrOfMeasurements=length(self@.data$data$measurement[[i]][[1]])
-      for(j in 1:length(newColsMeasurement)){
-        # give it a name, but give it no values... as that would just be a waste of memory
-        # TODO change $ and [ ... to deal with this!
-        # TODO do i really want this???
-        self@.data$data$measurement[[i]][[newColsMeasurement[j]]]=NA
-      }
+    for(i in 1:length(newColsMeasurement)){
+      # create new column
+      # fill existing columns with NA and add the new data
+      self@.data$measurement[[newColsMeasurement[i]]]=append(rep(x=NA,nrOfPlates),other@.data$measurement[[newColsMeasurement[i]]])
     }
   }
-  # add NA's to the newData
-#   print(paste("missingColsMeasurement",missingColsMeasurement))
   if(length(missingColsMeasurement)>0){
-    for(i in nrOfWells:(nrOfWells+nrOfNewWells)){
-      nrOfMeasurements=length(self@.data$data$measurement[[i]][[1]])
-      for(j in 1:length(missingColsMeasurement)){
-        self@.data$data$measurement[[i]][[missingColsMeasurement[j]]]=NA
-      }
+    for(i in 1:length(missingColsMeasurement)){
+      # fill the existing columns for which the newData has no data with NA
+      self@.data$measurement[[missingColsMeasurement[i]]]=append(self@.data$measurement[[missingColsMeasurement[i]]],rep(x=NA,nrOfNewMeasurements))
     }
   }
-  
+  if(length(existingColsMeasurement)>0){
+    for(i in 1:length(existingColsMeasurement)){
+      # add newData to existing columns
+      self@.data$measurement[[existingColsMeasurement[i]]]=append(self@.data$measurement[[existingColsMeasurement[i]]],other@.data$measurement[[existingColsMeasurement[i]]])
+    }
+  }
   
   
   # remove other
-  # TODO figure this thing out when stackexchange is not down!
-#   if(removeOther){rm(other,pos=parent.frame())}
-#   if(removeOther){remove(other)}
   if(removeOther){
-#     Sx <- deparse(substitute(other))
-#     print(Sx)
     rm(list=deparse(substitute(other)),envir=sys.frame(-2))
-    
-#     print(match.call()[[3]])
-#     print(class(match.call()[[3]]))
-#     rm(match.call()[[3]])
   }
   
-  updateColnames(self)
+  updateMetaData(self)
   
   return(self)
 })
@@ -564,15 +548,18 @@ setMethod("updateMetaData", signature(self = "MicroPlate"), function(self){
     nextWellNr=currentWellNr+self@.data$wellsPerPlate[i]# nrOfWells
     print(nextWellNr)
     nrOfMeasurement=0
-    if(!is.na(x@.data$well$measurement[nextWellNr])){
-      nrOfMeasurement=x@.data$well$measurement[nextWellNr]-x@.data$well$measurement[currentWellNr]
+    if(!is.na(self@.data$well$measurement[nextWellNr])){
+      nrOfMeasurement=self@.data$well$measurement[nextWellNr]-self@.data$well$measurement[currentWellNr]
     }else{
-      nrOfMeasurement=length(x@.data$measurement[1])-x@.data$well$measurement[currentWellNr]+1
+      # last well
+      print(length(self@.data$measurement[[1]]))
+      print(self@.data$well$measurement[currentWellNr])
+      nrOfMeasurement=length(self@.data$measurement[[1]])-self@.data$well$measurement[currentWellNr]+1
       print(nrOfMeasurement)
     }
     self@.data$measurementsPerPlate=append(self@.data$measurementsPerPlate,nrOfMeasurement)
   }
-  print(self@.data$measurementsPerPlate)
+  print(self@.data$measurementsPerPlate) 
 })
 
 
@@ -951,33 +938,19 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
         for (i in 1:length(x@.data$well$measurement)){ # for each well
           nrOfMeasurement=0
           if(!is.na(x@.data$well$measurement[i+1])){
-            nrOfMeasurement=x@.data$well$measurement[i+1]-x@.data$well$measurement[i]
+            nrOfMeasurement=x@.data$well$measurement[[i+1]]-x@.data$well$measurement[[i]]
           }else{
-            nrOfMeasurement=x@.data$well$measurement[i]-length(x@.data$measurement[1])
+            # last well
+            nrOfMeasurement=length(x@.data$measurement[[1]])-x@.data$well$measurement[[i]]+1
           }
           tempData=append(tempData,rep(x@.data$well[[col[colnr]]][[i]],nrOfMeasurement))
         }
       } else if(level=="plate"){
-        # repeat for each well*each measurement
-        for(i in 1:x@.data$levelSize[2]){ # for each well
+        # repeat for eachWell*eachMeasurement
+        for(i in 1:x@.data$levelSize[3]){ # for each plate
           # get the corresponding plate values
-          
-          x@.data$plate[[col[colnr]]]
-          x@.data$wellsPerPlate
-          
-          nrOfMeasurement=0
-          if(!is.na(x@.data$well$measurement[i+1])){
-            nrOfMeasurement=x@.data$well$measurement[i+1]-x@.data$well$measurement[i]
-          }else{
-            nrOfMeasurement=x@.data$well$measurement[i]-length(x@.data$measurement[1])
-          }
-          
-#           data=as.data.frame(x@.data$plate,stringsAsFactors = FALSE)[x@.data$well$plate[[i]],col[colnr]]
-          
-          tempData=append(tempData,rep(data,length(x@.data$data$measurement[[i]][[1]]))) # for each measurement
+          tempData=append(tempData,rep(x@.data$plate[[col[colnr]]][[i]],x@.data$measurementsPerPlate[[i]])) # for each measurement
         }
-        #         tempData=lapply(x@.data$data, function(x)returnValue=append(returnValue,x[[name]]))
-        tempData=c(tempData,recursive=T)
       } else {
         stop("data at unknown level... this error means a coding error as it should have been cought above!")
       }

@@ -67,29 +67,42 @@ library(foreign)
   #   df=data.frame(row=numeric(0),column=numeric(0),temp=numeric(0),time=numeric(0),value=numeric(0),content=str(0)) # create the df
   #   l=list(row=numeric(0),column=numeric(0),content=str(0),measurement=NULL)
   l=list()
-  for (i in 1:length(wellNames)) { # for each well
+  m=list()
+  nrOfMeasurements=(dim(wellData)[1])*(dim(wellData)[2])
+  
+  m$value=numeric(nrOfMeasurements)
+  m$time=numeric(nrOfMeasurements)
+  m$waveLength=numeric(nrOfMeasurements)
+  
+  measurementIndex=1
+  nextMeasurementIndex=1
+  nrOfDataRows=dim(wellData)[1]
+  row=1:nrOfDataRow
+
+  nrOfDataCols=dim(wellData)[2]
+  for (i in 1:nrOfDataCols) { # for each well
+    measurementIndex=nextMeasurementIndex
+    nextMeasurementIndex=measurementIndex+nrOfDataRows
+      
+    #well
     coordinates=extractPlateCoordinates(wellNames[i])
-    
     l$row[i]=coordinates[1]
     l$column[i]=coordinates[2]
     l$content[i]=content[i]
     l$plate[i]=1 # foreign key
+    l$measurement[i]=measurementIndex # kind of a foreign key
     
-    #     print(l)
-    #     print(i)
-    #     l[["measurement"]][1]=list()
-    temp=list()
-    for (j in 1:length(measurements)){ # for each measurement
-      temp$value=append(temp$value,wellData[i,j])
-      temp$time=append(temp$time,timePoints[j])
-      temp$temp=append(temp$temp,temperature[j])
-    } 
-    l[["measurement"]][[i]]=temp
+    # measurement
+    index=measurementIndex:(nextMeasurementIndex-1)
+    m$value[index]=as.numeric(wellData[row,i])
+    m$time[index]=timePoints[i]
+    m$temp[index]=temperature[i]
   }
   
   # transform it into a MicroPlate
   returnValue=new("MicroPlate")
-  returnValue@.data$data=l
+  returnValue@.data$well=l
+  returnValue@.data$measurement=m
   
   if(is.null(name)){
     returnValue@.data$plate$plateName=basename(path)
@@ -97,9 +110,7 @@ library(foreign)
     returnValue@.data$plate@plateName=name
   }
   
-  updateColnames(returnValue)
-  
-  
+  updateMetaData(returnValue)
   
   return(returnValue)
 }
@@ -172,31 +183,36 @@ library(gdata)
     time=append(time,temptime)
   }
   
-#   print("time....")
-#   print(time)
-#   print("waveLength....")
-#   print(waveLength)
-  
+
   l=list()
   m=list()
-  dataRows=6:dim(xls)[1]
-  nrOfDataCols=dim(xls)[2]-3
+  nrOfMeasurements=(dim(xls)[1]-5)*(dim(xls)[2]-3)
+  
+  m$value=numeric(nrOfMeasurements)
+  m$time=numeric(nrOfMeasurements)
+  m$waveLength=numeric(nrOfMeasurements)
+  col=4:dim(xls)[2]
+
   measurementIndex=1
+  nextMeasurementIndex=1
+  nrOfDataCols=dim(xls)[2]-3
+  
+  dataRows=6:dim(xls)[1]
   for(row in dataRows){ # for each row
+    measurementIndex=nextMeasurementIndex
+    nextMeasurementIndex=measurementIndex+nrOfDataCols
+    #well
     l$row=append(l$row, xls[row,1])
     l$column=append(l$column,as.numeric(xls[row,2]))
     l$content=append(l$content,xls[row,3])
     l$plate=append(l$plate,1) # foreign key
     l$measurement=append(l$measurement,measurementIndex) # kind of a foreign key
-    measurementIndex=measurementIndex+nrOfDataCols
-
-    # TODO RESERVE SPACE AND FILL INSTEAD OF APPEND
-    for(col in 4:dim(xls)[2]){ # for each column
-      m$value=append(m$value,xls[row,col])
-      m$time=append(m$time,time[col-3])
-      m$waveLength=append(m$waveLength,waveLength[col-3])
-      # no temperature!
-    }
+    
+    # measurement
+    index=measurementIndex:(nextMeasurementIndex-1)
+    m$value[index]=as.numeric(xls[row,col])
+    m$time[index]=time[col-3]
+    m$waveLength[index]=waveLength[col-3]
   }
   l$row=lettersToNumber(l$row)# change letters to numbers
   

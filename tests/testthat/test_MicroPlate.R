@@ -94,9 +94,9 @@ test_that("MicroPlate.R_[]_tests",{
   expect_true(is.null(testData$newColumn)) # does give a warning
   
   # measurement
-  testData["newColumn"]=1:24000 # damn this takes a while -- over a min...
+  testData["newColumn"]=1:24000 # GOES WITH BLAZING SPEED!
   expect_true(all(testData["newColumn"]==1:24000))
-  testData["newColumn"]=500 # single value overwrite -- this takes as long as 2 above...
+  testData["newColumn"]=500 # single value overwrite -- yup the new underlying structure makes this much faster!
   expect_true(all(testData["newColumn"]==rep(500,24000)))
   expect_error((testData["newColumn"]=1:96))# try to add data at wrong level
   testData["newColumn"]=NULL
@@ -106,7 +106,7 @@ test_that("MicroPlate.R_[]_tests",{
   # plate
   testData[1,"newColumn",level="plate"]=5
   expect_equal(testData[["newColumn"]],5)
-  testData[1,"newColumn"]=NULL
+  expect_error(testData[1,"newColumn"]=NULL) # you are not allowed to delete individual values
   
   ### multiple column
   
