@@ -102,22 +102,104 @@ test_that("MicroPlate.R_[]_tests",{
   testData["newColumn"]=NULL
   suppressWarnings(expect_true(is.null(testData$newColumn))) # does give a warning
   
+  
   ### row
   # plate
+  testData=novostar.xls(file)
   testData[1,"newColumn",level="plate"]=5
   expect_equal(testData[1,"newColumn"],5)
   expect_error((testData[1,"newColumn"]=NULL)) # you are not allowed to delete individual values
+  testData[1,"newColumn",level=3]=50
+  expect_error(testData[10,"newColumn"]) # out of range
+  expect_error((testData[2,"newColumn"]=5)) # out of range assign
   
   # well
+  expect_error((testData[5,"newColumn",level="well"]=5))
+  testData=novostar.xls(file)
   testData[5,"newColumn",level="well"]=5
   expect_equal(testData[[5,"newColumn"]],5)
+  testData[6,"newColumn",level=2]=50
+  expect_error(testData[97,"newColumn"]) # out of range
+  expect_error((testData[97,"newColumn"]=5)) # out of range assign
+  
+  # measurement
+  expect_error((testData[5,"newColumn",level="measurement"]=5))
+  testData=novostar.xls(file)
+  testData[15,"newColumn",level="measurement"]=5
+  testData[18,"newColumn",level=1]=55
+  expect_equal(testData[[18,"newColumn"]],55)
+  expect_error(testData[24010,"newColumn"]) # out of range
+  expect_error((testData[24001,"newColumn"]=5)) # out of range assign
   
   ### multiple column
+  # plate
+  testData=novostar.xls(file)
+  testData$newColumn=1
+  testData[7:8]=matrix(1,1,2) # change 
+  expect_true(all(testData[7:8]==c(1,1)))
+  testData[7:8]=1:2 # change 
+  expect_true(all(testData[7:8]==1:2))
+  expect_error((testData[7:8]=1)) # you cant overwrite a block of data...
+  testData[c("plateName","evenNewerColumn")]=10:11 # 50% new!
+  expect_true(all(testData[c("plateName","evenNewerColumn")]==10:11))
+#   testData[c("lalala","lalalala")]=10:11# 100% new!  # TODO MAKE THIS WORK!!
+#   expect_true(all(testData[c("lalala","lalalala")]==10:11))
+  testData[c("lalala","lalalala"),level=3]=10:11# 100% new
+  expect_true(all(testData[c("lalala","lalalala")]==10:11))
+  testData[c("lalala","lalalala")]=NULL # multi column delete
+  expect_error(testData[c("lalala","lalalala")]) # error cause rows are deleted
+
+  # well
+  testData=novostar.xls(file)
+  testData[5:6]=matrix(1,96,2)
+  expect_true(all(testData[5:6]==1))
+  expect_error((testData[5:6]=1:192)) # 2D selection requires 2D data! i will not shape the data for you!  that is crazy!
+  testData[c("content","evenNewerColumn")]= matrix(1,96,2) # 50% new!
+  expect_true(all(testData[c("content","evenNewerColumn")]==1))
+  testData[c("lalala","lalalala"),level="well"]=matrix(2,96,2) # 100% new
+  expect_true(all(testData[c("lalala","lalalala")]==2))
+  testData[c("lalala","lalalala")]=NULL # multi column delete
+  expect_error(testData[c("lalala","lalalala")]) # error cause rows are deleted
+
+  # measurement
+  testData=novostar.xls(file)
+  testData[1:2]=matrix(1,24000,2)
+  expect_true(all(testData[1:2]==1))
+  testData[c("temp","evenNewerColumn")]= matrix(2,24000,2) # 50% new!
+  expect_true(all(testData[c("temp","evenNewerColumn")]==2))  
+  testData[c("lalala","lalalala"),level="measurement"]=matrix("cookies!",24000,2) # 100% new
+  expect_true(all(testData[c("lalala","lalalala")]=="cookies!"))
+  testData[c("lalala","lalalala")]=NULL # multi column delete
+  expect_error(testData[c("lalala","lalalala")]) # error cause rows are deleted
+
+
+  ### multiple column+row
+  # general
+  testData=novostar.xls(file)
+  expect_equal(class(testData[1:7,1:7]),"data.frame")
+  expect_error((testData[1:7,1:7]=matrix(1,7,7))) # you cant change data at multiple levels in 1 go
+  
+  # plate
+  
+  # well
   
   
+  # measurement
+  testData[1:7,1:3]=matrix(1,7,3) # change 
   
   
+  ### boolean selection
+  # plate
   
+
+  ### diffrent level then col selection
+  # plate
+
+  # well
+
+  # measurement
+  expect_error(testData["value",level=3]) # data level lower then requested level
+
   
 #   # test reading [
 #   expect_equal(dim(testData[]),c(24000,9))    # everything

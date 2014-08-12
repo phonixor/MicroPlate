@@ -19,6 +19,8 @@ library(plyr)
 # http://stackoverflow.com/questions/8691812/get-object-methods-r
 # may also need the assignment variables like "$<-"... but i don't know if i want to give users that much access.
 # 
+# TODO allow plate deletion!
+#
 # ok... maybe make the data lockable???
 # 
 # more TODO:
@@ -858,6 +860,7 @@ setMethod("removeColumn", signature(self = "MicroPlate" ), function(self, colNam
 #'   this function will not repeat your data!
 #' - this function does allow you to create new rows!
 #' - multiple collumns are only allowed if given a matrix or data.frame as input
+#' - ignores all names in a data.frame
 #' - it is possible to add a new column even if you do not give a value for all rows
 #'   the remaining rows will be filled with NA
 #' - new columns have to be named within the brackets!!
@@ -1065,17 +1068,17 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
         value=data.frame(t(value),stringsAsFactors = F) 
         # transposing a data.frame, produces a matrix!!! FUCK YOU R!
         # also it should be a 90degree flip, but apperently R doesnt have that by default?
+        #TODO CHECK NAMES
+#         # ignore vector names... and make sure thing can get copied
+#         colnames(value)=col
       }else{
         stop("multiple columns given, while only a single dimensional data")
       }
-        
-
-      
     }
     
     # todo []
     if(!is.null(row)){
-      if (length(row)!=length(value)){
+      if ( (length(row)*length(col))!=length(value) ){
         if(length(value)!=1){
           stop(paste("invalid number of rows given:",length(value),"rows selected:",length(row)))
         }
@@ -1092,7 +1095,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
     
   } else if(is.null(class(value))) {
     # delete columns!
-    
+    stop("mmmmmh why is this even here, removal of coluns is done above.... please delete this elseif thingy...")
   } else {
     stop(paste("data type of class: ",class(value)," not supported", sep="",collapse=""))
   }
@@ -1145,7 +1148,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
       # df[1:5,c("wellColumn1","wellColumn2","newColumn"),level="well"]=value # max
       
       #TODO ADD LEVEL STUFF HERE!!
-      
+      level=colLevel
       
     } else {
       # there are no new columns selected!
@@ -1188,7 +1191,11 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
       #
       # check if rows match the level
       if( dataLength>x@.data$levelSize[x@.data$levelNr==level] ){
-        stop("you want to insert more rows into a level then there are rows in that level")
+        if(dataLength==length(col)){
+          #...
+        }else{
+          stop("you want to insert more rows into a level then there are rows in that level")
+        }
       }
       # TODO test more exceptions
       
@@ -1203,6 +1210,13 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
         if(length(x@.data$level[x@.data$levelSize==dataLength])>0){
           # check if multiple levels have the same size???? -- take the biggest
           level=x@.data$levelNr[x@.data$levelNr==max(x@.data$levelNr[x@.data$levelSize==dataLength])]
+        } else if(length(col)==dataLength){
+          # new single row with multiple columns...
+          # TODO
+          # check logic: this is allowed if level is given... else not...????
+          # why would level be important here?? only if levels have the same size could that be important..
+          # dim(value) should be the decider here...       
+          # still the no level is better then the one directly bellow
         } else {
           stop (paste("the amount of rows given: ", dataLength ,"  does not match any of the data level sizes: ", paste(x@.data$levelSize,collapse=" ",sep=" ") ,collapse=" ",sep=""))
         }
@@ -1244,7 +1258,8 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
     
     if (level==3){ # plate 
       if(class(value)=="data.frame"){
-        x@.data$plate[[col[colnr]]][row]=value[[col[colnr]]]
+#         x@.data$plate[[col[colnr]]][row]=value[[col[colnr]]] 
+        x@.data$plate[[col[colnr]]][row]=value[[colnr]]
       }else{
         x@.data$plate[[col]][row]=value
       }
@@ -1253,7 +1268,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
       }
     } else if (level==2){ # well
       if(class(value)=="data.frame"){
-        x@.data$well[[col[colnr]]][row]=value[[col[colnr]]]
+        x@.data$well[[col[colnr]]][row]=value[[colnr]]
       }else{
         x@.data$well[[col]][row]=value
       }
@@ -1263,7 +1278,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
     } else if(level==1){ # measurement
       
       if(class(value)=="data.frame"){
-        x@.data$measurement[[col[colnr]]][row]=value[[col[colnr]]]
+        x@.data$measurement[[col[colnr]]][row]=value[[colnr]]
       }else{
         x@.data$measurement[[col]][row]=value
       }
