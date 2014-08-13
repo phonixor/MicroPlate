@@ -201,6 +201,8 @@ test_that("MicroPlate.R_[]_tests",{
   expect_error(testData["value",level=3]) # data level lower then requested level
 
   
+  # restricted column names.. plate measurement etc...
+
 #   # test reading [
 #   expect_equal(dim(testData[]),c(24000,9))    # everything
 #   expect_equal(testData[[1]],"KineticData.xls") # first col # plateName

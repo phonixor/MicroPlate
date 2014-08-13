@@ -489,17 +489,16 @@ setMethod("bindParsedData", signature(self = "MicroPlate"), function(self, wellD
 #'
 #' 
 #' @description
-#' data.frame also has a DUMP slot... no clue what this does... or how to call it...
-#' its probably not called... but instead filled when called... don't know its function though...
-#' 
-#' TODO if no measurement level??!?!?
-#' TODO logical
-#' 
 #' Returns data as if it was a data.frame (so in many cases it returns a data.frame)
 #' Unlike a date.frame this function wont repeat cols and rows, if the same row/col is requested multiple times
 #' 
 #' this function gives the data at the appropiate level "plate","well" or "measurement"
 #' collumns of a higher level will be repeated
+#' 
+#' @note
+#' data.frame also has a DUMP slot... no clue what this does... or how to call it...
+#' its probably not called... but instead filled when called... don't know its function though...
+#' 
 #' 
 #' @param x MicroPlate
 #' @param i row - number only
@@ -1546,11 +1545,21 @@ setMethod("print", signature(x = "MicroPlate"), function(x) {
 setGeneric("plotPerWell", function(self) standardGeneric("plotPerWell")) 
 #' @rdname plotPerWell
 setMethod("plotPerWell", signature(self = "MicroPlate"), function(self){
-  nrOfWells=self@.data$levelSize[self@.data$level=="well"]
+  nrOfWells=self@.data$levelSize[2]
+  
   
   for(i in 1:nrOfWells){
-    data=self@.data$data$measurement[[i]]
-    plot(x=data$time,y=data$value,main=self@.data$data$content[[i]]) 
+    
+    index=getWellsMeasurementIndex(self,i)
+#     print(index)
+    start=index[[1]]
+    end=index[[2]]
+    print(start)
+    print(end)
+    
+    plot(x=self@.data$measurement$time[start:end],y=self@.data$measurement$value[start:end],main=self@.data$well$content[[i]]) 
+#     data=self@.data$measurement[selection,]
+#     plot(x=data$time,y=data$value,main=self@.data$data$content[[i]]) 
   }
   return(self)
 })
@@ -1608,6 +1617,7 @@ setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
 #' @description 
 #' DOES NOT WORK
 #' 
+#' TODO MAKE IT WORK!
 #' @param self the MicroPlate object
 #' @param fun the function 
 #' @param ... ...
@@ -1697,7 +1707,10 @@ setGeneric("getGrowthRate", function(self,...) standardGeneric("getGrowthRate"))
 setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self,...){
 #   $model.type
 #   [1] "logistic"     "richards"     "gompertz"     "gompertz.exp"
-  for (i in 1:length(self@.data$data$measurement)){ # for each well
+  for (i in 1:self@.data$levelSize[2]){ # for each well
+    index=getWellsMeasurementIndex(i)
+    start=index[1]
+    stop=index[2]
     
   }
   grofit()
@@ -1706,6 +1719,28 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self,...){
   return(self)
 })
 
+
+#' getWellsMeasurementIndex
+#' @rdname getWellsMeasurementIndex
+#' @description
+#' get start and end coordinates of the requested well measurements in the measurement 'table'
+#' 
+#' NEEDS A BETTER NAME
+#' @export
+setGeneric("getWellsMeasurementIndex", function(self,wellNr) standardGeneric("getWellsMeasurementIndex"))
+#' @rdname getWellsMeasurementIndex
+setMethod("getWellsMeasurementIndex", signature(self = "MicroPlate"), function(self, wellNr){
+  nrOfMeasurement=0
+  i=wellNr
+  if(!is.na(self@.data$well$measurement[i+1])){
+    nrOfMeasurement=self@.data$well$measurement[[i+1]]-self@.data$well$measurement[[i]]
+  }else{
+    # last well
+    nrOfMeasurement=length(self@.data$measurement[[1]])-self@.data$well$measurement[[i]]+1
+  }
+  end=self@.data$well$measurement[i]+nrOfMeasurement
+  return(data.frame(start=self@.data$well$measurement[i],end=end,stringsAsFactors = F))
+})
 
 # setMethod("+",
 #           signature(e1 = "character", e2 = "character"),

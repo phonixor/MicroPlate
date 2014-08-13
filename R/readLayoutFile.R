@@ -24,6 +24,11 @@
 #
 # todo check restricted names
 # todo fix .csv
+#
+# TODO create a function to give an example file to a user specified location...
+# so they dont mess up the syntax and stuff...
+# propably just a copy thing... cause dynamically writing one is... eeuh possible.. but package dependand...
+# and i can't do that shit yet with my readODS package (ITS READ ODS!! NOT WRITEODS!!)
 
 
 
