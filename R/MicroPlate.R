@@ -563,16 +563,9 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
   
 
   # check col
-  if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character" | class(col)=="logical")){
+  if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character") ){
     stop(paste("col index should be a number or char, not a: ",class(col)))
   }
-  if(is.logical(col)){
-    col=(1:length(col))[col]
-  }else{
-    #... i could do a unique check here... but... why not allow it
-    #   col=unique(col)
-  }
-
 
   if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
     stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
@@ -639,16 +632,23 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
       stop(paste("row index should be a number, not a: ",class(row)))
     }
     if(is.logical(row)){
+#       print(row)
       row=(1:length(row))[row]
+#       print(row)
     }
     
 #     if(nrOfRows<max(row)){
 #       stop(paste("Data only has ",paste(nrOfRows, sep="",collapse=" ")," rows, you asked for row(s):",paste(row, sep="",collapse=" ")))
 #     }
-
+#     print(row)
     if(max(row)>nrOfRows){
       stop(paste("Asked for row number ",max(row)," while the level only has ",x@.data$levelSize[x@.data$levelNr==lowestLevel]," rows",sep=""))
     }
+    if(length(row)==0){
+      warning("length of row was 0, select atleast 1 or more rows")
+      return(NULL)
+    }
+    
   }
 #   row=unique(row)
 
@@ -965,15 +965,11 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
 
 
   # check col
-  if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character" | class(col)=="logical")){
-    stop(paste("col index should be a number a char or a logical, not a: ",class(col)))
+  if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character")){
+    stop(paste("col index should be a number a char, not a: ",class(col)))
   }
-  if(class(col)=="logical"){
-    col=(1:length(col))[col]
-  }else{
-    if(length(col)!=length(unique(col))){
-      stop("duplicate columns selected")
-    }
+  if(length(col)!=length(unique(col))){
+    stop("duplicate columns selected")
   }
   
   # check if its a column remove df[names]=NULL

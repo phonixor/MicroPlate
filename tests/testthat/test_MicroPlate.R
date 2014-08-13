@@ -1,6 +1,7 @@
 # load the package
 library(microplate)
 library(testthat)
+library(plyr)
 #
 # Test MicroPlate.R
 #
@@ -190,10 +191,28 @@ test_that("MicroPlate.R_[]_tests",{
   
   ### boolean selection
   # plate
-  
+  testData=novostar.xls(file)
+  expect_equal(testData[testData$plateName=="KineticData.xls","plateName"],"KineticData.xls")
+  expect_error((testData[testData$plateName=="KineticData.xls"]="plateOfDoom"))# should give error as i do not specify what column 
+  testData[testData$plateName=="KineticData.xls","plateName"]="plateOfDoom"
+  expect_equal(testData[["plateName"]],"plateOfDoom")
+
+  # well
+  expect_warning((testData[testData$row>10,"plateName"]=="KineticData.xls")) # wrong level!... and nothing selected...
+  expect_error((testData[testData$row>2,"plateName"]=="KineticData.xls")) # wrong level!... 
+  testData[testData$row>2,"content"]="NEW CONTENT!"
+  expect_true(sum(testData$content=="NEW CONTENT!")==72) 
+
+  # measurement
+#   expect_true(sum(testData[testData$value>0.5,"value"])==7498.442)# FUCK YOU R!!! DONT HIDE STUFF FROM ME!
+  expect_true(sum(testData[testData$value>0.5,"value"])==7498.4418)
+  expect_true(max(testData[testData$value>0.5,"value"])==0.8514)
+  testData[testData$value>0.4,"value"]=100
+  expect_true(all(testData[testData$value>0.4,"value"]==100))
 
   ### diffrent level then col selection
   # plate
+  
 
   # well
 
