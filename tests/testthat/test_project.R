@@ -22,6 +22,7 @@ test_that("",{
   ods=readLayoutFile(odsFile)
   
   # initial data inspection
+  plotPerPlate(ods)
   
   # remove bias
 #   .. # show results

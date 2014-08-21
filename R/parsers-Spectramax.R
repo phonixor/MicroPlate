@@ -6,7 +6,6 @@
 #' @description
 #' a parser to read spectramax files
 #' 
-#' NOT WORKING YET!!!
 #' 
 #' @param path the path to the spectramax plate reader .txt file. 
 #' @param name becomes platename
@@ -20,7 +19,7 @@
   ## - - - - - - - - - - - - - - - - - - -
   ## Check validity of the 'variables' list
   
-  table=read.table(path,header = T)
+  table=read.table(path,header = T,sep = "\t") # without "\t" it does not work for empty columns
   
   ## Check for valid Spectramax file structure
   header=colnames(table)
@@ -60,8 +59,8 @@
     # measurement
     index=measurementIndex:(nextMeasurementIndex-1)
     m$value[index]=as.numeric(data[row,i])
-    m$time[index]=time[i]
-    m$temp[index]=temperature[i]
+    m$time[index]=time
+    m$temp[index]=temperature
   }
 
   # transform it into a MicroPlate

@@ -74,6 +74,7 @@ library(plyr)
 #' 
 #' 
 #' @export
+#' @include generalFunctions.R setup.R
 #' @import methods gtools plyr grofit 
 MicroPlate=setClass(
   Class = "MicroPlate", 
@@ -1432,6 +1433,7 @@ setMethod("$<-", signature(x = "MicroPlate"), function(x, name, value) {
   return(x)
 })
 
+
 #setGeneric("colnames", function(x) standardGeneric("colnames")) 
 #rdname colnames
 #' overwrite colnames()
@@ -1505,8 +1507,10 @@ setMethod("colnames<-", signature(x = "MicroPlate"), function(x, value) {
 #' 
 #' @export
 setMethod("show", signature(object = "MicroPlate"), function(object) {
-  print("well+measurement data:")
-  print(object@.data$data)
+  print("measurement data:")
+  print(object@.data$measurement)
+  print("well data:")
+  print(object@.data$well)
   print("plate data:")
   print(object@.data$plate)
   return(object)
@@ -1541,9 +1545,9 @@ setMethod("print", signature(x = "MicroPlate"), function(x) {
 setGeneric("plotPerWell", function(self) standardGeneric("plotPerWell")) 
 #' @rdname plotPerWell
 setMethod("plotPerWell", signature(self = "MicroPlate"), function(self){
+#   origenalPar=par() # backup plotting pars
   nrOfWells=self@.data$levelSize[2]
-  
-  
+    
   for(i in 1:nrOfWells){
     
     index=getWellsMeasurementIndex(self,i)
@@ -1557,6 +1561,20 @@ setMethod("plotPerWell", signature(self = "MicroPlate"), function(self){
 #     data=self@.data$measurement[selection,]
 #     plot(x=data$time,y=data$value,main=self@.data$data$content[[i]]) 
   }
+
+
+
+#   
+#   par(oma=c(1,1,0,0), mar=c(1,1,1,0), tcl=-0.1, mgp=c(0,0,0))#test
+#   for(i in wells){
+#     data=self@.data$data$measurement[[i]]
+#     plot(x=data$time,y=data$value,main=self@.data$data$content[[i]]) 
+#   }
+# 
+#   par(origenalPar) # restore pars...
+
+
+
   return(self)
 })
 
@@ -1573,20 +1591,20 @@ setGeneric("plotPerPlate", function(self) standardGeneric("plotPerPlate"))
 #' @rdname plotPerPlate
 setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
   origenalPar=par() # backup plotting pars
-  nrOfPlates=self@.data$levelSize[self@.data$level=="plate"]
-  nrOfWells=self@.data$levelSize[self@.data$level=="well"]
+  nrOfPlates=self@.data$levelSize[3]
+  nrOfWells=self@.data$levelSize[2]
   for(i in 1:nrOfPlates){
-    wells=(1:nrOfWells)[self@.data$data$plate==i]
+    wells=(1:nrOfWells)[self@.data$well$plate==i]
 #     print(wells)
     #get amount of row/columns
-    nrRows=max(self@.data$data$row[wells])
-    nrColumns=max(self@.data$data$column[wells])
+    nrRows=max(self@.data$well$row[wells])
+    nrColumns=max(self@.data$well$column[wells])
     
     # create a NA grid
 #     par(mfcol=c(nrRows,nrColumns))
     layoutMatrix=matrix(data=0,nrow=nrRows,ncol=nrColumns)
     for(i in 1:length(wells)){
-      layoutMatrix[self@.data$data$row[wells[i]],self@.data$data$column[wells[i]]]=i
+      layoutMatrix[self@.data$well$row[wells[i]],self@.data$well$column[wells[i]]]=i
     }
     print(layoutMatrix)
     print(nrRows)
@@ -1597,8 +1615,11 @@ setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
     
     par(oma=c(1,1,0,0), mar=c(1,1,1,0), tcl=-0.1, mgp=c(0,0,0))#test
     for(i in wells){
-      data=self@.data$data$measurement[[i]]
-      plot(x=data$time,y=data$value,main=self@.data$data$content[[i]]) 
+      selection=getWellsMeasurementIndex(self,i)
+      print(selection)
+      time=self@.data$measurement$time[selection]
+      value=self@.data$measurement$time[selection]
+      plot(x=time,y=value,main=self@.data$well$content[[i]]) 
     }
     
     par(origenalPar) # restore pars...
@@ -1693,20 +1714,31 @@ setMethod("dim", signature(x = "MicroPlate"), function(x){
 #' what if multiple wavelengths?
 #' 
 #' @param self the MicroPlate object
+#' @param wellNrs logical selection or well numbers - missing is all
+#' @param experimentIdentifier a column name of the microplate, gcFit needs this 
+#' @param additionalInformation a column name of the microplate, gcFit needs this 
+#' @param concentrationOfSubstrate a column name of the microplate, gcFit needs this 
 #' @param ... parameters passed to the grofit package
 #' 
 #' 
 #' @export
 #' @import grofit
-setGeneric("getGrowthRate", function(self,...) standardGeneric("getGrowthRate"))
+setGeneric("getGrowthRate", function(self,experimentIdentifier, additionalInformation, concentrationOfSubstrate, ...) standardGeneric("getGrowthRate"))
 #' @rdname getGrowthRate
-setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self,...){
+setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNrs, experimentIdentifier, additionalInformation, concentrationOfSubstrate, ...){
+  # gcFit wants
+  # time
+  # data=data.frame with
+  # 1. column, character as an experiment identifier
+  # 2. column: character, additional information about respecting experiment
+  # 3. column: concentration of substrate of a compound under which the experiment is obtained
+  # 4.-(n+3). column: growth data corresponding to the time points in time.
+  
 #   $model.type
 #   [1] "logistic"     "richards"     "gompertz"     "gompertz.exp"
   for (i in 1:self@.data$levelSize[2]){ # for each well
-    index=getWellsMeasurementIndex(i)
-    start=index[1]
-    stop=index[2]
+    index=getWellsMeasurementIndex(self,i)
+    
     
   }
   grofit()
@@ -1728,14 +1760,16 @@ setGeneric("getWellsMeasurementIndex", function(self,wellNr) standardGeneric("ge
 setMethod("getWellsMeasurementIndex", signature(self = "MicroPlate"), function(self, wellNr){
   nrOfMeasurement=0
   i=wellNr
+  
   if(!is.na(self@.data$well$measurement[i+1])){
     nrOfMeasurement=self@.data$well$measurement[[i+1]]-self@.data$well$measurement[[i]]
   }else{
     # last well
     nrOfMeasurement=length(self@.data$measurement[[1]])-self@.data$well$measurement[[i]]+1
   }
-  end=self@.data$well$measurement[i]+nrOfMeasurement
-  return(data.frame(start=self@.data$well$measurement[i],end=end,stringsAsFactors = F))
+  end=self@.data$well$measurement[i]+nrOfMeasurement-1 # the -1 is cause the start is also included
+  return(self@.data$well$measurement[i]:end)
+#   return(data.frame(start=self@.data$well$measurement[i],end=end,stringsAsFactors = F))
 })
 
 # setMethod("+",

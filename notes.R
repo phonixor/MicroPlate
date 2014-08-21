@@ -1,7 +1,138 @@
+###
+mp$newValue=list(a="a",c="b", cookies="123")
+
+
+
 ### test the new stuff
 
 file=paste(getwd(),"/tests/testdata/project/KineticData.xls",sep="")
 mp=novostar.xls(file)
+index=getWellsMeasurementIndex(mp,30)
+plot(mp@.data$measurement$time[index],mp@.data$measurement$value[index])
+
+
+file=paste(getwd(),"/tests/testdata/project2/project2.ods",sep="")
+mp=readLayoutFile(file)
+index=getWellsMeasurementIndex(mp,30)
+plot(mp@.data$measurement$time[index],mp@.data$measurement$value[index])
+
+
+mp@.data$measurement$time[index]
+
+mp@.data$measurement$value[index]
+
+
+
+
+
+#######################
+
+# eeeugh this file doesnt work!!!
+
+file=paste(getwd(),"/tests/testdata/project2/project2.ods",sep="")
+mp=readLayoutFile(file)
+
+myopt <- grofit.control(nboot.gc=100,interactive=F,suppress.messages=T,model.type=c("gompertz"))
+
+wellSelection=mp$strain!="blanc"
+nrOfWells=sum(wellSelection)
+
+for(i in wellNrs){# for each well
+  index=getWellsMeasurementIndex(mp,i)
+#   result=gcFitModel(time=mp@.data$measurement$time[index],data=mp@.data$measurement$value[index],control = myopt)
+  result=gcFitModel(time=mp@.data$measurement$time[index],data=mp@.data$measurement$value[index])
+  
+  plot(result$fit.time,result$fit.data)
+  lines(mp@.data$measurement$time[index],mp@.data$measurement$value[index])
+}
+
+
+
+
+wellSelection=mp$strain!="blanc"
+#settings
+myopt <- grofit.control(nboot.gc=100,interactive=F,suppress.messages=T,model.type=c("gompertz"))
+# time
+
+wellNrs=(1:(mp@.data$levelSize[2]))[wellSelection]
+nrOfWells=sum(wellSelection)
+nrOfTimePoints=length(getWellsMeasurementIndex(mp,wellNrs[1]))
+
+# TODO error not all wells have same time points... 
+
+
+time=matrix(0,nrow = nrOfWells, ncol = nrOfTimePoints)
+data=data.frame(matrix(0,nrow = nrOfWells, ncol = nrOfTimePoints+3))
+
+index=0
+
+
+
+
+
+
+
+
+###########################################################
+
+
+file=paste(getwd(),"/tests/testdata/parsers/spectramax.txt/20140210_Data_succinate.txt",sep="")
+mp=spectramax.txt(file)
+
+
+
+
+
+### single
+file=paste(getwd(),"/tests/testdata/project/KineticData.xls",sep="")
+mp=novostar.xls(file)
+
+index=getWellsMeasurementIndex(mp,30)
+
+myopt <- grofit.control(nboot.gc=100,interactive=F,suppress.messages=T,model.type=c("gompertz"))
+
+# gcFit(time=mp@.data$measurement$time[index],data=mp@.data$measurement$value[index])
+result=gcFitModel(time=mp@.data$measurement$time[index],data=mp@.data$measurement$value[index],control = myopt)
+
+growthRate=result$parameters$A[[1]]
+growthRateError=result$parameters$A[[2]]
+
+plot(mp@.data$measurement$time[index],mp@.data$measurement$value[index])
+plot(result$fit.time,result$fit.data)
+
+# NOT A GOOD MATCH!!
+
+
+### multiple
+file=paste(getwd(),"/tests/testdata/project2/project2.ods",sep="")
+mp=readLayoutFile(file)
+
+
+myopt <- grofit.control(nboot.gc=100,interactive=F,suppress.messages=T,model.type=c("gompertz"))
+
+time=mp@.data$measurement$time[getWellsMeasurementIndex(mp,1)]
+data=matrix(0,nrow = 96, ncol = 384+3)
+data[,1]=mp@.data$well[["strain"]]
+data[,2]=mp@.data$well[["Sugar"]]
+data[,3]=mp@.data$well[["IPTG"]]
+for(i in 1:96){# for each well
+  data[i,(4:(384+3))]=mp@.data$measurement$value[getWellsMeasurementIndex(mp,i)]
+}
+head(data)
+
+
+result=gcFit(time = time,data=data,control = myopt)
+
+
+
+
+
+
+
+
+
+
+
 
 
 #################################

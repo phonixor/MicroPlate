@@ -150,10 +150,13 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
 #             print("--------------------")
 #             print(as.character(sheet[index,2:nrOfColumns]))
           data[[currentName]]=append(data[[currentName]],as.character(sheet[index,2:nrOfColumns]))
-          data[[currentName]][data[[currentName]]=="NA"]=NA # shoudnt this be lower?
-          
-        
+          data[[currentName]][data[[currentName]]=="NA"]=NA # shoudnt this be lower?        
         }# data section loop
+        # test if data was numeric
+        if(!givesWarning(as.numeric(data[[currentName]]))){
+          data[[currentName]]=as.numeric(data[[currentName]])
+        }
+        
       # data section including >
       } else { # plate data
         # asume new plate variable
