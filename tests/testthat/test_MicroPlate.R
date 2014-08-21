@@ -8,8 +8,8 @@ library(plyr)
 #
 #
 test_that("MicroPlate.R_$_tests",{
-  # file=paste(getwd(),"/tests/testdata/project/KineticData.xls",sep="")
-  file=paste(getwd(),"/../testdata/project/KineticData.xls",sep="")
+  # file=paste(getwd(),"/tests/testdata/parsers/novostar.xls/KineticData.xls",sep="")
+  file=paste(getwd(),"/../testdata/parsers/novostar.xls/KineticData.xls",sep="")
   testData=novostar.xls(file)
   
   ### $ tests
@@ -36,7 +36,7 @@ test_that("MicroPlate.R_$_tests",{
 })
 
 test_that("MicroPlate.R_basic_tests",{
-  file=paste(getwd(),"/../testdata/project/KineticData.xls",sep="")
+  file=paste(getwd(),"/../testdata/parsers/novostar.xls/KineticData.xls",sep="")
   testData=novostar.xls(file)
   ### colnames
   expect_true(any(colnames(testData)=="value")) # test the colname
@@ -71,8 +71,8 @@ test_that("MicroPlate.R_basic_tests",{
 
 
 test_that("MicroPlate.R_[]_tests",{
-  # file=paste(getwd(),"/tests/testdata/project/KineticData.xls",sep="")
-  file=paste(getwd(),"/../testdata/project/KineticData.xls",sep="")
+  # file=paste(getwd(),"/tests/testdata/parsers/novostar.xls/KineticData.xls",sep="")
+  file=paste(getwd(),"/../testdata/parsers/novostar.xls/KineticData.xls",sep="")
   testData=novostar.xls(file)
   
   ### singel column

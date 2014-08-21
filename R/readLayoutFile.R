@@ -194,7 +194,7 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
       if(any(is.na(rows))){
         error("unsupported row names, use letters or numbers")
       }
-    }  
+    }
     
     #
     #

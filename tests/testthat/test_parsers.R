@@ -14,7 +14,10 @@ test_that("novostar.dbf",{
 
 
 test_that("novostar.xls",{
-  
+  # file=paste(getwd(),"/tests/testdata/parsers/novostar.xls/KineticData.xls",sep="")
+  file=paste(getwd(),"/../testdata/parsers/novostar.xls/KineticData.xls",sep="")
+  xls=novostar.xls(file)
+ 
   
   
 }) 
