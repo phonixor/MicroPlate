@@ -90,19 +90,32 @@ MicroPlate=setClass(
 )
 #' initialize
 setMethod("initialize", "MicroPlate", function(.Object){
-  # initialize the love!
+  ## initialize the love!
+  # the core objects that store all the user data
   .Object@.data=new.env() # make sure it has its own little space
   .Object@.data$measurement=NULL # stores all measurement data!
   .Object@.data$well=NULL # stores all well data!
   .Object@.data$plate=NULL # stores all plate data!
-  # per column
+  
+  # the rest is meta data stored in a way for fast access
+  # and is used by the rest of the program for checks and data access
+  # the consistency of these values is enforced by the function updateMetaData
+  # which should be called after each change
+  #
+  ## per column
   .Object@.data$colNames=NULL # stores the colnames!
   .Object@.data$colLevel=NULL # contains the name of the level
   .Object@.data$colLevelNr=NULL # contains the level number
-  # per level
+  ## per level
   .Object@.data$level=NULL # contains the name of the level which corresponds to a column name of the level above
   .Object@.data$levelNr=NULL # contains the level 1 = measurement, 2 = well etc...
   .Object@.data$levelSize=NULL # number of rows per level
+  ## per plate
+  .Object@.data$measurementsPerPlate=NULL # contains the number of measurements per plate
+  .Object@.data$wellsPerPlate=NULL # contains the number of wells per plate 
+  #
+  #
+  #
   # need to get a way to get to the right level.... and back???
   # rownames are ignored...
   .Object@.data$reservedNames=c("plate","well","measurement")
@@ -1583,6 +1596,8 @@ setMethod("plotPerWell", signature(self = "MicroPlate"), function(self){
 #' @rdname plotPerPlate
 #' @description
 #' TODO: add huge amounts of checks and stuff
+#' todo: what if not on measurement level?
+#' todo: other column selection
 #' 
 #' @param self the MicroPlate object
 #' 
@@ -1590,41 +1605,58 @@ setMethod("plotPerWell", signature(self = "MicroPlate"), function(self){
 setGeneric("plotPerPlate", function(self) standardGeneric("plotPerPlate")) 
 #' @rdname plotPerPlate
 setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
+#   dev.new()#dont use rstudio window
   origenalPar=par() # backup plotting pars
   nrOfPlates=self@.data$levelSize[3]
   nrOfWells=self@.data$levelSize[2]
-  for(i in 1:nrOfPlates){
-    wells=(1:nrOfWells)[self@.data$well$plate==i]
+  
+  firstMeasurementNr=1
+  lastMeasurementNr=0
+  
+  for(plateNr in 1:nrOfPlates){
+    wells=(1:nrOfWells)[self@.data$well$plate==plateNr]
 #     print(wells)
     #get amount of row/columns
-    nrRows=max(self@.data$well$row[wells])
-    nrColumns=max(self@.data$well$column[wells])
+    nrRows=max(self@.data$well$row[wells])-min(self@.data$well$row[wells])+1
+    nrColumns=max(self@.data$well$column[wells])-min(self@.data$well$row[wells])+1
+    
     
     # create a NA grid
 #     par(mfcol=c(nrRows,nrColumns))
-    layoutMatrix=matrix(data=0,nrow=nrRows,ncol=nrColumns)
-    for(i in 1:length(wells)){
-      layoutMatrix[self@.data$well$row[wells[i]],self@.data$well$column[wells[i]]]=i
-    }
-    print(layoutMatrix)
-    print(nrRows)
-    print(nrColumns)
-    layout(mat=layoutMatrix,nrRows,nrColumns)
+#     layoutMatrix=matrix(data=0,nrow=nrRows,ncol=nrColumns)
+#     for(i in 1:length(wells)){
+#       layoutMatrix[self@.data$well$row[wells[i]],self@.data$well$column[wells[i]]]=i
+#     }
+#     print(layoutMatrix)
+#     print(nrRows)
+#     print(nrColumns)
+#     layout(mat=layoutMatrix,nrRows,nrColumns)
   
-    layout.show(length(wells)) # this takes a while
+#     layout.show(length(wells)) # this takes a while
     
-    par(oma=c(1,1,0,0), mar=c(1,1,1,0), tcl=-0.1, mgp=c(0,0,0))#test
+#     par(oma=c(1,1,0,0), mar=c(1,1,1,0), tcl=-0.1, mgp=c(0,0,0))#test
+
+    lastMeasurementNr=lastMeasurementNr+self@.data$measurementsPerPlate[plateNr]
+    index=firstMeasurementNr:lastMeasurementNr
+    xlim=c(min(self@.data$measurement$time[index]),max(self@.data$measurement$time[index]))
+    ylim=c(min(self@.data$measurement$value[index]),max(self@.data$measurement$value[index]))
+
+
+    par(mfrow = c(nrRows,nrColumns), mai=c(0,0,0,0), oma=c(1,1,1,1), ann=FALSE, xaxt="n",yaxt="n" )
     for(i in wells){
       selection=getWellsMeasurementIndex(self,i)
-      print(selection)
+#       print(selection)
       time=self@.data$measurement$time[selection]
-      value=self@.data$measurement$time[selection]
-      plot(x=time,y=value,main=self@.data$well$content[[i]]) 
-    }
+      value=self@.data$measurement$value[selection]
+      plot(x=time,y=value,xlim=xlim,ylim=ylim, type="l")
+#       plot(x=time,y=value,main=self@.data$well$content[[i]]) 
+    }#well
+  firstMeasurementNr=lastMeasurementNr+1
     
-    par(origenalPar) # restore pars...
-  }
-  return(self)
+  }# plate
+  suppressWarnings(par(origenalPar)) # restore pars... this can give warnings for some reason..
+#   return(self)
+#   return()
 })
 
 
@@ -1726,9 +1758,9 @@ setMethod("dim", signature(x = "MicroPlate"), function(x){
 #' 
 #' @export
 #' @import grofit
-setGeneric("getGrowthRate", function(self, wellNrs, timeColumn, valueColumn, experimentIdentifierColumn, additionalInformationColumn, concentrationOfSubstrateColumn, settings) standardGeneric("getGrowthRate"))
+setGeneric("getGrowthRate", function(self, wellNrs, timeColumn="time", valueColumn="value", experimentIdentifierColumn=NULL, additionalInformationColumn=NULL, concentrationOfSubstrateColumn=NULL, settings=NULL) standardGeneric("getGrowthRate"))
 #' @rdname getGrowthRate
-setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNrs, timeColumn="time", valueColumn="value", experimentIdentifierColumn=NULL, additionalInformationColumn=NULL, concentrationOfSubstrateColumn=NULL, settings=grofit.control(nboot.gc=100,interactive=F,suppress.messages=T,model.type=c("gompertz"))){
+setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNrs, timeColumn="time", valueColumn="value", experimentIdentifierColumn=NULL, additionalInformationColumn=NULL, concentrationOfSubstrateColumn=NULL, settings=NULL){
   # gcFit wants
   # time
   # data=data.frame with
@@ -1741,13 +1773,17 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNr
   # [1] "logistic"     "richards"     "gompertz"     "gompertz.exp"
 
   # maybe just do a gcSplineFit thingy for each well... that way i dont require as much stuff
-
+  if(is.null(settings)){
+    message("no settings provided using defaults: nboot.gc=100,interactive=F,suppress.messages=T,model.type=c('gompertz')")
+    settings=grofit.control(nboot.gc=100,interactive=F,suppress.messages=T,model.type=c("gompertz"))
+  }
+  
   
   ### check input
   # wellNrs
   if(is.logical(wellNrs)){
     if(length(wellNrs)==self@.data$levelSize[2]){
-      (1:self@.data$levelSize[2])[wellNrs]
+      wellNrs=(1:self@.data$levelSize[2])[wellNrs]
     }else{
       stop(paste("nr of wells: ",self@.data$levelSize[2] ," your selection: ",length(wellNrs), sep=""))
     }
@@ -1762,9 +1798,11 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNr
   }
   # todo: add column level checks
   # TODO: error not all wells have same time points... 
+  # todo: support for multiple wavelengths
   
+  print(wellNrs)
   nrOfWells=length(wellNrs)
-  nrOfTimePoints=length(getWellsMeasurementIndex(self,wellNrs[1]))
+  nrOfTimePoints=length(getWellsMeasurementIndex(self,wellNrs[1]))# assume all wells have the same number of time points
   
   
   
@@ -1791,6 +1829,99 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNr
 })
 
 
+#' getDoublingTime
+#' @rdname getDoublingTime
+#' @description
+#' uses the grofit package to determine growth rate / doubling time???
+#' currently just returns the grofit results
+#' 
+#' TODO: what if time is not on measurment level?
+#' TODO: add gcID support
+#' TODO: what if multiple wavelengths?
+#' 
+#' default it uses time, value
+#' and it separetes it based on wavelength 
+#' 
+#' 
+#' 
+#' @param self the MicroPlate object
+#' @param wellNrs logical/numerical selection or well numbers - missing is all
+#' @param timeColumn column with time, the time point in all selected wells need to be equeal
+#' @param valueColumn column with the OD values
+#' @param settings parameters passed to the grofit package see \code{\link[grofit]{grofit.control}}:
+#' 
+#' 
+#' @export
+#' @import grofit
+setGeneric("getDoublingTime", function(self, wellNrs=NULL, timeColumn="time", valueColumn="value", settings=NULL) standardGeneric("getDoublingTime"))
+#' @rdname getDoublingTime
+setMethod("getDoublingTime", signature(self = "MicroPlate"), function(self, wellNrs=NULL, timeColumn="time", valueColumn="value", settings=NULL){
+  # gcFitSpline wants:
+  # time    - Numeric vector containing the data for x-axes.
+  # data    - Numeric vector giving the growth values belonging to each element of time.
+  # gcID    - Vector (of any length) identifying the growth curve data.
+  # control - Object of class grofit.control containing a list of options generated by the function grofit.control.#   
+  
+
+  # maybe just do a gcSplineFit thingy for each well... that way i dont require as much stuff
+  if(is.null(settings)){
+    print("no settings provided")
+    settings=grofit.control()
+#     message("no settings provided using defaults: nboot.gc=100,interactive=F,suppress.messages=T,model.type=c('gompertz')")
+#     settings=grofit.control(nboot.gc=100,interactive=F,suppress.messages=T,model.type=c("gompertz"))
+  }
+  
+  # 
+  
+  ### check input
+  # wellNrs
+  if(is.null(wellNrs)) wellNrs=1:self@.data$levelSize[2] # if not specified get it for everything
+  if(is.logical(wellNrs)){
+    if(length(wellNrs)==self@.data$levelSize[2]){
+      wellNrs=(1:self@.data$levelSize[2])[wellNrs]
+    }else{
+      stop(paste("nr of wells: ",self@.data$levelSize[2] ," your selection: ",length(wellNrs), sep=""))
+    }
+  }
+  # columnSelectors
+#   # todo: maybe remove additional columns... and do other grofit matches
+#   columns=c(timeColumn,valueColumn,experimentIdentifierColumn,additionalInformationColumn,concentrationOfSubstrateColumn)
+#   if(is.character(columns)){
+#     if(!all(self@.data$colnames %in% self@.data$colNames)){
+#       stop("not all columns exist")
+#     }
+#   }
+  nrOfWells=length(wellNrs)
+
+  results=vector("list", nrOfWells)
+  index=0
+  for(i in wellNrs){
+    index=index+1
+    selection=getWellsMeasurementIndex(self,i)
+    time=self[[timeColumn]][selection]
+    data=self[[timeColumn]][selection]
+    result=gcFitSpline(time=time, data=data, control=settings)
+    result
+    plot(result)
+    plot(result$raw.time,result$raw.data)
+    results[index]
+  }
+  
+  
+  
+  
+
+  
+
+  
+  # todo plot things?
+  
+  
+  return(results)
+})
+
+
+
 #' getWellsMeasurementIndex
 #' @rdname getWellsMeasurementIndex
 #' @description
@@ -1804,6 +1935,7 @@ setMethod("getWellsMeasurementIndex", signature(self = "MicroPlate"), function(s
   nrOfMeasurement=0
   i=wellNr
   
+  # check if the well given was the last well
   if(!is.na(self@.data$well$measurement[i+1])){
     nrOfMeasurement=self@.data$well$measurement[[i+1]]-self@.data$well$measurement[[i]]
   }else{

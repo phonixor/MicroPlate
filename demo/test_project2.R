@@ -5,6 +5,7 @@ file=paste(getwd(),"/tests/testdata/project2/project2.ods",sep="")
 mp=readLayoutFile(file)
 
 # show data
+plotPerPlate(mp)
 
 ### remove blanc
 # get avarage
@@ -26,7 +27,9 @@ wellSelection=mp$strain!="blanc"
 # next part will take a while
 readline("press any key to continue")
 
-result=getGrowthRate(self = mp,wellNrs = wellSelection,timeColumn = "time",valueColumn = "corValue",experimentIdentifierColumn = "strain",additionalInformationColumn = "Sugar",concentrationOfSubstrateColumn = "IPTG")
+# result=getGrowthRate(self = mp,wellNrs = wellSelection,timeColumn = "time",valueColumn = "corValue",experimentIdentifierColumn = "strain",additionalInformationColumn = "Sugar",concentrationOfSubstrateColumn = "IPTG")
+
+result=getDoublingTime(mp,wellSelection)
 
 
 index=getWellsMeasurementIndex(mp,wellNrs[1])

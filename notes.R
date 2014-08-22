@@ -1,4 +1,12 @@
 ###
+gcFitSpline # appears to give the best results...
+
+file=paste(getwd(),"/tests/testdata/project/KineticData.xls",sep="")
+mp=novostar.xls(file)
+
+
+
+###
 mp$newValue=list(a="a",c="b", cookies="123")
 
 
