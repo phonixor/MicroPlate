@@ -1683,7 +1683,7 @@ setMethod("MPApply", signature(self = "MicroPlate"), function(self, fun, ...){
   
   results=list()
   # for each well
-  for(i in 1:self@.data$levelSize[self@.data$level=="well"]){
+  for(i in 1:self@.data$levelSize[2]){
     x=self@.data$data$measurement[[i]][["time"]]
     y=self@.data$data$measurement[[i]][["value"]]
     results[i]=list(do.call(what=fun,args=list(x=x,y=y,unlist(list(...)))))
@@ -1734,8 +1734,8 @@ setMethod("dim", signature(x = "MicroPlate"), function(x){
 #   return(c( self@.data$levelSize[self@.data$level=="measurement"], length(self@.data$colNames) ) )
 })
 
-#' getGrowthRate
-#' @rdname getGrowthRate
+#' getGrowthRateOLD
+#' @rdname getGrowthRateOLD
 #' @description
 #' uses the grofit package to determine growth rate / doubling time???
 #' currently just returns the grofit results
@@ -1758,9 +1758,9 @@ setMethod("dim", signature(x = "MicroPlate"), function(x){
 #' 
 #' @export
 #' @import grofit
-setGeneric("getGrowthRate", function(self, wellNrs, timeColumn="time", valueColumn="value", experimentIdentifierColumn=NULL, additionalInformationColumn=NULL, concentrationOfSubstrateColumn=NULL, settings=NULL) standardGeneric("getGrowthRate"))
-#' @rdname getGrowthRate
-setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNrs, timeColumn="time", valueColumn="value", experimentIdentifierColumn=NULL, additionalInformationColumn=NULL, concentrationOfSubstrateColumn=NULL, settings=NULL){
+setGeneric("getGrowthRateOLD", function(self, wellNrs, timeColumn="time", valueColumn="value", experimentIdentifierColumn=NULL, additionalInformationColumn=NULL, concentrationOfSubstrateColumn=NULL, settings=NULL) standardGeneric("getGrowthRateOLD"))
+#' @rdname getGrowthRateOLD
+setMethod("getGrowthRateOLD", signature(self = "MicroPlate"), function(self, wellNrs, timeColumn="time", valueColumn="value", experimentIdentifierColumn=NULL, additionalInformationColumn=NULL, concentrationOfSubstrateColumn=NULL, settings=NULL){
   # gcFit wants
   # time
   # data=data.frame with
@@ -1829,15 +1829,17 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNr
 })
 
 
-#' getDoublingTime
-#' @rdname getDoublingTime
+#' getGrowthRate
+#' @rdname getGrowthRate
 #' @description
-#' uses the grofit package to determine growth rate / doubling time???
+#' uses the grofit package to determine growth rate???
 #' currently just returns the grofit results
 #' 
 #' TODO: what if time is not on measurment level?
 #' TODO: add gcID support
 #' TODO: what if multiple wavelengths?
+#' TODO: log the data?!?!?! or ask user to???
+#' TODO: check if my score is actually a score...
 #' 
 #' default it uses time, value
 #' and it separetes it based on wavelength 
@@ -1853,9 +1855,9 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNr
 #' 
 #' @export
 #' @import grofit
-setGeneric("getDoublingTime", function(self, wellNrs=NULL, timeColumn="time", valueColumn="value", settings=NULL) standardGeneric("getDoublingTime"))
-#' @rdname getDoublingTime
-setMethod("getDoublingTime", signature(self = "MicroPlate"), function(self, wellNrs=NULL, timeColumn="time", valueColumn="value", settings=NULL){
+setGeneric("getGrowthRate", function(self, wellNrs=NULL, timeColumn="time", valueColumn="value", settings=NULL) standardGeneric("getGrowthRate"))
+#' @rdname getGrowthRate
+setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNrs=NULL, timeColumn="time", valueColumn="value", settings=NULL){
   # gcFitSpline wants:
   # time    - Numeric vector containing the data for x-axes.
   # data    - Numeric vector giving the growth values belonging to each element of time.
@@ -1895,19 +1897,73 @@ setMethod("getDoublingTime", signature(self = "MicroPlate"), function(self, well
 
   results=vector("list", nrOfWells)
   index=0
+
+  yieldName="grofit.Yield"
+  growthRateName="grofit.growthRate"
+  lagPhaseTimeName="grofit.lagPhaseTime"
+  grofitFitScroreName="grofit.fitScrore"
+
+  if(!is.null(self@.data$well[[yieldName]])){
+    self@.data$well[[yieldName]]=rep(NA,self@.data$levelSize[2])
+  }
+  if(!is.null(self@.data$well[[growthRateName]])){
+    self@.data$well[[growthRateName]]=rep(NA,self@.data$levelSize[2])
+  }
+  if(!is.null(self@.data$well[[lagPhaseTimeName]])){
+    self@.data$well[[lagPhaseTimeName]]=rep(NA,self@.data$levelSize[2])
+  } 
+  if(!is.null(self@.data$well[[grofitFitScroreName]])){
+    self@.data$well[[grofitFitScroreName]]=rep(NA,self@.data$levelSize[2])
+  }
+
   for(i in wellNrs){
     index=index+1
     selection=getWellsMeasurementIndex(self,i)
     time=self[[timeColumn]][selection]
-    data=self[[timeColumn]][selection]
+    data=self[[valueColumn]][selection]
     result=gcFitSpline(time=time, data=data, control=settings)
-    result
+    results[[index]]=result
+    
     plot(result)
+    title(main = i)
+    lambda=result$parameters$lambda
+    A=result$parameters$A
+    mu=result$parameters$mu
+    integral=result$parameters$integral
     plot(result$raw.time,result$raw.data)
+    score=result$spline$crit # is this the score??? need crappier data to test!!
+    # $spline$cv.crit might be score... else need to do the model fit for score...
+    print(score)
+    
+    self@.data$well[[yieldName]][i]=A
+    self@.data$well[[growthRateName]][i]=mu
+    self@.data$well[[lagPhaseTimeName]][i]=lambda
+    self@.data$well[[grofitFitScroreName]][i]=score
+#     lines(c(0,60),c(0,1))
+#     print(paste("",lambda,A,mu,integral))
+#     xcor=c(lambda,lambda+5)
+#     xpoint=(integral*A)
+#     print(xpoint)
+#     lines(c(lambda,xpoint),c(0,A))
+#     ycor=c(0,A*5)
+#     print(paste(paste(xcor),paste(ycor)))
+#     print(result$parametersLowess$lambda)
+#     lines(xcor,ycor)
+#     xcor=c(7.13,12.13)
+#     ycor=c(0,3.045)
+#     lines(xcor, ycor)
+#     lines(c(7.13,12.3),c(0,3.045))
+#     lines(c(7.13,12.3),c(0,0.6))
+#     lines(c(0,60),c(0,0.6))
+#     lines(c(lambda,(lambda+50)),c(0,(A*50)))
+#     lines(c(7.13,12.3),c(0,3.045))
+#     lines(x=c(0,50),y=c(0,1))
+
+    lines( c(lambda,(lambda+(A/mu))) , c(0,A) )
     results[index]
   }
   
-  
+  updateMetaData(self)
   
   
 
@@ -1915,9 +1971,8 @@ setMethod("getDoublingTime", signature(self = "MicroPlate"), function(self, well
 
   
   # todo plot things?
-  
-  
-  return(results)
+  returnResults=F
+  if(returnResults){return(results)}
 })
 
 

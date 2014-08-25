@@ -15,7 +15,7 @@ averageBlanc=mean(mp$value[mp["strain",level="measurement"]=="blanc"])
 mp$corValue=mp$value-averageBlanc
 mp$corValue[mp$corValue<0.008]=0.008  # minimal detection limit of platereader ... no clue
 # 
-# # take natural logarithm of corOD/corOD(t=0) # why give it the log?
+# # take natural logarithm of corOD/corOD(t=0) 
 # f$lncorOD <- log(f$corOD/f$corOD[1,])
 
 
@@ -29,7 +29,7 @@ readline("press any key to continue")
 
 # result=getGrowthRate(self = mp,wellNrs = wellSelection,timeColumn = "time",valueColumn = "corValue",experimentIdentifierColumn = "strain",additionalInformationColumn = "Sugar",concentrationOfSubstrateColumn = "IPTG")
 
-result=getDoublingTime(mp,wellSelection)
+result=getGrowthRate(mp,wellSelection)
 
 
 index=getWellsMeasurementIndex(mp,wellNrs[1])
