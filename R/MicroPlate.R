@@ -1676,18 +1676,32 @@ setGeneric("MPApply", function(self, fun, ...) standardGeneric("MPApply"))
 #' @rdname MPApply
 setMethod("MPApply", signature(self = "MicroPlate"), function(self, fun, ...){
 #   funcall=substitute(fun(...))
-  x="time"
-  y="value"
+#   x="time"
+#   y="value"
+#   
+#   # for now no input... need to studie formula first....
+#   results=list()
+#   # for each well
+#   for(i in 1:self@.data$levelSize[2]){
+#     x=self@.data$data$measurement[[i]][["time"]]
+#     y=self@.data$data$measurement[[i]][["value"]]
+#     results[i]=list(do.call(what=fun,args=list(x=x,y=y,unlist(list(...)))))
+#   }
   
-  # for now no input... need to studie formula first....
+  what="value"
+  forEach="time"
+  
+  uniques=unique(self[[forEach]])
+  
+  #TODO what if not the same level??
+  #always get lowest?
   
   results=list()
-  # for each well
-  for(i in 1:self@.data$levelSize[2]){
-    x=self@.data$data$measurement[[i]][["time"]]
-    y=self@.data$data$measurement[[i]][["value"]]
-    results[i]=list(do.call(what=fun,args=list(x=x,y=y,unlist(list(...)))))
+  for(i in uniques){
+    self[,what]
+#     results[i]=list(do.call(what=fun,args=list(x=x,y=y,unlist(list(...)))))
   }
+  
   
   
   return(results)
@@ -1868,7 +1882,7 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNr
   # maybe just do a gcSplineFit thingy for each well... that way i dont require as much stuff
   if(is.null(settings)){
     print("no settings provided")
-    settings=grofit.control()
+    settings=grofit.control(log.y.gc=T,interactive=F)
 #     message("no settings provided using defaults: nboot.gc=100,interactive=F,suppress.messages=T,model.type=c('gompertz')")
 #     settings=grofit.control(nboot.gc=100,interactive=F,suppress.messages=T,model.type=c("gompertz"))
   }
@@ -1931,6 +1945,9 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNr
     mu=result$parameters$mu
     integral=result$parameters$integral
     plot(result$raw.time,result$raw.data)
+
+    
+    
     score=result$spline$crit # is this the score??? need crappier data to test!!
     # $spline$cv.crit might be score... else need to do the model fit for score...
     print(score)
@@ -1960,6 +1977,9 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNr
 #     lines(x=c(0,50),y=c(0,1))
 
     lines( c(lambda,(lambda+(A/mu))) , c(0,A) )
+    
+    plot(time,data)
+
     results[index]
   }
   
