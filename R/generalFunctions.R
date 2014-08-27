@@ -64,6 +64,47 @@ setMethod("lettersToNumber", signature(listOfStrings="character"), function( lis
 })
 
 
+#' numberToLetters
+#' 
+#' @keywords internal
+#' @description
+#' converts numbers to microplate row names and Excel & ODS column names
+#' 
+#' @param listOfNumbers the numbers you want to convert to chars
+#' @details
+#' 1=A
+#' 26=Z
+#' 27=AA
+#' 702=ZZ
+#' 703=AAA
+#' 
+#' supports lists of numbers!
+#' 
+#' numberToLetters(1:1000)
+#' @export
+numberToLetters=function(listOfNumbers=NULL){
+  returnValue=NULL
+  for(i in 1:length(listOfNumbers)){
+    remainder=listOfNumbers[[i]]
+    returnLetters=""
+    while(T){
+      if(remainder==0){
+        break
+      }
+      if(remainder%%26!=0){
+        returnLetters=paste(LETTERS[remainder%%26],returnLetters,sep = "")
+        remainder=remainder%/%26  
+      }else{
+        returnLetters=paste("Z",returnLetters,sep = "")
+        remainder=(remainder%/%26)-1
+      }
+    }
+    returnValue[[i]]=returnLetters
+  }
+  return(returnValue)
+}
+
+
 #' extractPlateCoordinates()
 #' @description
 #' extracts row and column from something like "A11"
@@ -92,8 +133,8 @@ extractPlateCoordinates=function(wellName){
   }else{
     return(c(row=row,column=column))
   }
-
 }
+
 
 #' givesWarning
 #' 
