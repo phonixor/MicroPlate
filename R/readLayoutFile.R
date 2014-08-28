@@ -154,7 +154,7 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
         }# data section loop
         # test if data was numeric
         if(!givesWarning(as.numeric(data[[currentName]]))){
-          data[[currentName]]=as.numeric(data[[currentName]])
+          data[[currentName]]=as.numeric(data[[currentName]]) # convert to numeric
         }
         
       # data section including >

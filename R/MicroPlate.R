@@ -572,9 +572,21 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
     row=i
     col=j
   }
+  
+  # row logical to number conversion
+  if(is.logical(row)){
+    if(length(row)%in%x@.data$levelSize){
+      if(missing(j)){ # only select column of the right level
+        # only select cols that belong to that level
+        lowestLevel=which(length(row)==x@.data$levelSize)
+        col=col[x@.data$colLevelNr>=lowestLevel] # note that col will contain all cols, so i dont have to match
+      }
+      row=(1:length(row))[row]
+    } else {
+      stop(paste("row arugment was logical and not of the same length as any of the levels:", paste(x@.data$levelSize)))
+    }
+  }
 
-  
-  
 
   # check col
   if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character") ){
@@ -644,13 +656,7 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
   if(!is.null(row)){
     if(!(class(row)=="numeric" | class(row)=="integer" | is.logical(row) )){
       stop(paste("row index should be a number, not a: ",class(row)))
-    }
-    if(is.logical(row)){
-#       print(row)
-      row=(1:length(row))[row]
-#       print(row)
-    }
-    
+    }  
 #     if(nrOfRows<max(row)){
 #       stop(paste("Data only has ",paste(nrOfRows, sep="",collapse=" ")," rows, you asked for row(s):",paste(row, sep="",collapse=" ")))
 #     }
@@ -668,7 +674,7 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
 
 
   print(paste("returning data at min column level:",x@.data$level[x@.data$levelNr==lowestLevel]))
-    
+#   print(col)
   if(lowestLevel==3){ # plate
     if(is.null(row)){
       # whole column
@@ -1660,91 +1666,91 @@ setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
 })
 
 
-#' microplate apply
-#' MPApply
-#' @rdname MPApply
-#' @description 
-#' 
-#' 
-#' TODO make it accept more complex things!
-#' maybe make it an interface to an existing apply like function
-#' TODO support formulas!!!
-#' 
-#' @param self the MicroPlate object
-#' @param fun the function 
-#' @param ... ...
-#' 
-#' @export
-setGeneric("MPApply", function(self, fun, what="value", wellNrs=NULL, forEach="time", ...) standardGeneric("MPApply"))
-#' @rdname MPApply
-setMethod("MPApply", signature(self = "MicroPlate"), function(self, fun, what="value", wellNrs=NULL, forEach="time", ...){
-#   funcall=substitute(fun(...))
-#   x="time"
-#   y="value"
+# #' microplate apply
+# #' MPApply
+# #' @@rdname MPApply
+# #' @@description 
+# #' 
+# #' 
+# #' TODO make it accept more complex things!
+# #' maybe make it an interface to an existing apply like function
+# #' TODO support formulas!!!
+# #' 
+# #' @@param self the MicroPlate object
+# #' @@param fun the function 
+# #' @@param ... ...
+# #' 
+# #' @@export
+# setGeneric("MPApply", function(self, fun, what="value", wellNrs=NULL, forEach="time", ...) standardGeneric("MPApply"))
+# #' @@rdname MPApply
+# setMethod("MPApply", signature(self = "MicroPlate"), function(self, fun, what="value", wellNrs=NULL, forEach="time", ...){
+# #   funcall=substitute(fun(...))
+# #   x="time"
+# #   y="value"
+# #   
+# #   # for now no input... need to studie formula first....
+# #   results=list()
+# #   # for each well
+# #   for(i in 1:self@.data$levelSize[2]){
+# #     x=self@.data$data$measurement[[i]][["time"]]
+# #     y=self@.data$data$measurement[[i]][["value"]]
+# #     results[i]=list(do.call(what=fun,args=list(x=x,y=y,unlist(list(...)))))
+# #   }
 #   
-#   # for now no input... need to studie formula first....
+#   ### check input
+#   # wellNrs
+# #   if(is.null(wellNrs)) wellNrs=1:self@.data$levelSize[2] # if not specified get it for everything
+# #   if(is.logical(wellNrs)){
+# #     if(length(wellNrs)==self@.data$levelSize[2]){ #well
+# #       wellNrs=(1:self@.data$levelSize[2])[wellNrs]
+# #     }else if(length(wellNrs)==self@.data$levelSize[1]){#measurement
+# #       wellNrs=(1:self@.data$levelSize[1])[wellNrs]
+# #     }else{# else... maybe add plate..
+# #       stop(paste("nr of wells: ",self@.data$levelSize[2] ," your selection: ",length(wellNrs), sep=""))
+# #     }
+# #   }
+#   
+# #   level=
+# #   if(level==3){ # plate
+# #     
+# #   }else if(level=2){ # well
+# #     
+# #   }else if(level=1){# measurement
+# #     
+# #   }else{
+# #     stop("unknown level")
+# #   }
+#   rows=wellNrs
+#     
+#   
+#     
+#   
+#   
+# #   what="value"
+# #   forEach="time"
+#   
+#   uniques=unique(self[rows,forEach])
+#   
+#   #TODO what if not the same level??
+#   #always get lowest?
+#   
 #   results=list()
-#   # for each well
-#   for(i in 1:self@.data$levelSize[2]){
-#     x=self@.data$data$measurement[[i]][["time"]]
-#     y=self@.data$data$measurement[[i]][["value"]]
-#     results[i]=list(do.call(what=fun,args=list(x=x,y=y,unlist(list(...)))))
-#   }
-  
-  ### check input
-  # wellNrs
-#   if(is.null(wellNrs)) wellNrs=1:self@.data$levelSize[2] # if not specified get it for everything
-#   if(is.logical(wellNrs)){
-#     if(length(wellNrs)==self@.data$levelSize[2]){ #well
-#       wellNrs=(1:self@.data$levelSize[2])[wellNrs]
-#     }else if(length(wellNrs)==self@.data$levelSize[1]){#measurement
-#       wellNrs=(1:self@.data$levelSize[1])[wellNrs]
-#     }else{# else... maybe add plate..
-#       stop(paste("nr of wells: ",self@.data$levelSize[2] ," your selection: ",length(wellNrs), sep=""))
-#     }
-#   }
-  
-#   level=
-#   if(level==3){ # plate
+#   for(i in uniques){
+# #     print(self[rows,forEach])
+#     x=unlist(self[self[forEach]==i,what])
+# #     print(x)
+# #     print(list(do.call(what=fun,args=list(x))))
+# #     print("---------------")
+#     results[i]=list(do.call(what=fun,args=list(x)))
 #     
-#   }else if(level=2){ # well
-#     
-#   }else if(level=1){# measurement
-#     
-#   }else{
-#     stop("unknown level")
+# #     results[i]=list(do.call(what=fun,args=list(x=x,y=y,unlist(list(...)))))
 #   }
-  rows=wellNrs
-    
-  
-    
-  
-  
-#   what="value"
-#   forEach="time"
-  
-  uniques=unique(self[rows,forEach])
-  
-  #TODO what if not the same level??
-  #always get lowest?
-  
-  results=list()
-  for(i in uniques){
-#     print(self[rows,forEach])
-    x=unlist(self[self[forEach]==i,what])
-#     print(x)
-#     print(list(do.call(what=fun,args=list(x))))
-#     print("---------------")
-    results[i]=list(do.call(what=fun,args=list(x)))
-    
-#     results[i]=list(do.call(what=fun,args=list(x=x,y=y,unlist(list(...)))))
-  }
-  
-  
-  
-  return(results)
-
-})
+#   
+#   
+#   
+#   return(results)
+# 
+# })
 
 
 #' copy
@@ -1950,7 +1956,7 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNr
   results=vector("list", nrOfWells)
   index=0
 
-  yieldName="grofit.Yield"
+  yieldName="grofit.yield"
   growthRateName="grofit.growthRate"
   lagPhaseTimeName="grofit.lagPhaseTime"
   grofitFitScroreName="grofit.fitScrore"
@@ -2038,6 +2044,10 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNr
 #' get start and end coordinates of the requested well measurements in the measurement 'table'
 #' 
 #' NEEDS A BETTER NAME
+#' 
+#' @param self the microplate object
+#' @param wellNr the well you want the measurement row numbers from
+#'  
 #' @export
 setGeneric("getWellsMeasurementIndex", function(self,wellNr) standardGeneric("getWellsMeasurementIndex"))
 #' @rdname getWellsMeasurementIndex

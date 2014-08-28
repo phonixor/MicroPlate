@@ -10,57 +10,59 @@ plotPerPlate(mp)
 
 ### remove blanc
 # get avarage (TODO per time point)
-# apply(f$OD540[,f$strain=="blanc"],1,mean)
-# easy cause all timepoints have single row... 
-# apply(mp$strain=="blanc",mean)
 averageBlanc=aggregate(value~time, data=mp[mp["strain",level="measurement"]=="blanc",] , mean)
 plot(averageBlanc)
-
 mp$corValue=mp$value-averageBlanc[match(mp$time, averageBlanc$time),2] # remove blanc
-# plot(mp$corValue) 
-
-# averageBlanc=mean(mp$value[mp["strain",level="measurement"]=="blanc"])
-# averageBlanc=MPApply(mp,wellNrs=mp["strain",level="measurement"]=="blanc",mean)
-
-# mp$corValue=mp$value-averageBlanc # remove blanc
-mp$corValue[mp$corValue<0.008]=0.008  # minimal detection limit of platereader ... no clue
+mp$corValue[mp$corValue<0.008]=0.008  # minimal detection limit of platereader ... well least it removes negatives..
 # 
 # # take natural logarithm of corOD/corOD(t=0) 
 # f$lncorOD <- log(f$corOD/f$corOD[1,])
 
-
 ### growth curves
-wellSelection=mp$strain!="blanc"
-#settings
-
 # next part will take a while
 readline("press any key to continue")
+wellSelection=mp$strain!="blanc"
+result=getGrowthRate(mp,wellSelection, valueColumn = "corValue") # call grofit package
 
-# result=getGrowthRate(self = mp,wellNrs = wellSelection,timeColumn = "time",valueColumn = "corValue",experimentIdentifierColumn = "strain",additionalInformationColumn = "Sugar",concentrationOfSubstrateColumn = "IPTG")
+### plot growth overview
+library(gplots)
+# 
+succinate=mp$Sugar=="succinate"
+glucose=mp$Sugar=="glucose"
+LM3113=mp$strain=="LM3113"
+LM3118=mp$strain=="LM3118"
+  
+LM3113_succinate_iptg_average=aggregate(grofit.growthRate~IPTG,data=mp[succinate&LM3113,],mean)
+LM3113_succinate_iptg_sd=aggregate(grofit.growthRate~IPTG,data=mp[succinate&LM3113,],sd)
+LM3118_succinate_iptg_average=aggregate(grofit.growthRate~IPTG,data=mp[succinate&LM3118,],mean)
+LM3118_succinate_iptg_sd=aggregate(grofit.growthRate~IPTG,data=mp[succinate&LM3118,],sd)
+# control
+LM3118_glucose_iptg_average=aggregate(grofit.growthRate~IPTG,data=mp[glucose&LM3118,],mean)
+LM3118_glucose_iptg_sd=aggregate(grofit.growthRate~IPTG,data=mp[glucose&LM3118,],sd)
 
-result=getGrowthRate(mp,wellSelection)
+plotCI(LM3113_succinate_iptg_average[[1]],LM3113_succinate_iptg_average[[2]],LM3113_succinate_iptg_sd[[2]],col='black')
+plotCI(LM3118_succinate_iptg_average[[1]],LM3118_succinate_iptg_average[[2]],LM3118_succinate_iptg_sd[[2]],add=TRUE,col='blue')
+title("Growth on succinate")
+
+plotCI(LM3118_glucose_iptg_average[[1]],LM3118_glucose_iptg_average[[2]],LM3118_glucose_iptg_sd[[2]],col='black')
+title("Growth on glucose")
 
 
+### plot yield overview
+#
+LM3113_succinate_iptg_average=aggregate(grofit.yield~IPTG,data=mp[succinate&LM3113,],mean)
+LM3113_succinate_iptg_sd=aggregate(grofit.yield~IPTG,data=mp[succinate&LM3113,],sd)
+LM3118_succinate_iptg_average=aggregate(grofit.yield~IPTG,data=mp[succinate&LM3118,],mean)
+LM3118_succinate_iptg_sd=aggregate(grofit.yield~IPTG,data=mp[succinate&LM3118,],sd)
+# control
+LM3118_glucose_iptg_average=aggregate(grofit.yield~IPTG,data=mp[glucose&LM3118,],mean)
+LM3118_glucose_iptg_sd=aggregate(grofit.yield~IPTG,data=mp[glucose&LM3118,],sd)
 
+plotCI(LM3113_succinate_iptg_average[[1]],LM3113_succinate_iptg_average[[2]],LM3113_succinate_iptg_sd[[2]],col='black')
+plotCI(LM3118_succinate_iptg_average[[1]],LM3118_succinate_iptg_average[[2]],LM3118_succinate_iptg_sd[[2]],add=TRUE,col='blue')
+title("Yield on succinate")
 
-index=getWellsMeasurementIndex(mp,wellNrs[1])
-plot(mp@.data$measurement$time[index],mp@.data$measurement$corValue[index])
-plot(result$gcFittedModels[[1]])
-plot(result$gcFittedSpline[[1]])
-
-
-for(i in 1:nrOfWells){
-  plot(result$gcFittedModels[[i]])
-}
-
-for(i in 1:nrOfWells){
-  plot(result$gcFittedSpline[[i]])
-}
-
-summary=result$gcTable
-
-# summ=summary(result)
-#head(summ) = head(result$gcTable)
-
+plotCI(LM3118_glucose_iptg_average[[1]],LM3118_glucose_iptg_average[[2]],LM3118_glucose_iptg_sd[[2]],col='black')
+title("Yield on glucose")
 
 
