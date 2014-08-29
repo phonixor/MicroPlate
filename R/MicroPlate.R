@@ -531,6 +531,7 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
   
   # check for level in input
   if(!length(args)==0){
+    print(args)
     if(length(args)==1 & !is.null(args$level)){
       level=args$level
     } else {
@@ -804,15 +805,22 @@ setMethod("[[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i
     stop("df[,1] CRASH!")
   } else if( ( missing(j) & nargs()==2 ) | ( missing(j) & nargs()==3 & !is.null(level) ) ){
     # df[1], df[1,level=...]
-    temp=x[i,level=level]
+    if(is.null(level)){
+      temp=x[i]
+    } else {
+      temp=x[i,level=level]
+    }
     return(temp[[dim(temp)[2]]])
   }else if(missing(j)) {
     # df[1,]
     stop("df[1,] CRASH!")
   } else {
     # df[1,2]
-    temp=x[i,j,level=level]
-#     print(temp)
+    if(is.null(level)){
+      temp=x[i,j]
+    }else{
+      temp=x[i,j,level=level]
+    }
     return(temp[[dim(temp)]])
   }
   stop("I should never get here. CRASH!")
@@ -2047,7 +2055,6 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNr
   returnResults=F
   if(returnResults){return(results)}
 })
-
 
 
 #' getWellsMeasurementIndex
