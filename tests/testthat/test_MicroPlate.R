@@ -212,13 +212,21 @@ test_that("MicroPlate.R_[]_tests",{
 
   ### diffrent level then col selection
   # plate
-  
+  testData=novostar.xls(file)
+  expect_true(length(testData[["plateName",level="well"]])==96)
+  expect_error((testData["plateName",level="well"]=1:96))
+  expect_error((testData[1:96,"plateName",level="well"]=1:96))
+  expect_true(length(testData[["plateName",level=1]])==24000)
+  expect_error((testData["plateName",level="measurement"]=1:96))
+
+
 
   # well
-
+  expect_error(testData[["row",level=3]])
+  expect_true(length(testData[["row",level=1]])==24000)
   # measurement
-  expect_error(testData["value",level=3]) # data level lower then requested level
-
+  expect_error(testData[["value",level=3]]) # data level lower then requested level
+  expect_error(testData[["value",level=2]]) 
   
   # restricted column names.. plate measurement etc...
 

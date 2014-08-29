@@ -784,22 +784,34 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
 #' 
 #' @export 
 setMethod("[[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i , j, ...) {
+  args <- list(...)
+  level=NULL
+      
+  # check for level in input
+  if(!length(args)==0){
+    if(length(args)==1 & !is.null(args$level)){
+      level=args$level
+    } else {
+      stop("invalid args given, only accepts i,j,level")
+    }
+  }
+
   if(missing(i) & missing(j)){
     # df[] and df[,]
     stop("df[[]] or df[[,]] CRASH!")
   } else if(missing(i)){
     # df[,1]
     stop("df[,1] CRASH!")
-  } else if(missing(j) & nargs()==2) {
-    # df[1]
-    temp=x[i]
+  } else if( ( missing(j) & nargs()==2 ) | ( missing(j) & nargs()==3 & !is.null(level) ) ){
+    # df[1], df[1,level=...]
+    temp=x[i,level=level]
     return(temp[[dim(temp)[2]]])
-  } else if(missing(j)) {
+  }else if(missing(j)) {
     # df[1,]
     stop("df[1,] CRASH!")
   } else {
     # df[1,2]
-    temp=x[i,j]
+    temp=x[i,j,level=level]
 #     print(temp)
     return(temp[[dim(temp)]])
   }
