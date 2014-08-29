@@ -531,7 +531,6 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
   
   # check for level in input
   if(!length(args)==0){
-    print(args)
     if(length(args)==1 & !is.null(args$level)){
       level=args$level
     } else {
@@ -674,7 +673,7 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
 #   row=unique(row)
 
 
-  print(paste("returning data at min column level:",x@.data$level[x@.data$levelNr==lowestLevel]))
+#   print(paste("returning data at min column level:",x@.data$level[x@.data$levelNr==lowestLevel]))
 #   print(col)
   if(lowestLevel==3){ # plate
     if(is.null(row)){
@@ -1041,7 +1040,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
   }
   
   if (any(is.element(col,x@.data$reservedNames))){
-    stop(paste("The following names are reserved for other purposes!: ",paste(x@.data$reservedNames,sep=", "), sep=""))
+    stop(paste("The following names are reserved for other purposes!: ",paste(x@.data$reservedNames,sep=", ",collapse  = " "), sep=""))
   }
   
 

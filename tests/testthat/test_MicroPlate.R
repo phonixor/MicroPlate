@@ -179,15 +179,31 @@ test_that("MicroPlate.R_[]_tests",{
   testData=novostar.xls(file)
   expect_equal(class(testData[1:7,1:7]),"data.frame")
   expect_error((testData[1:7,1:7]=matrix(1,7,7))) # you cant change data at multiple levels in 1 go
-  
+  expect_true(all(dim(testData[1:7,1:7])==c(7,7))) # read columns different levels
+  expect_error((testData[1:7,1:7]=1)) #assign wrong format
+  expect_error((testData[1:7,1:7]=1:7))
+
   # plate
-  
+  testData=novostar.xls(file)
+  testData=merge(testData,testData,removeOther = F)
+  testData["newPlateData"]=1:2
+  expect_true(all(testData[1:2,7:8][,2]==1:2))
+  testData[1:2,7:8]=matrix(5,2,2)
+  expect_true(all(testData[1:2,7:8]==5))
+
   # well
-  
-  
+  testData=novostar.xls(file)
+  expect_true(all(dim(testData[12:44,4:6])==c(33,3)))
+  testData[12:44,4:6]=matrix(123,33,3)
+  expect_true(all(testData[12:44,4:6]==123))
+
   # measurement
-  testData[1:7,1:3]=matrix(1,7,3) # change 
-  
+  expect_error((testData[1:7,1:2]=1)) #assign wrong format
+  expect_error((testData[1:7,1:2]=1:7))
+  testData[1:7,1:3]=matrix("cookies",7,3)
+  expect_true(all(testData[1:7,1:3]=="cookies")) # my favorite kinda test
+
+
   
   ### boolean selection
   # plate
@@ -215,20 +231,28 @@ test_that("MicroPlate.R_[]_tests",{
   testData=novostar.xls(file)
   expect_true(length(testData[["plateName",level="well"]])==96)
   expect_error((testData["plateName",level="well"]=1:96))
-  expect_error((testData[1:96,"plateName",level="well"]=1:96))
+  expect_error((testData[1:96,"plateName",level="well"]=1:96)) # say i want well and give well level data, but its a plate level column
   expect_true(length(testData[["plateName",level=1]])==24000)
   expect_error((testData["plateName",level="measurement"]=1:96))
-
-
 
   # well
   expect_error(testData[["row",level=3]])
   expect_true(length(testData[["row",level=1]])==24000)
+  expect_error(testData[["row",level="measurement"]]=1:96) # say i want well but give measurement level
+  expect_error((testData[["row",level="measurement"]]=1:24000))
+
   # measurement
   expect_error(testData[["value",level=3]]) # data level lower then requested level
   expect_error(testData[["value",level=2]]) 
   
   # restricted column names.. plate measurement etc...
+  # plate
+  expect_error((testData["plate"]=1))
+  expect_error((testData["measurement"]=1))
+  expect_error((testData["well"]=1))
+  
+  
+
 
 #   # test reading [
 #   expect_equal(dim(testData[]),c(24000,9))    # everything
