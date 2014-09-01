@@ -7,7 +7,7 @@ test_that("readLayoutFile.R_basic_tests",{
   #
   # xlsFile=paste(getwd(),"/tests/testdata/parsers/readLayoutFile/layout.xls",sep="")
   # xlsxFile=paste(getwd(),"/tests/testdata/parsers/readLayoutFile/layout.xlsx",sep="")
-  # odsFile=paste(getwd(),"/tests/testdata/parsers/readLayoutFile/layout.ods",sep="")  
+  # odsFile=paste(getwd(),"/tests/testdata/parsers/readLayoutFile/layout.ods",sep="")
   xlsFile=paste(getwd(),"/../testdata/parsers/readLayoutFile/layout.xls",sep="")
   xlsxFile=paste(getwd(),"/../testdata/parsers/readLayoutFile/layout.xlsx",sep="")
   odsFile=paste(getwd(),"/../testdata/parsers/readLayoutFile/layout.ods",sep="")
@@ -18,7 +18,7 @@ test_that("readLayoutFile.R_basic_tests",{
    
   # test is everyting is the same
   expect_true(all(xls[]==xlsx[], na.rm=T))
-  expect_true(all(xls[]==ods[], na.rm=T))  
+  expect_true(all(xls[]==ods[], na.rm=T))
   
   expect_true(  all(dim(ods)==c(24000,12))  )
   
@@ -40,4 +40,4 @@ test_that("readLayoutFile.R_basic_tests",{
   
   
 })
-  
+

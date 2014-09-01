@@ -5,7 +5,8 @@ library(plyr)
 #
 # Data stores everything!
 # hopefully on different levels...
-#
+# 
+# TODO: createFromDataFrame
 #
 # TODO:alanced endgame, all new missions, secure online play, links to Dungeon Defenders II and more!
 # dim, length, +-*/ == !=
@@ -56,7 +57,9 @@ library(plyr)
 #   <environment: 0x537d728>
 #
 #
-# TODO change data$levelNr from 3,2,1 to 1,2,3... this would allow me to remove code...
+# DONE: change data$levelNr from 3,2,1 to 1,2,3... 
+# TODO:this would allow me to remove code... ~~ partially done
+#
 
 
 #
@@ -259,36 +262,6 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
 })
 
 
-#' createFromDataFrame
-#' @rdname createFromDataFrame
-#' @keywords internal
-#' 
-#' @details
-#' add a df to the microplate object
-#' doesnt work!
-#' 
-#' @param self the MicroPlate object
-#' @param df the data.frame to be added
-#' 
-#' 
-setGeneric("createFromDataFrame", function(self,df=NULL) standardGeneric("createFromDataFrame")) 
-#' @rdname createFromDataFrame
-setMethod("createFromDataFrame", signature(self = "MicroPlate"), function(self,df=NULL){
-  # check if the object is a data.frame
-  if(class(df)!="data.frame") stop("not a data frame")
-  
-  
-  colNames=colnames(df)
-  uniquesPerCol=data.frame()
-  for(col in length(colNames)){
-    uniqesPerCol[colNames[col]]=length(table(df[colNames[col]]))
-  }
-  print(uniqesPerCol)
-  
-  return(self)
-})
-
-
 #' updateMetaData
 #' @rdname updateMetaData
 #' @keywords internal 
@@ -354,147 +327,6 @@ setMethod("updateMetaData", signature(self = "MicroPlate"), function(self){
     }
     self@.data$measurementsPerPlate=append(self@.data$measurementsPerPlate,nrOfMeasurement)
   }
-})
-
-
-#' bindParsedData
-#' @rdname bindParsedData
-#' @description
-#' similar as plyr's smart bind, only then for the thing that the parsers provide...
-#' typing this kinda makes me realize that this might not be very functional... mmmmh...
-#' 
-#' @param self the microplate object
-#' @param wellData the extra data from layoutfiles????
-#' @param plateData a list of plate data
-#' 
-#' no longer used!!!???
-#'
-setGeneric("bindParsedData", function(self,wellData=NULL, plateData=NULL) standardGeneric("bindParsedData"))
-#' @rdname bindParsedData
-setMethod("bindParsedData", signature(self = "MicroPlate"), function(self, wellData=NULL, plateData=NULL){
-  # TODO what about other plate info?
-  # add a lot of checks!
-  # what if one deletes column and the new column only has NA as length? instead of the true vector length?
-  #
-  # TODO check what if columns at different level? move to smallest?
-  
-  nrOfNewWells=length(wellData[[1]])
-  nrOfNewPlates=length(plateData[[1]])
-  nrOfWells=self@.data$levelSize[self@.data$level=="well"]
-  nrOfPlates=self@.data$levelSize[self@.data$level=="plate"]
-  plateNumber=self@.data$levelSize[self@.data$level=="plate"]+1 #this needs change
-  
-  
-  colsPlate=names(plateData)
-  colsWell=names(wellData)
-  colsMeasurement=names(wellData$measurement[[1]])
-  newColsPlate=colsPlate[!(colsPlate %in% self@.data$colNames[self@.data$colLevel=="plate"])]
-  newColsWell=colsWell[!(colsWell %in% self@.data$colNames[self@.data$colLevel=="well"])]
-  newColsMeasurement=colsMeasurement[!(colsMeasurement %in% self@.data$colNames[self@.data$colLevel=="measurement"])]
-  missingColsPlate=self@.data$colNames[self@.data$colLevel=="plate"][!(self@.data$colNames[self@.data$colLevel=="plate"] %in% colsPlate)]
-  missingColsWell=self@.data$colNames[self@.data$colLevel=="well"][!(self@.data$colNames[self@.data$colLevel=="well"] %in% colsWell)]
-  missingColsMeasurement=self@.data$colNames[self@.data$colLevel=="measurement"][!(self@.data$colNames[self@.data$colLevel=="measurement"] %in% colsMeasurement)]
-  existingColsPlate=colsPlate[(colsPlate %in% self@.data$colNames[self@.data$colLevel=="plate"])]
-  existingColsWell=colsWell[(colsWell %in% self@.data$colNames[self@.data$colLevel=="well"])]
-#   existingColsMeasurement=colsMeasurement[is.element(colsMeasurement,self@.data$colNames)] # this one is kinda useless
-
-#   print(self@.data$colNames[self@.data$colLevel=="well"])
-#   print(self@.data$colNames[self@.data$colLevel=="measurement"])  
-#   print(self@.data$colNames)
-#   print(self@.data$colLevel)
-
-#   print("colsWell")
-#   print(colsWell)
-#   print("colsMeasurement")
-#   print(colsMeasurement)
-#   print("")
-#   print("newColsWell")
-#   print(newColsWell)
-#   print("newColsMeasurement")
-#   print(newColsMeasurement)
-#   print("")
-#   print("missingColsWell")
-#   print(missingColsWell)
-#   print("missingColsMeasurement")
-#   print(missingColsMeasurement)
-#   print("")
-#   print("existingColsWell")
-#   print(existingColsWell)
-  
-  # plate
-  if(length(newColsPlate)>0){
-    for(i in 1:length(newColsPlate)){
-      # create new column
-      # fill existing plate columns with NA and add the new data
-      self@.data$plate[[newColsPlate[i]]]=append(rep(x=NA,nrOfPlates),plateData[[newColsPlate[i]]])
-    }
-  }
-  if(length(missingColsPlate)>0){
-    for(i in 1:length(missingColsPlate)){
-      # fill the existing columns for which the newData has no data with NA
-      self@.data$plate[[missingColsPlate[i]]]=append(self@.data$plate[[missingColsPlate[i]]],rep(x=NA,nrOfNewWells))
-    }
-  }
-  if(length(existingColsPlate)>0){ # this should always be the case as row and column are mandatory...
-    for(i in 1:length(existingColsPlate)){
-      # add newData to existing columns
-      self@.data$plate[[existingColsPlate[i]]]=append(self@.data$plate[[existingColsPlate[i]]],plateData[[existingColsPlate[i]]])
-    }
-  }
-  
-  # Well
-  self@.data$data$plate=append(self@.data$data$plate, rep(x=plateNumber,nrOfNewWells)) # generate foreign key
-  for(i in 1:length(newColsWell)){ # measurement is seen as a new column
-    # create new column
-    # fill the existing wells with NA and add the new data
-    
-    # note that: newColsWell contains measurement!
-    if(newColsWell[i]=="measurement"){
-      # combine the measurement columns in at the well level
-      self@.data$data$measurement=append(self@.data$data$measurement,wellData$measurement)
-    } else {
-      self@.data$data[[newColsWell[i]]]=append(rep(x=NA,nrOfWells),wellData[[newColsWell[i]]])
-    }
-  }
-  if(length(missingColsWell)>0){
-    for(i in 1:length(missingColsWell)){
-      # fill the existing columns for which the newData has no data with NA
-      self@.data$data[[missingColsWell[i]]]=append(self@.data$data[[missingColsWell[i]]],rep(x=NA,nrOfNewWells))
-    }
-  }
-  if(length(existingColsWell)>0){ # this should always be the case as row and column are mandatory...
-    for(i in 1:length(existingColsWell)){
-      # add newData to existing columns
-      self@.data$data[[existingColsWell[i]]]=append(self@.data$data[[existingColsWell[i]]],wellData[[existingColsWell[i]]])
-    }
-  }
-  # adding NA to empty spaces
-  # update existing wells measurements with NA for new columns
-  if(length(newColsMeasurement)>0){
-    for(i in 1:nrOfWells){ # for each well
-      nrOfMeasurements=length(self@.data$data$measurement[[i]][[1]])
-      for(j in 1:length(newColsMeasurement)){
-        # give it a name, but give it no values... as that would just be a waste of memory
-        # TODO change $ and [ ... to deal with this!
-        # TODO do i really want this???
-        self@.data$data$measurement[[i]][[newColsMeasurement[j]]]=NA
-      }
-    }
-  }
-  # add NA's to the newData
-  if(length(missingColsMeasurement)>0){
-    for(i in nrOfWells:(nrOfWells+nrOfNewWells)){
-      nrOfMeasurements=length(self@.data$data$measurement[[i]][[1]])
-      for(j in 1:length(missingColsMeasurement)){
-        self@.data$data$measurement[[i]][[missingColsMeasurement[j]]]=NA
-      }
-    }
-  }
-
-
-
-  updateColnames(self)
-  
 })
 
 

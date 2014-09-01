@@ -238,7 +238,7 @@ test_that("MicroPlate.R_[]_tests",{
   # well
   expect_error(testData[["row",level=3]])
   expect_true(length(testData[["row",level=1]])==24000)
-  expect_error(testData[["row",level="measurement"]]=1:96) # say i want well but give measurement level
+  expect_error((testData[["row",level="measurement"]]=1:96)) # say i want well but give measurement level
   expect_error((testData[["row",level="measurement"]]=1:24000))
 
   # measurement
@@ -339,23 +339,6 @@ test_that("MicroPlate.R_[]_tests",{
 
 })
 
-
-test_that("MicroPlate.R_additional_functions",{
-#   testData=new("MicroPlate")
-#   test=list(row=1:2,column=1:2,measurement=list( list(value=1,temp=1,time=1),list(value=2,temp=1,time=1) ) )
-#   testData=addPlate(testData,newData=test)
-#   # make the copy
-#   testCopy=copy(testData)
-#   expect_true(all(testCopy[]==testData[]))
-#   # check if they behave indepently
-#   testCopy@.data$data$column=c(2,2)
-#   expect_true(!all(testCopy[]==testData[]))
-#   testData@.data$data$column=c(2,2)
-#   expect_true(all(testCopy[]==testData[]))
-#   #
-#   
-  
-})
 
 
 #
@@ -506,6 +489,7 @@ test_that("MicroPlate.R_novastar",{
 
 test_that("MicroPlate.R_ stress/compare tests",{
   # its probably a bad idea to keep this in the stress test
+  # ... stress unit test sounds like a silly idea in general..
   
 #   file="../testdata/"
 #   workspace = getwd()
