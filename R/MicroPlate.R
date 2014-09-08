@@ -148,17 +148,17 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
   
   # new means that other has them and self does not
   # missing means that other does not have them but self does
-  
-  nrOfWells=self@.data$levelSize[2]
   nrOfPlates=self@.data$levelSize[3]
-  nrOfNewWells=other@.data$levelSize[2]
+  nrOfWells=self@.data$levelSize[2]
+  nrOfMeasurements=self@.data$levelSize[1]
   nrOfNewPlates=other@.data$levelSize[3]
+  nrOfNewWells=other@.data$levelSize[2]
   nrOfNewMeasurements=other@.data$levelSize[1]
 #   plateNumber=self@.data$levelSize[self@.data$level=="plate"]+1 #this needs change
   
   colsPlate=names(other@.data$plate)
   colsWell=names(other@.data$well)
-  colsMeasurement=names(other@.data$measurement[[1]])
+  colsMeasurement=names(other@.data$measurement)
   newColsPlate=colsPlate[!(colsPlate %in% self@.data$colNames[self@.data$colLevel=="plate"])]
   newColsWell=colsWell[!(colsWell %in% self@.data$colNames[self@.data$colLevel=="well"])]
   newColsMeasurement=colsMeasurement[!(colsMeasurement %in% self@.data$colNames[self@.data$colLevel=="measurement"])]
@@ -181,7 +181,7 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
   if(length(missingColsPlate)>0){
     for(i in 1:length(missingColsPlate)){
       # fill the existing columns for which the newData has no data with NA
-      self@.data$plate[[missingColsPlate[i]]]=append(self@.data$plate[[missingColsPlate[i]]],rep(x=NA,nrOfNewWells))
+      self@.data$plate[[missingColsPlate[i]]]=append(self@.data$plate[[missingColsPlate[i]]],rep(x=NA,nrOfPlates))
     }
   }
   if(length(existingColsPlate)>0){ # this should always be the case as row and column are mandatory...
@@ -234,7 +234,7 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
     for(i in 1:length(newColsMeasurement)){
       # create new column
       # fill existing columns with NA and add the new data
-      self@.data$measurement[[newColsMeasurement[i]]]=append(rep(x=NA,nrOfPlates),other@.data$measurement[[newColsMeasurement[i]]])
+      self@.data$measurement[[newColsMeasurement[i]]]=append(rep(x=NA,nrOfMeasurements),other@.data$measurement[[newColsMeasurement[i]]])
     }
   }
   if(length(missingColsMeasurement)>0){
@@ -1498,6 +1498,9 @@ setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
     xlim=c(min(self@.data$measurement$time[index]),max(self@.data$measurement$time[index]))
     ylim=c(min(self@.data$measurement$value[index]),max(self@.data$measurement$value[index]))
 
+#     print(paste("index: ",firstMeasurementNr,":",lastMeasurementNr,sep=""))
+#     print(paste("xlim:",xlim,"ylim",ylim,sep=" "))
+#     print("---")
 
     par(mfrow = c(nrRows,nrColumns), mai=c(0,0,0,0), oma=c(1,1,1,1), ann=FALSE, xaxt="n",yaxt="n" )
     for(i in wells){
@@ -1508,7 +1511,7 @@ setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
       plot(x=time,y=value,xlim=xlim,ylim=ylim, type="l")
 #       plot(x=time,y=value,main=self@.data$well$content[[i]]) 
     }#well
-  firstMeasurementNr=lastMeasurementNr+1
+    firstMeasurementNr=lastMeasurementNr+1 # not so much a +1 increase as its a first=last
     
   }# plate
   suppressWarnings(par(origenalPar)) # restore pars... this can give warnings for some reason..

@@ -38,6 +38,7 @@ test_that("readLayoutFile.R_basic_tests",{
 #   kdata="/../testdata/project/KineticData.xls"
 #   parser="..."
   
+  # test multiple sheet layoutfiles
   
 })
 

@@ -5,10 +5,15 @@
 
 # Read Data
 odsFile=paste(getwd(),"/tests/testdata/project/layout.ods",sep="")
-ods=readLayoutFile(odsFile)
+mp=readLayoutFile(odsFile)
 
 # initial data inspection
-plotPerPlate(ods)
+plotPerPlate(mp)
+
+### remove blanc
+# get avarage (TODO per time point)
+averageBlanc=aggregate(value~time, data=mp[mp["basic",level="measurement"]=="blanc",] , mean)
+plot(averageBlanc)
 
 
 # remove bias
@@ -22,3 +27,13 @@ plotPerPlate(ods)
 # some fancy images and graphs
   
   
+
+# file=paste(getwd(),"/tests/testdata/project/KineticData.xls",sep="")
+#
+# file=paste(getwd(),"/tests/testdata/project/140106rawdata.xls",sep="")
+# mp1=novostar.xls(file)
+# plotPerPlate(mp1)
+# 
+# file=paste(getwd(),"/tests/testdata/project/140801rawdata.xls",sep="")
+# mp2=novostar.xls(file)
+# plotPerPlate(mp2)

@@ -47,11 +47,13 @@ library(readODS)
 #'  
 #' @export
 #' @include MicroPlate.R
-setGeneric("readLayoutFile", function(file=NULL, existingMicroPlate) standardGeneric("readLayoutFile")) 
+setGeneric("readLayoutFile", function(file=NULL, existingMicroPlate=NULL) standardGeneric("readLayoutFile")) 
 #' @rdname readLayoutFile
 setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=NULL){
   if(missing(existingMicroPlate)) existingMicroPlate=NULL
-
+  
+  firstPlate=TRUE
+  
   #TODO remove empty sheets
   spreadsheet=read.sheet(file)
 #   print(spreadsheet)
@@ -170,7 +172,7 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
       
       
       
-    }#sheet
+    }#row in sheet
     
     # creating 
       
@@ -213,36 +215,37 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
     print("data parsed...")
     
     # smartbind data or something...
-    if(is.null(existingMicroPlate)){
+    if(firstPlate){
+      firstPlate=FALSE
+      if(is.null(existingMicroPlate)){
+        # new plate
+        # layoutfile needs to point to plate data file:
+        if(any(is.null(data$plate[["dataFile"]]),is.null(data$plate[["parser"]]))){
+          stop("no existingMicroplate given, and no dataFile + parser found in layout file")
+        }
+        dataFile=data$plate[["dataFile"]]
+        parser=data$plate[["parser"]]
+        plateName=data$plate[["plateName"]]
+        existingMicroPlate=eval(parse(text=paste(parser,"('",dirname(file),"/",dataFile,"')",sep="")))
+      } else {
+        # add layout to existing plate
+        if(existingPlate@.data$levelSize[3]!=1){
+          stop("only allowed to add layout data to single plates at a time")
+        }
+      }
+      addLayoutDataToMicroPlate(existingMicroPlate,data)
+    }else{
+      # only happends if the layoutfile has multiple sheets
       if(any(is.null(data$plate[["dataFile"]]),is.null(data$plate[["parser"]]))){
         stop("no existingMicroplate given, and no dataFile + parser found in layout file")
       }
-      existingMicroPlate=new("MicroPlate")
-
       dataFile=data$plate[["dataFile"]]
       parser=data$plate[["parser"]]
       plateName=data$plate[["plateName"]]
-      
-#       layoutData=data[names(data)!="plate"]
-      layoutData=data
-#       print(layoutData)
-      
-      existingMicroPlate=eval(parse(text=paste(parser,"('",dirname(file),"/",dataFile,"')",sep="")))
-      
-      addLayoutDataToMicroPlate(existingMicroPlate,layoutData)
-      
-#       print("___________________________________")
-
-      
-    } else {
-      existingMicroPlate
-      
-      
-      
-    } # existing microplate
-    
-    
-    
+      newMp=eval(parse(text=paste(parser,"('",dirname(file),"/",dataFile,"')",sep="")))
+      addLayoutDataToMicroPlate(newMp,data)
+      merge(existingMicroPlate,newMp)
+    }
   }#spreadsheet
   
 #   updateColnames(existingMicroPlate)
@@ -260,6 +263,8 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
 #' @description
 #' ...
 #' 
+#' add layout data to last plate in microplate
+#' 
 #' TODO add better support for multipleplate
 #' 
 #' 
@@ -275,7 +280,6 @@ setMethod("addLayoutDataToMicroPlate", signature(self="MicroPlate"), function(se
   print("addLayoutDataToMicroPlate!!")
   wellData=layoutData[names(layoutData)!="plate"]
   plateData=layoutData$plate
-  
   # well + measurement
   index=which(self@.data$well$column==wellData$column & self@.data$well$row==wellData$row & self@.data$well$plate==self@.data$levelSize[3])
 #   print(index)
