@@ -166,15 +166,15 @@ givesWarning=function(x){
 #' 
 #' @export
 install.package = function(packageName=NULL){
-  methods=packageName # if i use packageName check will give warnings
+  gdata=packageName # if i use packageName check will give warnings
   # https://bugs.r-project.org/bugzilla/show_bug.cgi?id=14776
   
-  if(methods %in% rownames(installed.packages()) == FALSE) {
+  if(gdata %in% rownames(installed.packages()) == FALSE) {
 #     message(paste("installing package:",sep=""))
     lib=.libPaths()[[1]]
-    install.packages(methods,lib=lib) 
+    install.packages(gdata,lib=lib) 
   }
-  library(methods,character.only = T)
+  library(gdata,character.only = T)
 }
 
 

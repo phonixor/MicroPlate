@@ -12,8 +12,15 @@
 #' @param pkgname also not used
 .onAttach = function(libname, pkgname){
   #   setup()
+  #
+#   # define global variable to appease R CMD CHECK
+#   .readODSWorksForODS=NULL
+#   .gdataWorksForXLSX=NULL
+#   .gdataWorksForXLS=NULL
+#   .xlsxWorksForXLSX=NULL
+#   .xlsxWorksForXLS=NULL
+#   .openxlsxWorksForXLSX=NULL
 }
-
 
 
 #' setup
@@ -31,16 +38,19 @@
 #' http://cran.r-project.org/web/packages/openxlsx/index.html
 #' http://cran.r-project.org/web/packages/xlsx/index.html
 #' 
-#'
+#' how to fool/work with R CMD CHECK
+#' http://stackoverflow.com/questions/15648772/how-do-i-prevent-r-library-or-require-calls-not-declared-warnings-when-dev
+#' 
 #' @export
 setup = function(){
   # check the current OS/Environment to determine which packages are used to load
   # 
   message("*** microplate setup ***")
-  message("- seaching for an ODS parser")
+  #
   # ODS
   #
   # readODS
+  message("- seaching for an ODS parser")  
   .readODSWorksForODS<<-tryCatch({
     install.package("readODS")
     
@@ -178,7 +188,7 @@ setup = function(){
 #' 
 #' @export
 read.sheet = function(file=NULL, sheet=NULL){
-  if(!exists(".readODSWorksForODS")) {
+  if((!exists(".readODSWorksForODS")) || (is.null(".readODSWorksForODS"))) {
     message(".readODSWorksForODS undefined, running setup()")
     setup()
   }

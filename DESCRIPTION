@@ -17,6 +17,10 @@ Suggests:
     devtools,
     testthat,
     roxygen2,
+    gdata,
+    openxlsx,
+    readODS,
+    xlsx
 Collate:
     'setup.R'
     'generalFunctions.R'
