@@ -1646,6 +1646,7 @@ setMethod("dim", signature(x = "MicroPlate"), function(x){
 #   return(c( self@.data$levelSize[self@.data$level=="measurement"], length(self@.data$colNames) ) )
 })
 
+
 #' getGrowthRateOLD
 #' @rdname getGrowthRateOLD
 #' @description
@@ -1919,6 +1920,7 @@ setMethod("getWellsMeasurementIndex", signature(self = "MicroPlate"), function(s
   return(self@.data$well$measurement[i]:end)
 #   return(data.frame(start=self@.data$well$measurement[i],end=end,stringsAsFactors = F))
 })
+
 
 # setMethod("+",
 #           signature(e1 = "character", e2 = "character"),
