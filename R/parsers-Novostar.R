@@ -47,7 +47,7 @@ library(foreign)
   # everything is now in a big data frame  
   #
   # Measurement column names have the format M\d+ 
-  measurements <- grep("^M[[:digit:]]+$", colnames(buffer))
+  measurements <- grep  ("^M[[:digit:]]+$", colnames(buffer))
   
   # CH column indicates data channels(?)
   # Rows with CH=[numeric] represent wells

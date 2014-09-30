@@ -2,13 +2,24 @@
 
 
 # http://stats.stackexchange.com/questions/29525/slope-of-a-line-given-multiple-points
-x=0:10
+#http://www.clemson.edu/ces/phoenix/tutorials/excel/regression.html
+
+x=1:10
 # y=c(0,1,2,3,3,6,6,7,8,9,10)
-y=c(0,2,4,6,6,12,12,14,16,18,20)
+y=c(1,2,4,3,5,6,7,8,9,10)
 plot(x,y)
 n=length(x)
 xy=x*y
 m=(n*sum(xy)-sum(x)*sum(y)) / (n*sum(x^2)-sum(x)^2)
+
+m=(n*sum(xy)-sum(x)*sum(y)) / (n*sum(x^2)-sum(x)^2)
+b=(sum(y)-m*sum(x))/n
+r=(n*sum(xy)-sum(x)*sum(y))/sqrt((n*sum(x^2)-sum(x)^2)*(n*sum(y^2)-sum(y)^2))
+print(m)
+print(b)
+print(r^2)
+
+
 m
 lines(x,x*m)
 
