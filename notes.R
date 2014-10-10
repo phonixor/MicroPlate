@@ -1,3 +1,16 @@
+#
+
+# file=paste(getwd(),"/tests/testdata/project3/layout.xls",sep="")
+file=paste(getwd(),"/tests/testdata/project2/project2.ods",sep="")
+mp=readLayoutFile(file)
+
+removeAvarageBlancPerTime(mp,"strain","blanc")
+
+
+
+
+#####################################################################
+
 # my own slope
 
 

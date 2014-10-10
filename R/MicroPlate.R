@@ -275,11 +275,9 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
 #' measurement=1, well=2, plate=3
 #' 
 #' 
-#' NEEDS BETTER NAME!!!
-#' 
 #' @param self the microplate object
 #' 
-#' internal only!
+#' 
 #' @export
 #' @import plyr
 setGeneric("updateMetaData", function(self) standardGeneric("updateMetaData"))
@@ -1326,7 +1324,7 @@ setMethod("colnames", signature(x = "MicroPlate"), function(x) {
 #' TODO: BROKEN!
 #' TODO: decide if i want this funtion
 #' 
-#' @rdname colnamesis
+#' @rdname colnames
 #' @description
 #' overwrite the column names 
 #' 

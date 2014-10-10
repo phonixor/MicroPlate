@@ -25,6 +25,7 @@ Collate:
     'setup.R'
     'generalFunctions.R'
     'MicroPlate.R'
+    'blanc.R'
     'parsers-Novostar.R'
     'parsers-Spectramax.R'
     'readLayoutFile.R'
