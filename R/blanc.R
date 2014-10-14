@@ -70,6 +70,12 @@ setMethod("removeAvarageBlancPerTime", signature(mp = "MicroPlate"), function( m
 
 #' plotWithErrorBars
 #' 
+#' creates a plot with error bars
+#' 
+#' @param x a list with the x coordinates
+#' @param y a list with the y coordinates
+#' @param sd a list with the standard deviation
+#' 
 #' @export
 plotWithErrorBars=function(x,y,sd){
  

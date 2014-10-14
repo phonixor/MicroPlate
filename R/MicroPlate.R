@@ -1920,6 +1920,42 @@ setMethod("getWellsMeasurementIndex", signature(self = "MicroPlate"), function(s
 })
 
 
+
+
+#' showWellNrs
+#' @param mp the MicroPlate object
+#' @export
+#' @import shape
+showWellNrs=function(mp){
+  firstWellNumber=0
+  lastWellNumber=0
+ 
+  
+  # well numbers continue over different plates
+  # so it should plot all plates
+  for(plateNumber in 1:mp@.data$levelSize[3]){
+    # set variables for next
+    firstWellNumber=lastWellNumber+1
+    lastWellNumber=lastWellNumber+mp@.data$wellsPerPlate[plateNumber]
+    selection=firstWellNumber:lastWellNumber
+        
+    nrOfRows=max(mp@.data$well$row[selection])
+    nrOfColumns=max(mp@.data$well$column[selection])
+    
+    plot.new()
+    plot.window(xlim=c(1,nrOfColumns),ylim=c(-1,nrOfRows)) 
+#     roundrect(mid = c(nrOfColumns/2,nrOfRows/2),radx=nrOfColumns/2,rady=nrOfRows/2)
+    
+    for(wellNr in selection){
+      filledcylinder(mid=c(mp@.data$well$column[wellNr],nrOfRows-mp@.data$well$row[wellNr]),rx=0.4, ry=0.4,len=0.2, angle = 90, col = "white", lcol = "black", lcolint = "grey")  
+      text(mp@.data$well$column[wellNr],nrOfRows-mp@.data$well$row[wellNr],wellNr)
+    }
+    
+  }
+
+}
+
+
 # setMethod("+",
 #           signature(e1 = "character", e2 = "character"),
 #           function (e1, e2) {
