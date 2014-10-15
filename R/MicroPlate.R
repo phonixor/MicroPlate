@@ -313,6 +313,8 @@ setMethod("updateMetaData", signature(self = "MicroPlate"), function(self){
   currentWellNr=1
   nextWellNr=1
   self@.data$measurementsPerPlate=NULL
+  self@.data$firstMeasurmentRowNrPerPlate=NULL
+  firstMeasurmentRowNrPerPlate=1
   for(i in 1:length(self@.data$plate[[1]])){# for each plate
     currentWellNr=nextWellNr
     nextWellNr=currentWellNr+self@.data$wellsPerPlate[i]# nrOfWells
@@ -323,7 +325,10 @@ setMethod("updateMetaData", signature(self = "MicroPlate"), function(self){
       # last well
       nrOfMeasurement=length(self@.data$measurement[[1]])-self@.data$well$measurement[currentWellNr]+1
     }
+    
     self@.data$measurementsPerPlate=append(self@.data$measurementsPerPlate,nrOfMeasurement)
+    self@.data$firstMeasurmentRowNrPerPlate=append(self@.data$firstMeasurmentRowNrPerPlate,firstMeasurmentRowNrPerPlate)
+    firstMeasurmentRowNrPerPlate=firstMeasurmentRowNrPerPlate+nrOfMeasurement
   }
 })
 
@@ -1920,16 +1925,53 @@ setMethod("getWellsMeasurementIndex", signature(self = "MicroPlate"), function(s
 })
 
 
+#' getPlatesMeasurementIndex
+#' @rdname getPlatesMeasurementIndex
+#' @description
+#' get start and end coordinates of the requested well measurements in the measurement 'table'
+#' 
+#' NEEDS A BETTER NAME
+#' 
+#' @param mp the microplate object
+#' @param plateNr the plate you want the measurement row numbers from
+#'  
+#' @export
+setGeneric("getPlatesMeasurementIndex", function(mp,plateNr) standardGeneric("getPlatesMeasurementIndex"))
+#' @rdname getPlatesMeasurementIndex
+setMethod("getPlatesMeasurementIndex", signature(mp = "MicroPlate"), function(mp, plateNr){
+  first=mp@.data$firstMeasurmentRowNrPerPlate[plateNr]
+  return(first:(first+mp@.data$measurementsPerPlate[plateNr]-1))
+})
 
 
 #' showWellNrs
+#' 
 #' @param mp the MicroPlate object
+#' 
+#' plots the plates and shows the well nr...
+#' color is based on OD if present else its green
+#' 
+#' todo: change to white to bg
+#' todo: check wavelength properly
+#' todo: decide if multiple wavelengths (multiple plots)
+#' todo: decide if i need to change maxOD per plate(as it is now) or global... 
+#' todo: test for bigger other than 96 well plates. 
+#' 
 #' @export
 #' @import shape
 showWellNrs=function(mp){
   firstWellNumber=0
   lastWellNumber=0
- 
+  
+  # is there a wavelength column
+#   wellColor="#FFFFFF" # default color=white
+  plateCol="#0000FF" # green is default
+  if(!is.null(suppressWarnings(mp$waveLength[1]))){
+    plateCol=waveLengthToRGBString(mp$waveLength[1])
+  }
+  
+  colFunc=colorRampPalette(c("white", plateCol))
+  colGradient=colFunc(100)
   
   # well numbers continue over different plates
   # so it should plot all plates
@@ -1942,17 +1984,30 @@ showWellNrs=function(mp){
     nrOfRows=max(mp@.data$well$row[selection])
     nrOfColumns=max(mp@.data$well$column[selection])
     
+    maxODOfPlate=max(mp$value[getPlatesMeasurementIndex(mp,plateNumber)])
+    minODOfPlate=min(mp$value[getPlatesMeasurementIndex(mp,plateNumber)])
+    
+
+    
+#    wellColor=c(255,255,255) # white
+    
     plot.new()
-    plot.window(xlim=c(1,nrOfColumns),ylim=c(-1,nrOfRows)) 
+    plot.window(xlim=c(1,nrOfColumns),ylim=c(-1,nrOfRows))
+    title(paste("WellNrs plate: ",plateNumber," at wavelength: " , mp$waveLength[1], sep=""))
+#     filledmultigonal(mid=c(nrOfColumns/2,nrOfRows/2),rx=nrOfColumns/2,ry=nrOfRows/2,nr=4,angle=45,col="lightblue1")
 #     roundrect(mid = c(nrOfColumns/2,nrOfRows/2),radx=nrOfColumns/2,rady=nrOfRows/2)
+#     rect(xleft=1,ybottom=-1,xright=nrOfColumns,ytop=nrOfRows,col="lightblue1")
+#     rect(xleft=-2,ybottom=-1,xright=nrOfColumns+2,ytop=nrOfRows,col="white")
     
     for(wellNr in selection){
-      filledcylinder(mid=c(mp@.data$well$column[wellNr],nrOfRows-mp@.data$well$row[wellNr]),rx=0.4, ry=0.4,len=0.2, angle = 90, col = "white", lcol = "black", lcolint = "grey")  
-      text(mp@.data$well$column[wellNr],nrOfRows-mp@.data$well$row[wellNr],wellNr)
+      maxOD=max(mp@.data$measurement$value[getWellsMeasurementIndex(mp,wellNr)])
+      
+      wellColor=colGradient[ceiling(((maxOD-minODOfPlate)/(maxODOfPlate-minODOfPlate))*100)]
+      
+      filledcylinder(mid=c(mp@.data$well$column[wellNr],nrOfRows-mp@.data$well$row[wellNr]),rx=0.4, ry=0.4,len=0.2, angle = 90, col=wellColor,topcol=wellColor,botcol=wellColor, lcol = "black", lcolint = "grey")  
+      text(mp@.data$well$column[wellNr],nrOfRows-mp@.data$well$row[wellNr],wellNr,cex=0.7)
     }
-    
   }
-
 }
 
 

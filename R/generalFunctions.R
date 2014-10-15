@@ -178,3 +178,112 @@ install.package = function(packageName=NULL){
 }
 
 
+#' waveLengthToRGB
+#' transforms a wavelength in nm to RGB values
+#' 
+#' code stolen from
+#' http://stackoverflow.com/questions/1472514/convert-light-frequency-to-rgb
+#' http://www.efg2.com/Lab/ScienceAndEngineering/Spectra.htm
+#' 
+#' 
+#' @export
+waveLengthToRGB = function(nm,gamma = 0.80,intensityMax = 255){
+  factor=0
+  red=0
+  green=0
+  blue=0
+  
+  if((nm >= 380) && (nm<440)){
+    red= -(nm - 440) / (440 - 380)
+    green = 0.0
+    blue = 1.0
+  }else if((nm >= 440) && (nm<490)){
+    red= 0.0
+    green = (nm - 440) / (490 - 440)
+    blue = 1.0
+  }else if((nm >= 490) && (nm<510)){
+    red= 0.0
+    green = 1.0
+    blue = -(nm - 510) / (510 - 490)
+  }else if((nm >= 510) && (nm<580)){
+    red= (nm - 510) / (580 - 510)
+    green = 1.0
+    blue = 0.0
+  }else if((nm >= 580) && (nm<645)){
+    red= 1.0
+    green = -(nm - 645) / (645 - 580)
+    blue = 0.0
+  }else if((nm >= 645) && (nm<781)){
+    red= 1.0
+    green = 0.0
+    blue = 0.0
+  }else{
+    red= 0.0
+    green = 0.0
+    blue = 0.0
+  }
+  
+  # Let the intensity fall off near the vision limits
+  
+  if((nm >= 380) && (nm<420)){
+    factor = 0.3 + 0.7*(nm - 380) / (420 - 380)
+  }else if((nm >= 420) && (nm<701)){
+    factor = 1.0
+  }else if((nm >= 701) && (nm<781)){
+    factor = 0.3 + 0.7*(780 - nm) / (780 - 700)
+  }else{
+    factor = 0.0;
+  }
+  
+  
+  # Don't want 0^x = 1 for x <> 0
+  if(red!=0){
+    red=round(intensityMax*((red * factor)^gamma))
+  }
+  if(green!=0){
+    green=round(intensityMax*((green * factor)^gamma))
+  }
+  if(blue!=0){
+    blue=round(intensityMax*((blue * factor)^gamma))
+  }
+  
+  
+#   rgb[0] = red==0.0 ? 0 : (int) Math.round(IntensityMax * Math.pow(Red * factor, Gamma));
+#   rgb[1] = green==0.0 ? 0 : (int) Math.round(IntensityMax * Math.pow(Green * factor, Gamma));
+#   rgb[2] = blue==0.0 ? 0 : (int) Math.round(IntensityMax * Math.pow(Blue * factor, Gamma));
+  
+  return(c(red,green,blue))
+}
+
+#' rgbToString
+#' 
+#' converts: c(red,green,blue) # decimal numbers
+#' to: "#RRGGBB" # RR=red in hexadicimal numbers
+#' 
+#' so rgbToString(c(255,255,255))
+#' returns "#ffffff"
+#' 
+#' @export
+rgbToString = function(rgb){
+  
+  red=rgb[1]
+  green=rgb[2]
+  blue=rgb[3]
+  s="#"
+  if(red<16) s=paste(s,"0",sep="")
+  s=paste(s,as.hexmode(red),sep="")
+  if(green<16) s=paste(s,"0",sep="")
+  s=paste(s,as.hexmode(green),sep="")
+  if(blue<16) s=paste(s,"0",sep="")
+  s=paste(s,as.hexmode(blue),sep="")
+  
+  return(s)
+}
+
+#' waveLengthToRGBString
+#' @export
+waveLengthToRGBString=function(nm){
+  return(rgbToString(waveLengthToRGB(nm)))
+}
+  
+
