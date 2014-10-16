@@ -1965,7 +1965,7 @@ showWellNrs=function(mp){
   
   # is there a wavelength column
 #   wellColor="#FFFFFF" # default color=white
-  plateCol="#0000FF" # green is default
+  plateCol="#00FF00" # green is default
   if(!is.null(suppressWarnings(mp$waveLength[1]))){
     plateCol=waveLengthToRGBString(mp$waveLength[1])
   }
@@ -1987,13 +1987,16 @@ showWellNrs=function(mp){
     maxODOfPlate=max(mp$value[getPlatesMeasurementIndex(mp,plateNumber)])
     minODOfPlate=min(mp$value[getPlatesMeasurementIndex(mp,plateNumber)])
     
-
     
 #    wellColor=c(255,255,255) # white
     
     plot.new()
     plot.window(xlim=c(1,nrOfColumns),ylim=c(-1,nrOfRows))
-    title(paste("WellNrs plate: ",plateNumber," at wavelength: " , mp$waveLength[1], sep=""))
+    if(!is.null(suppressWarnings(mp$waveLength[1]))){
+      title(paste("WellNrs plate: ",plateNumber," at wavelength: " , mp$waveLength[1], sep=""))
+    }else{
+      title(paste("WellNrs plate: ",plateNumber, sep=""))
+    }
 #     filledmultigonal(mid=c(nrOfColumns/2,nrOfRows/2),rx=nrOfColumns/2,ry=nrOfRows/2,nr=4,angle=45,col="lightblue1")
 #     roundrect(mid = c(nrOfColumns/2,nrOfRows/2),radx=nrOfColumns/2,rady=nrOfRows/2)
 #     rect(xleft=1,ybottom=-1,xright=nrOfColumns,ytop=nrOfRows,col="lightblue1")

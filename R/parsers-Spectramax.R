@@ -39,7 +39,7 @@
   
   m$value=numeric(nrOfMeasurements)
   m$time=numeric(nrOfMeasurements)
-  m$waveLength=numeric(nrOfMeasurements)
+#   m$waveLength=numeric(nrOfMeasurements)
   
   measurementIndex=1
   nextMeasurementIndex=1
