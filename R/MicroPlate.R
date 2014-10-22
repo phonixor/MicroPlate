@@ -353,7 +353,12 @@ setMethod("updateMetaData", signature(self = "MicroPlate"), function(self){
 #' @param i row - number only
 #' @param j column - use column number or column name
 #' @param ... you can use the argument "level" to force the data to be repeated for the appropiate level: "plate","well","measurement"  other uses of ... will throw errors.
-#'
+#' 
+#' 
+#' TODO: merge modes more
+#' TODO: document all params... though they are hard to read ...
+#' TODO: add formula mode
+#' 
 #' 
 #' @export 
 setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i , j, ...) {
@@ -363,19 +368,112 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
   level=NULL
   col=NULL
   row=NULL
+  nrOfCol=length(x@.data$colNames) 
+  
   
   # check for level in input
   if(!length(args)==0){
-    if(length(args)==1 & !is.null(args$level)){
+    names=names(args)
+    if(any(names%in%append(x@.data$colNames,c("well","plate")))){
+      # 2nd mode!!
+      if(!missing(j)) stop("you cannot combine modes")
+      if(missing(i)){
+        col=1:nrOfCol
+      }else{
+        col=i
+        
+        # check col
+        if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character") ){
+          stop(paste("col index should be a number or char, not a: ",class(col)))
+        }
+        if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
+          stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
+        }
+        if((class(col)=="numeric" | class(col)=="integer") & !all(is.element(col,1:nrOfCol))  ) {
+          stop(paste("column number(s) given that does not exist!\n number(s) given:",paste(col,collapse=", "),"\n max col number in data:",nrOfCol, sep=""))
+        }
+        # also change to names if numbers
+        if(class(col)!="character"){ 
+          col=x@.data$colNames[col]
+        }
+        # note i have to have cols as strings, as "well", "plate" columns will interfere with numbering
+        
+#         # convert to numbers
+#         if(class(col)=="character"){
+#           # are all column names valid?
+#           if(!all(col%in%x@.data$colNames)) stop("column names given that do not exist")
+# #           stop(paste("columns given that do not exist:", paste(col, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
+#           col=match(x@.data$colNames,col) # convert to numbers
+#         }
+#         # TODO: check stuff
+      }
+        
+      #
+      # some checks
+      if(any(names%in%"")) stop("unspecified argument provided")
+      if(names!=unique(names)) stop("you are only allowed to use arguments once")
+      if(!all(names%in%append(x@.data$colNames,c("well","plate","level")))) stop(paste("only allowed: ",paste(x@.data$colNames,sep=", "),", well and level",sep=""))
+      # check level
+      minLevel=NULL
+      if(!is.null(args$level)){
+        if(is.character(args$level)){ # convert level to nr if char
+          if( (length(args$level)>1) || (!any(x@.data$level==args$level)) ) stop("level needs to be 'plate','well' or 'measurement' (or 3, 2 or 1)")
+          args$level=x@.data$levelNr[x@.data$level==args$level]
+        }
+        # check if level given 
+        if(min(x@.data$colLevelNr[x@.data$colNames%in%names])>args$level) stop("data requested at a higher level then your selection")
+
+      } else {
+#         if(min(x@.data$colLevelNr[x@.data$colNames%in%names]))
+      }
+    
+#       lowestLevel=min()
+#       if(!missing(i)){
+#         if(min(x@.data$colLevelNr[x@.data$colNames%in%col])>args$level) stop("data requested at a higher level then your selection")       
+#         if(min(x@.data$colLevelNr[x@.data$colNames%in%col])>min(x@.data$colLevelNr[x@.data$colNames%in%names]) ) stop("data requested at a higher level then your selection")
+#       }else{
+#         # make sure to only return the columns that are higher then then lowest level
+#         col=x@.data$colNames[x@.data$colLevelNr>=lowestLevel]
+#       }
+#       
+      #for now
       level=args$level
-    } else {
-      stop("invalid args given, only accepts i,j,level")
+      mp=x[]
+      for(i in 1:length(args)){
+        if(names[i]=="level"){
+          
+        }else if(names[i]=="well"){
+          if(class(args[i])=="character"){ #A11
+            }
+          else if(class(args)){
+              
+          }
+          
+        }else if(names[i]=="plate"){
+          
+        }else{ # its a col name
+          
+        }
+        
+          
+      }
+      
+      
+    }else{
+      # normal mode!
+      # just level
+      if(length(args)==1 & !is.null(args$level)){
+        level=args$level
+      } else {
+        stop("invalid args given, only accepts i,j,level")
+      }
     }
   }
+  
+  # continue normal mode
 
   #
   # data.frame has some special behaviour
-  nrOfCol=length(x@.data$colNames) 
   if(missing(i) & missing(j)){
     # df[] and df[,]
 #     print("df[] or df[,]")
