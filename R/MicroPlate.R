@@ -358,6 +358,7 @@ setMethod("updateMetaData", signature(self = "MicroPlate"), function(self){
 #' TODO: merge modes more
 #' TODO: document all params... though they are hard to read ...
 #' TODO: add formula mode
+#' TODO: consider adding a single measurement point to well level if specifically requested...
 #' 
 #' 
 #' @export 
@@ -381,51 +382,86 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
         col=1:nrOfCol
       }else{
         col=i
-        
-        # check col
-        if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character") ){
-          stop(paste("col index should be a number or char, not a: ",class(col)))
-        }
-        if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
-          stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
-        }
-        if((class(col)=="numeric" | class(col)=="integer") & !all(is.element(col,1:nrOfCol))  ) {
-          stop(paste("column number(s) given that does not exist!\n number(s) given:",paste(col,collapse=", "),"\n max col number in data:",nrOfCol, sep=""))
-        }
-        # also change to names if numbers
-        if(class(col)!="character"){ 
-          col=x@.data$colNames[col]
-        }
-        # note i have to have cols as strings, as "well", "plate" columns will interfere with numbering
-        
-#         # convert to numbers
-#         if(class(col)=="character"){
-#           # are all column names valid?
-#           if(!all(col%in%x@.data$colNames)) stop("column names given that do not exist")
-# #           stop(paste("columns given that do not exist:", paste(col, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
-#           col=match(x@.data$colNames,col) # convert to numbers
-#         }
-#         # TODO: check stuff
       }
-        
+      # check col
+      if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character") ){
+        stop(paste("col index should be a number or char, not a: ",class(col)))
+      }
+      if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
+        stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
+      }
+      if((class(col)=="numeric" | class(col)=="integer") & !all(is.element(col,1:nrOfCol))  ) {
+        stop(paste("column number(s) given that does not exist!\n number(s) given:",paste(col,collapse=", "),"\n max col number in data:",nrOfCol, sep=""))
+      }
+      # also change to names if numbers
+      if(class(col)!="character"){ 
+        col=x@.data$colNames[col]
+      }
+      # note i have to have cols as strings, as "well", "plate" columns will interfere with numbering
+      
+      #         # convert to numbers
+      #         if(class(col)=="character"){
+      #           # are all column names valid?
+      #           if(!all(col%in%x@.data$colNames)) stop("column names given that do not exist")
+      # #           stop(paste("columns given that do not exist:", paste(col, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
+      #           col=match(x@.data$colNames,col) # convert to numbers
+      #         }
+      #         # TODO: check stuff
       #
+      
+#       print(col)
+#       print(names)
+      
       # some checks
       if(any(names%in%"")) stop("unspecified argument provided")
-      if(names!=unique(names)) stop("you are only allowed to use arguments once")
+      if(length(names)!=length(unique(names))) stop("you are only allowed to use arguments once")
       if(!all(names%in%append(x@.data$colNames,c("well","plate","level")))) stop(paste("only allowed: ",paste(x@.data$colNames,sep=", "),", well and level",sep=""))
+     
       # check level
-      minLevel=NULL
+#       print(names)
+#       print(x@.data$colNames)
+      level=suppressWarnings(min(x@.data$colLevelNr[x@.data$colNames%in%names]))
+#       print(level)
+      if(level==Inf){ # min() returns Inf! because RRRRRRRrrrr....!!!
+        if("plate"%in%names){
+          level=3
+        }else if("well"%in%names){
+          level=2
+        }else stop("WEIRD!!! i should not have gotten here!!!")
+      }
+#       print(level)
+      if(missing(i)){
+        col=x@.data$colNames[x@.data$colLevelNr>=level]
+      }else{
+        #todo needs better error message
+        if(min(x@.data$colLevelNr[x@.data$colNames%in%col])>level)stop("level of selections do not match")
+        level=min(x@.data$colLevelNr[x@.data$colNames%in%col]) # can still be lower
+      }
       if(!is.null(args$level)){
-        if(is.character(args$level)){ # convert level to nr if char
-          if( (length(args$level)>1) || (!any(x@.data$level==args$level)) ) stop("level needs to be 'plate','well' or 'measurement' (or 3, 2 or 1)")
+        # convert level to nr if char
+        if(args$level=="character"){
+          if((length(args$level)>1)  || !all(args$level%in%x@.data$level)) stop("level needs to be 'plate','well' or 'measurement' (or 3, 2 or 1)")
           args$level=x@.data$levelNr[x@.data$level==args$level]
         }
-        # check if level given 
-        if(min(x@.data$colLevelNr[x@.data$colNames%in%names])>args$level) stop("data requested at a higher level then your selection")
-
-      } else {
-#         if(min(x@.data$colLevelNr[x@.data$colNames%in%names]))
+        if( (length(args$level)>1) || (!any(x@.data$levelNr==args$level)) ) stop("level needs to be 'plate','well' or 'measurement' (or 3, 2 or 1)")
+        if(level>args$level)stop("level parameter is to high for data selection")
+        level=args$level # can still be lower
       }
+        
+
+
+# 
+#       if(!is.null(args$level)){
+#         if(is.character(args$level)){ # convert level to nr if char
+#           if( (length(args$level)>1) || (!any(x@.data$level==args$level)) ) stop("level needs to be 'plate','well' or 'measurement' (or 3, 2 or 1)")
+#           args$level=x@.data$levelNr[x@.data$level==args$level]
+#         }
+#         # check if level given 
+#         if(min(x@.data$colLevelNr[x@.data$colNames%in%names])>args$level) stop("data requested at a higher level then your selection")
+# 
+#       } else {
+# #         if(min(x@.data$colLevelNr[x@.data$colNames%in%names]))
+#       }
     
 #       lowestLevel=min()
 #       if(!missing(i)){
@@ -437,28 +473,59 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
 #       }
 #       
       #for now
-      level=args$level
-      mp=x[]
+#       level=args$level # todo make sure its a number :)
+      mp=x[level=level]
+      size=x@.data$levelSize[level]
+      true=rep(T,size)
+      false=logical(size)
+      selection=true
       for(i in 1:length(args)){
         if(names[i]=="level"){
-          
+          # already handled above
         }else if(names[i]=="well"){
-          if(class(args[i])=="character"){ #A11
+#           print(class(args[[i]]))
+#           print(args[[i]])
+          if(class(args[[i]])=="character"){ # A11
+            coordinates=extractPlateCoordinates(args[[i]]) # A11 ->  A=1 , 11=11 ....
+            selection=selection&(mp$row%in%coordinates["row"])
+            selection=selection&(mp$col%in%coordinates["column"])
+          } else if((class(args[[i]])=="numeric")||(class(args[[i]])=="integer")){ # well numbers
+            if(level==1){ # measurement level
+              # todo for is very slow! so change this later!
+              wellNrs=double(size)
+              for(j in 1:x@.data$levelSize[2]){# for each well
+                wellNrs[getWellsMeasurementIndex(mp,j)]=j
+              }
+              selection=selection&(wellNrs%in%args[[i]])
+            } else if(level==2){# well level
+              selection=selection&((1:size)%in%args[[i]])
+            }else stop("can't use well selection at plate level")
+          } else stop("weird well selection")
+        }else if(names[i]=="plate"){
+          if(level==1){# measurement level
+            plateNrs=double(size)
+            for(j in 1:x@.data$levelSize[3]){# for each plate
+              plateNrs[getPlatesMeasurementIndex(mp,j)]=j
             }
-          else if(class(args)){
-              
+            selection=selection&(plateNrs%in%args[[i]])
+          }else if (level==2){# well level
+            plateNrs=double(size)
+            for(j in 1:x@.data$levelSize[3]){# for each plate
+              plateNrs[getPlatesWellIndex(mp,j)]=j
+            }
+            selection=selection&(plateNrs%in%args[[i]])
+          }else {# plate level
+            selection=selection&((1:size)%in%args[[i]])
           }
           
-        }else if(names[i]=="plate"){
-          
         }else{ # its a col name
-          
+          selection=selection&(mp[[names[i]]]%in%args[[i]])
         }
-        
-          
-      }
-      
-      
+#         print(sum(selection))
+      }# for each selection column
+      #
+#       print(col)
+      return(mp[selection,col])
     }else{
       # normal mode!
       # just level
@@ -628,7 +695,7 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
       tempData=NULL
       if(level=="plate"){
         # repeat for each well
-        for(i in 1:length(x@.data$plate[[1]])){
+        for(i in 1:length(x@.data$plate[[1]])){ # an append??? slow!!!
           tempData=append(tempData,rep(x@.data$plate[[col[colnr]]][i],count(x@.data$well$plate)[[2]][i]))
         }
 #         tempData=lapply(x@.data$data, function(x)returnValue=append(returnValue,x[[name]]))
@@ -2039,6 +2106,29 @@ setGeneric("getPlatesMeasurementIndex", function(mp,plateNr) standardGeneric("ge
 setMethod("getPlatesMeasurementIndex", signature(mp = "MicroPlate"), function(mp, plateNr){
   first=mp@.data$firstMeasurmentRowNrPerPlate[plateNr]
   return(first:(first+mp@.data$measurementsPerPlate[plateNr]-1))
+})
+
+
+#' getPlatesWellIndex
+#' @rdname getPlatesWellIndex
+#' @description
+#' get start and end coordinates of the requested well measurements in the measurement 'table'
+#' 
+#' NEEDS A BETTER NAME
+#' 
+#' @param mp the microplate object
+#' @param plateNr the plate you want the measurement row numbers from
+#'  
+#' @export
+setGeneric("getPlatesWellIndex", function(mp,plateNr) standardGeneric("getPlatesWellIndex"))
+#' @rdname getPlatesWellIndex
+setMethod("getPlatesWellIndex", signature(mp = "MicroPlate"), function(mp, plateNr){
+  first=1
+  for(i in 1:mp@.data$levelSize[3]){ # for each plate
+    if(i==plateNr) return(first:(first+mp@.data$wellsPerPlate[i]-1))
+    first=first+mp@.data$wellsPerPlate[i]
+  }
+  stop("invalid plateNr????")
 })
 
 
