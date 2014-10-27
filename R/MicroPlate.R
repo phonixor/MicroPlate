@@ -928,22 +928,127 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
   args <- list(...)
   col=NULL
   row=NULL
-#   data=value
-  dataLength=NULL
+ 
+  dataRows=NULL
+  dataCols=NULL
+  
   level=NULL
   
-#   # check for level in input
-#   if(!length(args)==0){
-#     if(length(args)==1 & !is.null(args$level)){
-#       level=args$level
-#       if(length(level)>1){
-#         stop(paste("level may only contain 1 of the following values: ", x@.data$level ,sep="",collapse=" "))
-#       }
-#     } else {
-#       stop("invalid args given, only accepts i,j,level,value")
-#     }
-#   }
+  print("nr of parameters..")
+  print(nargs())
+  print(length(args))
+  print(nargs()-length(args))
   
+  
+  
+#   nrOfCol=length(x@.data$colNames)
+
+  #
+  # data.frame has some special behaviour
+  if(missing(i) & missing(j)){
+    # df[]<- and df[,]<-
+    #     print("df[] or df[,]")
+    # return everything
+    row=NULL
+    col=NULL
+  } else if(missing(i)){
+    # df[,1]<-
+    #     print("df[,1]")
+    row=NULL
+    col=j
+  } else if(missing(j) & (nargs()-length(args))==1  )  {
+    #   } else if(missing(j) & nargs()==2) {
+    # df[1]<-
+    #     print("df[1]")
+    # data.frame special case
+    # should return column instead of row!
+    row=NULL
+    col=i
+  } else if(missing(j)) {
+    # df[1,]<-
+    #     print("df[1,]")
+    row=i
+    col=NULL
+  } else {
+    # df[1,2]<-
+    #     print("df[1,2]")
+    row=i
+    col=j
+  }
+  
+  
+  
+  
+  
+
+  # first check if it is a remove operation
+  #
+  # check if its a column remove df[names]=NULL
+  if(is.null(value)){
+    # todo add checks to make sure only col is filled...
+    col=i
+    return(removeColumn(x,col)) 
+  }
+
+  
+  # analyse new input
+  # the way data.frame seems to handle data that 
+  # does not match the size of the rows and columns selected
+  # is by if its smaller then copy it ... but only if it can be devided without rest
+  # if its more... ignore the more...
+  # data is filled by column, so first all rows of a column are added, then the next column...
+  
+  # adding data.frames (and matrices??) need the right amount of rows and cols
+  # what about lists???
+  # if you use df[] and you add something way bigger, 
+  # it will keep the df the same size, and throw a bunch of warning
+  if(class(value)=="matrix"){
+    value=data.frame(value, stringsAsFactors=F) # dont want to deal with this crap seperatly!
+  }
+  if(class(value)=="data.frame"){
+    dataCols=dim(value)[1]
+    dataRows=dim(value)[2]
+    dataNames=names(col)
+  } else if (any(class(value) %in% c("character","numeric","integer","logical"))) {
+    dataRows=length(value)[1]
+    dataCols=1
+  } else {
+    stop(paste("data type of class: ",class(value)," not supported", sep="",collapse=""))
+  }
+  
+  # 2nd check level
+  
+
+  
+  newCol=
+  existingCol=
+    
+  
+  if(!length(args)==0){
+    names=names(args)
+    
+
+    if(any(names%in%"")) stop("unspecified argument provided")
+    if(length(names)!=length(unique(names))) stop("you are only allowed to use arguments once")
+    if(!all(names%in%append(x@.data$colNames,c("well","plate","level")))) stop(paste("only allowed: ",paste(x@.data$colNames,sep=", "),", well and level",sep=""))
+    
+    
+    
+    
+    if(any(names%in%append(x@.data$colNames,c("well","plate")))){
+      
+    }
+  }
+
+  
+
+
+
+
+
+  
+
+
   # check for level in input
   if(!length(args)==0){
     names=names(args)
@@ -1139,40 +1244,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
   
   
 #   nrOfRows=x@.data$levelSize[x@.data$level=="measurement"]
-  nrOfCol=length(x@.data$colNames)
-  #
-  # data.frame has some special behaviour
-  if(missing(i) & missing(j)){
-    # df[]<- and df[,]<-
-    #     print("df[] or df[,]")
-    # return everything
-    row=NULL
-    col=1:nrOfCol
-  } else if(missing(i)){
-    # df[,1]<-
-    #     print("df[,1]")
-    row=NULL
-    col=j
-  } else if( ( missing(j) & nargs()==3 ) | ( missing(j) & nargs()==4 & !is.null(level) ) ){
-#   } else if(missing(j) & nargs()==2) {
-    # df[1]<-
-    #     print("df[1]")
-    # data.frame special case
-    # should return column instead of row!
-    row=NULL
-    col=i
-  } else if(missing(j)) {
-    # df[1,]<-
-    #     print("df[1,]")
-    row=i
-    col=1:nrOfCol
-  } else {
-    # df[1,2]<-
-    #     print("df[1,2]")
-    row=i
-    col=j
-  }
-  
+
 
 
   # check col
