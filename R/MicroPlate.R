@@ -948,7 +948,9 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
   if(!length(args)==0){
     names=names(args)
     if(any(names%in%append(x@.data$colNames,c("well","plate")))){
-      # 2nd mode!!
+      # **************
+      # * 2nd mode!! *
+      # **************
       if(!missing(j)) stop("you cannot combine modes")
       if(missing(i)){
         col=1:nrOfCol
