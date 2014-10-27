@@ -251,23 +251,6 @@ test_that("MicroPlate.R_[]_tests",{
   expect_error((testData["measurement"]=1))
   expect_error((testData["well"]=1))
   
-  ###################
-  #  2nd mode test  #
-  ###################
-  # 
-  
-  testData["row",well=4,level=2]
-  testData["content",well=10:23,level=2]
-  testData[c("row","column","content"),well=4,level=2]
-  testData[well=4,level=2]
-  testData[well=8]
-  testData["value",well=8]
-
-  testData["content",well="B6",level=1]
-  testData["content",well="B6",level=2]
-  testData["content",well="B6",level=3]#should crash
-  testData["content",row=2,column=6,level=2]
-  testData["content",column=2,level=2]
 
 #   # test reading [
 #   expect_equal(dim(testData[]),c(24000,9))    # everything
@@ -353,6 +336,43 @@ test_that("MicroPlate.R_[]_tests",{
 #   expect_equal(dim(testData[]),c(2,4))
 
 })
+
+
+test_that("MicroPlate.R_[]_tests_2nd_mode",{
+  ###################
+  #  2nd mode test  #
+  ###################
+  
+  # mp[colNamesYouWant, colname=content]
+  # mp[,well=96]
+  # mp[,well=4:12]
+
+  # file=paste(getwd(),"/tests/testdata/parsers/novostar.xls/KineticData.xls",sep="")
+  file=paste(getwd(),"/../testdata/parsers/novostar.xls/KineticData.xls",sep="")
+  testData=novostar.xls(file)
+  
+  expect_equal(testData["row",well=4,level=2],1)
+  expect_equal(length(testData["content",well=10:23,level=2]),14)
+  expect_true(all(testData[c("row","column","content"),well=4,level=2] == c(1,4,"Sample X4")))
+  
+  
+#   
+#   testData[well=4,level=2]
+#   testData[well=8]
+#   testData["value",well=8]
+#   
+#   testData["content",well="B6",level=1]#should give error!
+#   testData["content",well="B6",level=2]
+#   testData["content",well="B6",level=3]#should crash
+#   testData["content",row=2,column=6,level=2]
+#   testData["content",column=2,level=2]
+  
+  
+  
+  
+})
+
+
 
 
 

@@ -14,6 +14,8 @@
 #' @param the indicator in the column, usualy a string like "blanc" 
 #' @param newVariable if you dont want the original values column to be overwritten, put a new column name here
 #' 
+#' TODO: check if start at the same time...
+#' 
 #' @export
 setGeneric("removeAvarageBlancPerTime", function(mp, column, indicator, newVariable=NULL) standardGeneric("removeAvarageBlancPerTime")) 
 #' @rdname removeAvarageBlancPerTime
