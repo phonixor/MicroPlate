@@ -251,8 +251,23 @@ test_that("MicroPlate.R_[]_tests",{
   expect_error((testData["measurement"]=1))
   expect_error((testData["well"]=1))
   
+  ###################
+  #  2nd mode test  #
+  ###################
+  # 
   
+  testData["row",well=4,level=2]
+  testData["content",well=10:23,level=2]
+  testData[c("row","column","content"),well=4,level=2]
+  testData[well=4,level=2]
+  testData[well=8]
+  testData["value",well=8]
 
+  testData["content",well="B6",level=1]
+  testData["content",well="B6",level=2]
+  testData["content",well="B6",level=3]#should crash
+  testData["content",row=2,column=6,level=2]
+  testData["content",column=2,level=2]
 
 #   # test reading [
 #   expect_equal(dim(testData[]),c(24000,9))    # everything
