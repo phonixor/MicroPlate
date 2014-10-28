@@ -69,7 +69,6 @@ test_that("MicroPlate.R_basic_tests",{
 
 })
 
-
 test_that("MicroPlate.R_[]_tests",{
   # file=paste(getwd(),"/tests/testdata/parsers/novostar.xls/KineticData.xls",sep="")
   file=paste(getwd(),"/../testdata/parsers/novostar.xls/KineticData.xls",sep="")
@@ -337,7 +336,6 @@ test_that("MicroPlate.R_[]_tests",{
 
 })
 
-
 test_that("MicroPlate.R_[]_tests_2nd_mode",{
   ###################
   #  2nd mode test  #
@@ -346,7 +344,7 @@ test_that("MicroPlate.R_[]_tests_2nd_mode",{
   # mp[colNamesYouWant, colname=content]
   # mp[,well=96]
   # mp[,well=4:12]
-
+  
   # file=paste(getwd(),"/tests/testdata/parsers/novostar.xls/KineticData.xls",sep="")
   file=paste(getwd(),"/../testdata/parsers/novostar.xls/KineticData.xls",sep="")
   testData=novostar.xls(file)
@@ -359,6 +357,10 @@ test_that("MicroPlate.R_[]_tests_2nd_mode",{
 #   
 #   testData[well=4,level=2]
 #   testData[well=8]
+#   testData[,well=8]
+#   testData[,,well=8]
+# 
+# 
 #   testData["value",well=8]
 #   
 #   testData["content",well="B6",level=1]#should give error!
