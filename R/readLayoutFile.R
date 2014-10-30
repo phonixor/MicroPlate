@@ -292,6 +292,7 @@ setMethod("addLayoutDataToMicroPlate", signature(self="MicroPlate"), function(se
   #data[names(data)!="plate"]
   wellData=data.frame(wellData,stringsAsFactors = F)
   colNames=base::colnames(wellData)[!base::colnames(wellData) %in% c("row","column")] #everything except row, column, plate 
+#   print("---------------")
 #   print(colNames)
 #   print(wellData)
 #   print("---------------")
@@ -308,7 +309,6 @@ setMethod("addLayoutDataToMicroPlate", signature(self="MicroPlate"), function(se
 #   print("___________________________________")
 #   self[index,colNames,level="plate"]=plateData[colNames]
   self[colNames,level="plate"]=plateData[colNames]
-#   updateColnames(self) # already done with self[]=...
 })
 
 
