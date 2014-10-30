@@ -70,9 +70,16 @@ test_that("MicroPlate.R_basic_tests",{
 })
 
 test_that("MicroPlate.R_[]_tests",{
+  # test both [] and []<-
+  #
+  #
   # file=paste(getwd(),"/tests/testdata/parsers/novostar.xls/KineticData.xls",sep="")
   file=paste(getwd(),"/../testdata/parsers/novostar.xls/KineticData.xls",sep="")
   testData=novostar.xls(file)
+  ### just level
+  expect_equal(testData[level=1],testData[level="measurement"])
+  expect_equal(testData[level=2], testData[level="well"])
+  expect_equal(testData[level=3], testData[level="plate"])
   
   ### singel column
   # plate
