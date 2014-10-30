@@ -45,7 +45,9 @@
 setup = function(){
   # check the current OS/Environment to determine which packages are used to load
   # 
+  message("************************")
   message("*** microplate setup ***")
+  message("************************")
   #
   # ODS
   #
@@ -55,7 +57,7 @@ setup = function(){
     install.package("readODS")
     
     file=paste(path.package("microplate"),"/extdata/test.ods",sep="")
-    read.ods(file) 
+    read.ods(file)
     
     message(" + readODS package works for ODS files")
     T # if it got here without errors it works!
@@ -76,7 +78,6 @@ setup = function(){
   message("- searching for a XLSX parser")
   .gdataWorksForXLSX<<-tryCatch({
     install.package("gdata")
-    
     
     file=paste(path.package("microplate"),"/extdata/test.xlsx",sep="")
     
@@ -161,10 +162,43 @@ setup = function(){
   })
   
   # check if anything worked
-  if(!any(.gdataWorksForXLSX, .openxlsxWorksForXLSX, .xlsxWorksForXLSX)){
+  if(!any(.gdataWorksForXLS, .xlsxWorksForXLS)){
     warning("no packages work on your system for .xls files, packages tried: gdata, xlsx")
   }
+  message("*********************************")
   message("*** finished microplate setup ***")
+  message("*********************************")
+  message("results:")
+  # ODS
+  if(.readODSWorksForODS) {
+    message(".ods files are supported by the following packages:")
+    message(" + readODS works for .ods files on this system.")
+  }else{
+    message(".ods files are not supported:")
+    message(" - readODS does not work for .ods files on this system.")
+  } 
+  # XLSX  
+  if(any(.gdataWorksForXLSX, .openxlsxWorksForXLSX, .xlsxWorksForXLSX)){
+    message(".xlsx files are supported by the following packages:")
+  }else{
+    message(".xlsx files are not supported:")
+  }
+  if(.gdataWorksForXLSX) message(" + gdata works for .xlsx files on this system.")
+  if(!.gdataWorksForXLSX) message(" - gdata does not work for .xlsx files on this system.")  
+  if(.openxlsxWorksForXLSX) message(" + openxlsx works for .xlsx files on this system.")
+  if(!.openxlsxWorksForXLSX) message(" - openxlsx does not work for .xlsx files on this system.")  
+  if(.xlsxWorksForXLSX) message(" + xlsx works for .xlsx files on this system.")
+  if(!.xlsxWorksForXLSX) message(" - xlsx does not work for .xlsx files on this system.")  
+  # XLS
+  if(any(.gdataWorksForXLS, .xlsxWorksForXLS)){
+    message(".xls files are supported by the following packages:")
+  }else{
+    message(".xlx files are not supported:")
+  }
+  if(.gdataWorksForXLS) message(" + gdata works for .xls files on this system.")
+  if(!.gdataWorksForXLS) message(" - gdata does not work for .xls files on this system.")
+  if(.xlsxWorksForXLS) message(" + xlsx works for .xls files on this system.")
+  if(!.xlsxWorksForXLS) message(" - xlsx does not work for .xls files on this system.") 
 }
 
 

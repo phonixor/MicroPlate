@@ -80,6 +80,8 @@ test_that("MicroPlate.R_[]_tests",{
   expect_equal(testData[level=1],testData[level="measurement"])
   expect_equal(testData[level=2], testData[level="well"])
   expect_equal(testData[level=3], testData[level="plate"])
+  expect_error(testData[level=4])
+  expect_error(testData[level="COOKIESSS!!!"]) # todo: add cookie level
   
   ### singel column
   # plate
@@ -356,6 +358,31 @@ test_that("MicroPlate.R_[]_tests_2nd_mode",{
   file=paste(getwd(),"/../testdata/parsers/novostar.xls/KineticData.xls",sep="")
   testData=novostar.xls(file)
   
+  ### well=
+  expect_true(all(dim(testData[well=10])==c(250,7)))
+  expect_true(all(testData[well=10]==testData[well="A10"]))
+  expect_true(all(dim(testData[well=12:80])==c(17250 ,7)))
+  testData["content",well=10]="COOKIES!!!"
+  expect_equal(testData["content",well=10],"COOKIES!!!")
+  expect_error((testData["content",well=10]=1:250))
+  expect_error((testData["content",well=10,level="measurement"]=1:250))
+  expect_true(all(dim(testData[well=10,level=2])==c(1,4)))
+  
+#   expect_error(testData[well=100])#out of range ... dunno if i should throw an error or return nothing...
+  
+  testData[well=10,level=1] # works
+  testData[well=10,level=2] # does not work
+  testData[well=10,level=2]=c(1,10,"lalalala") # does not work... should it?
+  testData[,well=10,level=2]# does not work
+  testData["content",well=10,level=2] # does work!
+  testData[well=10]
+  
+  
+
+  testData[well=10]=1 # TODO: needs better error
+  
+  
+  ### all kind of sexy combinations...
   expect_equal(testData["row",well=4,level=2],1)
   expect_equal(length(testData["content",well=10:23,level=2]),14)
   expect_true(all(testData[c("row","column","content"),well=4,level=2] == c(1,4,"Sample X4")))
