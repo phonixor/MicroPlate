@@ -378,8 +378,8 @@ test_that("MicroPlate.R_[]_tests_2nd_mode",{
   testData[well=10]
   
   
-
-  testData[well=10]=1 # TODO: needs better error
+  
+#   testData[well=10]=1 # TODO: needs better error
   
   
   ### all kind of sexy combinations...

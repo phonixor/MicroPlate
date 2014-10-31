@@ -1,6 +1,9 @@
 
 
-
+test=function(...){
+  args=list(...)
+  print(args)
+}
 
 
 
