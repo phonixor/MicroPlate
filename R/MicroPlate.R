@@ -359,412 +359,679 @@ setMethod("updateMetaData", signature(self = "MicroPlate"), function(self){
 #' 
 #' @export 
 setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i , j, ...) {
-  # without "..." nargs() does not work! 
-  # even if df[] you still get 2 args...  
   args <- list(...)
-  level=NULL
   col=NULL
   row=NULL
-  nrOfCol=length(x@.data$colNames) 
   
-  
-  # check for level in input
-  if(!length(args)==0){
-    names=names(args)
-    if(any(names%in%append(x@.data$colNames,c("well","plate")))){
-      # 2nd mode!!
-      if(!missing(j)) stop("you cannot combine modes")
-      if(missing(i)){
-        col=1:nrOfCol
-      }else{
-        col=i
-      }
-      # check col
-      if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character") ){
-        stop(paste("col index should be a number or char, not a: ",class(col)))
-      }
-      if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
-        stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
-      }
-      if((class(col)=="numeric" | class(col)=="integer") & !all(is.element(col,1:nrOfCol))  ) {
-        stop(paste("column number(s) given that does not exist!\n number(s) given:",paste(col,collapse=", "),"\n max col number in data:",nrOfCol, sep=""))
-      }
-      # also change to names if numbers
-      if(class(col)!="character"){ 
-        col=x@.data$colNames[col]
-      }
-      # note i have to have cols as strings, as "well", "plate" columns will interfere with numbering
-      
-      #         # convert to numbers
-      #         if(class(col)=="character"){
-      #           # are all column names valid?
-      #           if(!all(col%in%x@.data$colNames)) stop("column names given that do not exist")
-      # #           stop(paste("columns given that do not exist:", paste(col, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
-      #           col=match(x@.data$colNames,col) # convert to numbers
-      #         }
-      #         # TODO: check stuff
-      #
-      
-#       print(col)
-#       print(names)
-      
-      # some checks
-      if(any(names%in%"")) stop("unspecified argument provided")
-      if(length(names)!=length(unique(names))) stop("you are only allowed to use arguments once")
-      if(!all(names%in%append(x@.data$colNames,c("well","plate","level")))) stop(paste("only allowed: ",paste(x@.data$colNames,sep=", "),", well and level",sep=""))
-      
-      # check level
-#       print(names)
-#       print(x@.data$colNames)
-      level=suppressWarnings(min(x@.data$colLevelNr[x@.data$colNames%in%names]))
-#       print(level)
-      if(level==Inf){ # min() returns Inf! because RRRRRRRrrrr....!!!
-        if("plate"%in%names){
-#           level=3
-          level=1
-        }else if("well"%in%names){
-#           level=2
-          level=1
-        }else stop("WEIRD!!! i should not have gotten here!!!")
-      }
-#       print(level)
-      if(missing(i)){
-        col=x@.data$colNames[x@.data$colLevelNr>=level]
-      }else{
-        #todo needs better error message
-        if(min(x@.data$colLevelNr[x@.data$colNames%in%col])<level)stop("level of selections do not match")
-        level=min(x@.data$colLevelNr[x@.data$colNames%in%col]) # can still be lower
-      }
-      if(!is.null(args$level)){
-        # convert level to nr if char
-        if(args$level=="character"){
-          if((length(args$level)>1)  || !all(args$level%in%x@.data$level)) stop("level needs to be 'plate','well' or 'measurement' (or 3, 2 or 1)")
-          args$level=x@.data$levelNr[x@.data$level==args$level]
-        }
-        if( (length(args$level)>1) || (!any(x@.data$levelNr==args$level)) ) stop("level needs to be 'plate','well' or 'measurement' (or 3, 2 or 1)")
-        if(level>args$level)stop("level parameter is to high for data selection")
-        level=args$level # can still be lower
-      }
-        
 
-
-# 
-#       if(!is.null(args$level)){
-#         if(is.character(args$level)){ # convert level to nr if char
-#           if( (length(args$level)>1) || (!any(x@.data$level==args$level)) ) stop("level needs to be 'plate','well' or 'measurement' (or 3, 2 or 1)")
-#           args$level=x@.data$levelNr[x@.data$level==args$level]
-#         }
-#         # check if level given 
-#         if(min(x@.data$colLevelNr[x@.data$colNames%in%names])>args$level) stop("data requested at a higher level then your selection")
-# 
-#       } else {
-# #         if(min(x@.data$colLevelNr[x@.data$colNames%in%names]))
-#       }
-    
-#       lowestLevel=min()
-#       if(!missing(i)){
-#         if(min(x@.data$colLevelNr[x@.data$colNames%in%col])>args$level) stop("data requested at a higher level then your selection")       
-#         if(min(x@.data$colLevelNr[x@.data$colNames%in%col])>min(x@.data$colLevelNr[x@.data$colNames%in%names]) ) stop("data requested at a higher level then your selection")
-#       }else{
-#         # make sure to only return the columns that are higher then then lowest level
-#         col=x@.data$colNames[x@.data$colLevelNr>=lowestLevel]
-#       }
-#       
-      #for now
-#       level=args$level # todo make sure its a number :)
-      mp=x[level=level]
-      size=x@.data$levelSize[level]
-      true=rep(T,size)
-      false=logical(size)
-      selection=true
-      for(i in 1:length(args)){
-        if(names[i]=="level"){
-          # already handled above
-        }else if(names[i]=="well"){
-#           print(class(args[[i]]))
-#           print(args[[i]])
-          if(class(args[[i]])=="character"){ # A11
-            coordinates=extractPlateCoordinates(args[[i]]) # A11 ->  A=1 , 11=11 ....
-            selection=selection&(mp$row%in%coordinates["row"])
-            selection=selection&(mp$col%in%coordinates["column"])
-          } else if((class(args[[i]])=="numeric")||(class(args[[i]])=="integer")){ # well numbers
-            if(level==1){ # measurement level
-              # todo for is very slow! so change this later!
-              wellNrs=double(size)
-              for(j in 1:x@.data$levelSize[2]){# for each well
-                wellNrs[getWellsMeasurementIndex(x,j)]=j
-              }
-              selection=selection&(wellNrs%in%args[[i]])
-            } else if(level==2){# well level
-              selection=selection&((1:size)%in%args[[i]])
-            }else stop("can't use well selection at plate level")
-          } else stop("weird well selection")
-        }else if(names[i]=="plate"){
-          if(level==1){# measurement level
-            plateNrs=double(size)
-            for(j in 1:x@.data$levelSize[3]){# for each plate
-              plateNrs[getPlatesMeasurementIndex(x,j)]=j
-            }
-            selection=selection&(plateNrs%in%args[[i]])
-          }else if (level==2){# well level
-            plateNrs=double(size)
-            for(j in 1:x@.data$levelSize[3]){# for each plate
-              plateNrs[getPlatesWellIndex(x,j)]=j
-            }
-            selection=selection&(plateNrs%in%args[[i]])
-          }else {# plate level
-            selection=selection&((1:size)%in%args[[i]])
-          }
-          
-        }else{ # its a col name
-          selection=selection&(mp[[names[i]]]%in%args[[i]])
-        }
-#         print(sum(selection))
-      }# for each selection column
-      #
-#       print(col)
-      return(mp[selection,col])
-    }else{
-      # normal mode!
-      # just level
-      if(length(args)==1 & !is.null(args$level)){
-        level=args$level
-      } else {
-        stop("invalid args given, only accepts i,j,level")
-      }
-    }
-  }
-  
-  # continue normal mode
-
+  #   print("nr of parameters..")
+  #   print(nargs())
+  #   print(length(args))
+  #   print(nargs()-length(args))
   #
   # data.frame has some special behaviour
   if(missing(i) & missing(j)){
-    # df[] and df[,]
-#     print("df[] or df[,]")
+    # mp[]<- and mp[,]<-
+    # print("mp[] or mp[,]")
     # return everything
     row=NULL
-    col=1:nrOfCol
-#     might want to return it in its original form...
-#     return(x)
+    col=NULL
   } else if(missing(i)){
-    # df[,1]
-#     print("df[,1]")
+    # mp[,1]<-
+    #     print("mp[,1]")
     row=NULL
     col=j
-  } else if( ( missing(j) & nargs()==2 ) | ( missing(j) & nargs()==3 & !is.null(level) ) ){
-    # df[1], df[1,level=...]
-#     print("df[1] or df[1,level=...]")
+  } else if(missing(j) & (nargs()-length(args))==3  )  {
+    # mp[1]<-
+    # print("mp[1]")
+    # the 3 are: the microplate,the column,the value
     # data.frame special case
     # should return column instead of row!
     row=NULL
     col=i
   } else if(missing(j)) {
-    # df[1,]
-#     print("df[1,]")
+    # mp[1,]<-
+    # print("mp[1,]")
     row=i
-    col=1:nrOfCol
+    col=NULL
   } else {
-    # df[1,2]
-#     print("df[1,2]")
+    # mp[1,2]<-
+    # print("mp[1,2]")
     row=i
     col=j
   }
   
-  # row logical to number conversion
-  if(is.logical(row)){
-    if(length(row)%in%x@.data$levelSize){
-      if(missing(j)){ # only select column of the right level
-        # only select cols that belong to that level
-        lowestLevel=which(length(row)==x@.data$levelSize)
-        col=col[x@.data$colLevelNr>=lowestLevel] # note that col will contain all cols, so i dont have to match
-      }
-      row=(1:length(row))[row]
-    } else {
-      stop(paste("row arugment was logical and not of the same length as any of the levels:", paste(x@.data$levelSize)))
-    }
-  }
-
-
-  # check col
-  if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character") ){
-    stop(paste("col index should be a number or char, not a: ",class(col)))
-  }
-
-  if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
-    stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
-  }
-  if((class(col)=="numeric" | class(col)=="integer") & !all(is.element(col,1:nrOfCol))  ) {
-    stop(paste("column number(s) given that does not exist!\n number(s) given:",paste(col,collapse=", "),"\n max col number in data:",nrOfCol, sep=""))
-  }
-
-  # todo add col number check..
-
-  # also change to names if numbers
-  if(class(col)!="character"){ 
-    col=x@.data$colNames[col]
-  }
-  # check lowest level
-  requestedColLevels=x@.data$colLevel[is.element(x@.data$colNames,col)]
-  lowestLevel=min(x@.data$levelNr[is.element(x@.data$level,requestedColLevels)])
-
-  if (!is.null(level)){
-    
-    highestLevel=max(x@.data$levelNr[is.element(x@.data$level,requestedColLevels)])
-    
-    if(class(level)=="character"){
+  
+  # if present convert level to number instead string
+  if(!is.null(args$level)){
+    # mp[...level=..]=value
+    # check if args level is 1,2,3 or "plate","well","measurement"
+    if(class(args$level)=="character"){
       # check if its a valid level name
-      if(any(is.element(x@.data$level,level))){
-        lowestLevel=x@.data$levelNr[x@.data$level==level]
-      } else {
+      if(any(is.element(x@.data$level,args$level))) {
+        args$level=x@.data$levelNr[x@.data$level==args$level]
+      }else {
         stop(paste("level given not in: ",paste(x@.data$level,collapse=" ")," given level: ",level,sep=""))
       }
-    } else if(class(level)=="numeric"| class(level)=="integer"){
-      # check if its a valid level
-      if(any(is.element(x@.data$levelNr,level))){
-        lowestLevel=level
-      } else {
-        stop(paste("level given not in: ",paste(x@.data$levelNr,collapse=" ")," given level: ",level,sep=""))
+    } else if(class(args$level)=="numeric"| class(args$level)=="integer"){
+      if(!any(is.element(x@.data$levelNr,args$level))){
+        stop(paste("level given not in: ",paste(x@.data$levelNr,collapse=" ")," given level: ",args$level,sep=""))
+        #         stop(paste("level is of invalid class expected level name: ",paste(x@.data$level, collapse=" "),"\n or level number: ",paste(x@.data$levelNr,collapse=" "),"\n but got data of class: ",class(args$level),sep=""))
       }
-    } else {
-      stop(paste("level is of invalid class expected level name: ",paste(x@.data$level, collapse=" "),"\n or level number: ",paste(x@.data$levelNr,collapse=" "),"\n but got data of class: ",class(level),sep=""))
-    }    
-    
-#     print(highestLevel)
-#     print(level)
-    
-    if(missing(i)){
-      # df[level=...]
-#       # return all data at that level anyways
-#       lowestLevel=level
-      # make sure to only return the columns that are higher then then lowest level
-      col=x@.data$colNames[x@.data$colLevelNr>=lowestLevel]
-#       print(col)
-#       print("HERE!!!")
-    }else if (highestLevel<lowestLevel){
-      stop(paste("data requested at a level higher then the colums allow"))
-    } else if (T){
-      
     }
   }
   
-  
-  # check row
-  nrOfRows=x@.data$levelSize[x@.data$levelNr==lowestLevel]
-  if(!is.null(row)){
-    if(!(class(row)=="numeric" | class(row)=="integer" | is.logical(row) )){
-      stop(paste("row index should be a number, not a: ",class(row)))
-    }  
-#     if(nrOfRows<max(row)){
-#       stop(paste("Data only has ",paste(nrOfRows, sep="",collapse=" ")," rows, you asked for row(s):",paste(row, sep="",collapse=" ")))
-#     }
-#     print(row)
-    if(max(row)>nrOfRows){
-      stop(paste("Asked for row number ",max(row)," while the level only has ",x@.data$levelSize[x@.data$levelNr==lowestLevel]," rows",sep=""))
+  # 2nd check level
+  level=NULL
+  # get col to colnames if possible...
+  if(!is.null(col)){
+    # check col
+    if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character") ){
+      stop(paste("col index should be a number or char, not a: ",class(col)))
     }
-    if(length(row)==0){
-      warning("length of row was 0, select atleast 1 or more rows")
-      return(NULL)
+    if((class(col)=="numeric" | class(col)=="integer") & !all(is.element(col,1:nrOfCol))  ) {
+      stop(paste("column number(s) given that does not exist!\n number(s) given:",paste(col,collapse=", "),"\n max col number in data:",nrOfCol, sep=""))
+    }
+    if(length(col)!=length(unique(col))){
+      stop("duplicate columns selected")
+    }
+    if (any(is.element(col,x@.data$reservedNames))){
+      stop(paste("The following names are reserved for other purposes!: ",paste(x@.data$reservedNames,sep=", ",collapse  = " "), sep=""))
     }
     
+    # also change to names if numbers
+    if(class(col)!="character"){ 
+      col=x@.data$colNames[col]
+    }
+    
+    # check if all levels are the same
+    if(length(unique(x@.data$colLevelNr[x@.data$colNames%in%col]))>1) stop("you can change data only at 1 level at a time")
+    # get the level
+    #     level=suppressWarnings(min(x@.data$colLevelNr[x@.data$colNames%in%col])) # not so much min, as any :P
+    
+    if(suppressWarnings(min(x@.data$colLevelNr[x@.data$colNames%in%col]))!=Inf){
+      level=suppressWarnings(min(x@.data$colLevelNr[x@.data$colNames%in%col]))
+      #       print(paste("min excisting level=",level))
+    }
+    if(!is.null(level)){
+      if(!is.null(args$level)){if(level!=args$level)stop("level parameter does not match column selection")}
+    }
+  } else { 
+    # col==NULL
   }
-#   row=unique(row)
-
-
-#   print(paste("returning data at min column level:",x@.data$level[x@.data$levelNr==lowestLevel]))
-#   print(col)
-  if(lowestLevel==3){ # plate
-    if(is.null(row)){
-      # whole column
-      return(as.data.frame(x@.data$plate, stringsAsFactors=F)[col])
-    } else {
-      # specific rows
-      return(as.data.frame(x@.data$plate, stringsAsFactors=F)[row,col])
-    }
-    
-  }else if (lowestLevel==2){ # well
-    # repeat plate for each well
-    #
-    # reserve space
-    returnValue=data.frame(matrix(nrow=if(!is.null(row)){length(row)}else{x@.data$levelSize[x@.data$levelNr==lowestLevel]},ncol=length(col)), stringsAsFactors=F)
-    colnames(returnValue)=col
-    for(colnr in 1:length(col)){ # for each column
-      level=x@.data$colLevel[x@.data$colNames==col[colnr]]
-      tempData=NULL
-      if(level=="plate"){
-        # repeat for each well
-        for(i in 1:length(x@.data$plate[[1]])){ # an append??? slow!!!
-          tempData=append(tempData,rep(x@.data$plate[[col[colnr]]][i],count(x@.data$well$plate)[[2]][i]))
-        }
-#         tempData=lapply(x@.data$data, function(x)returnValue=append(returnValue,x[[name]]))
-        tempData=c(tempData,recursive=T)        
-      }else if(level=="well"){
-        tempData=x@.data$well[[col[colnr]]]
+  
+  
+  if(!is.null(args$level)){
+    # mp[...level=..]=value
+    # check if level matches...
+    if(!is.null(level)){
+      if(args$level<level) {
+        stop("level parameter does not match column selection")
       }else{
-        stop("WEIRD ERROR !@#!")
+        level=args$level
       }
-      if(is.null(row)){
-        # whole column
-        returnValue[,colnr]=tempData
-      } else {
-        # specific rows
-        returnValue[,colnr]=tempData[row]
-      }
-      
+    }else{
+      level=args$level
     }
-    return(returnValue)
-    
-  }else if(lowestLevel==1){ # measurement
-#     print("here?")
-  #   print(proc.time())
-    #
-    # fetch the requested data
-    returnValue=data.frame(matrix(nrow=if(!is.null(row)){length(row)}else{nrOfRows},ncol=length(col)),stringsAsFactors = FALSE)
-    colnames(returnValue)=col
-    for(colnr in 1:length(col)){ # for each column
-      # always first fill tempdata with the whole column (at measurement level)
-      # then do the row select
-      level=x@.data$colLevel[x@.data$colNames==col[colnr]]
-      tempData=NULL
-      if(level=="measurement"){
-        # get whole column
-        tempData=x@.data$measurement[[col[colnr]]]
-      } else if(level=="well"){
-        # data at top level
-        #
-        # data has to be repeated for each measurement
-        for (i in 1:length(x@.data$well$measurement)){ # for each well
-          nrOfMeasurement=0
-          if(!is.na(x@.data$well$measurement[i+1])){
-            nrOfMeasurement=x@.data$well$measurement[[i+1]]-x@.data$well$measurement[[i]]
-          }else{
-            # last well
-            nrOfMeasurement=length(x@.data$measurement[[1]])-x@.data$well$measurement[[i]]+1
-          }
-          tempData=append(tempData,rep(x@.data$well[[col[colnr]]][[i]],nrOfMeasurement))
-        }
-      } else if(level=="plate"){
-        # repeat for eachWell*eachMeasurement
-        for(i in 1:x@.data$levelSize[3]){ # for each plate
-          # get the corresponding plate values
-          tempData=append(tempData,rep(x@.data$plate[[col[colnr]]][[i]],x@.data$measurementsPerPlate[[i]])) # for each measurement
-        }
-      } else {
-        stop("data at unknown level... this error means a coding error as it should have been cought above!")
-      }
-  
-      if(is.null(row)){
-        # whole column       
-        returnValue[,colnr]=tempData
-      } else {
-        # specific rows
-        returnValue[,colnr]=tempData[row]
-      }
-    }
-  return(returnValue)
   }
+  
+  # check selection
+  mp=NULL#same here :)
+  selection=NULL# make sure it is available on the right level only..
+  if(!length(args)==0){
+    # mp[... something=something]=value
+    names=names(args)
+    
+    # check if names
+    if(any(names%in%"")) stop("unspecified argument provided")
+    if(length(names)!=length(unique(names))) stop("you are only allowed to use arguments once")
+    if(!all(names%in%append(x@.data$colNames,c("well","plate","level")))) stop(paste("only allowed: ",paste(x@.data$colNames,sep=", "),", well and level",sep=""))
+    
+    # check if data selection is not < then level
+    if(!is.null(level)){
+      if(sum(names%in%c("well","plate","level"))!=length(names)){
+        if(min(x@.data$colLevel[x@.data$colNames%in%names])<level){
+          stop("..........................................")
+        }
+      }else{
+        # not sure.... yet...
+      }
+    } else {
+      # can still determine on level size?
+      stop("!!!!!!!!!!!!!!TODO!!!!!!!!!!!!1")
+    }
+    
+    mp=x[level=level]
+    size=x@.data$levelSize[level]
+    true=rep(T,size)
+    false=logical(size)
+    selection=true
+    
+    for(i in 1:length(args)){
+      if(names[i]=="level"){
+        # already handled above
+      }else if(names[i]=="well"){
+        #           print(class(args[[i]]))
+        #           print(args[[i]])
+        if(class(args[[i]])=="character"){ # A11
+          coordinates=extractPlateCoordinates(args[[i]]) # A11 ->  A=1 , 11=11 ....
+          selection=selection&(mp$row%in%coordinates["row"])
+          selection=selection&(mp$col%in%coordinates["column"])
+        } else if((class(args[[i]])=="numeric")||(class(args[[i]])=="integer")){ # well numbers
+          if(level==1){ # measurement level
+            # todo for is very slow! so change this later!
+            wellNrs=double(size)
+            for(j in 1:x@.data$levelSize[2]){# for each well
+              wellNrs[getWellsMeasurementIndex(mp,j)]=j
+            }
+            selection=selection&(wellNrs%in%args[[i]])
+          } else if(level==2){# well level
+            selection=selection&((1:size)%in%args[[i]])
+          }else stop("can't use well selection at plate level")
+        } else stop("weird well selection")
+      }else if(names[i]=="plate"){
+        if(level==1){# measurement level
+          plateNrs=double(size)
+          for(j in 1:x@.data$levelSize[3]){# for each plate
+            plateNrs[getPlatesMeasurementIndex(mp,j)]=j
+          }
+          selection=selection&(plateNrs%in%args[[i]])
+        }else if (level==2){# well level
+          plateNrs=double(size)
+          for(j in 1:x@.data$levelSize[3]){# for each plate
+            plateNrs[getPlatesWellIndex(mp,j)]=j
+          }
+          selection=selection&(plateNrs%in%args[[i]])
+        }else {# plate level
+          selection=selection&((1:size)%in%args[[i]])
+        }
+        
+      }else{ # its a col name
+        selection=selection&(mp[[names[i]]]%in%args[[i]])
+      }
+      #         print(sum(selection))
+    }# for each args/...
+  }# if each args/...
+  
+  
+  
+  # check row and make it a logical
+  if(!is.null(row)){
+    if(!(class(row)=="numeric" | class(row)=="integer" | class(row)=="logical")){
+      stop(paste("row index should be a number or a logical, not a: ",class(row)))
+    }
+    
+    #     if(is.logical(row)){
+    #       row=(1:length(row))[row] # convert it for now determine if it is valid later after level has been determined
+    #     }else{
+    #       if(length(row)!=length(unique(row))){
+    #         stop("duplicate rows selected")
+    #       }
+    #     }
+    
+    # todo: check length?
+    # todo: check selction length?
+    if(is.null(level))stop("can this happen??????????????")
+    
+    if(!is.logical(row)){
+      if(max(row)>x@.data$levelSize[level])stop("level and row numbers do not match")
+      row=(1:x@.data$levelSize[level])%in%row
+    }else{
+      if(length(row)>x@.data$levelSize[level])stop("level and row numbers do not match")
+    }
+    # row should be logical now
+  } else {
+    # rows were not provided
+    # mp[,col,...]=value
+    # mp[] mp[,]
+    if(is.null(level)){ # level was not yet set
+      #df[]???
+      level=1
+    }
+    #     print(level)
+    row=rep(T,x@.data$levelSize[level])
+  }
+  
+  if(!is.null(selection)){
+    selection=selection&row
+  }else{
+    selection=row
+  }
+  
+  if(is.null(col)){# if col is still NULL set it to everything at that level
+    col=x@.data$colNames[x@.data$colLevelNr>=level]
+  }
+  
+  if(is.null(mp)){
+    mp=x[level=level]
+  }
+  
+  print(selection)
+  print(row)
+  print(col)
 
-})
+  
+  return(mp[selection,col])
+}) 
+  
+  
+  
+  
+  
+  
+  
+#   # without "..." nargs() does not work! 
+#   # even if df[] you still get 2 args...  
+#   args <- list(...)
+#   level=NULL
+#   col=NULL
+#   row=NULL
+#   nrOfCol=length(x@.data$colNames) 
+#   
+#   
+#   # check for level in input
+#   if(!length(args)==0){
+#     names=names(args)
+#     if(any(names%in%append(x@.data$colNames,c("well","plate")))){
+#       # 2nd mode!!
+#       if(!missing(j)) stop("you cannot combine modes")
+#       if(missing(i)){
+#         col=1:nrOfCol
+#       }else{
+#         col=i
+#       }
+#       # check col
+#       if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character") ){
+#         stop(paste("col index should be a number or char, not a: ",class(col)))
+#       }
+#       if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
+#         stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
+#       }
+#       if((class(col)=="numeric" | class(col)=="integer") & !all(is.element(col,1:nrOfCol))  ) {
+#         stop(paste("column number(s) given that does not exist!\n number(s) given:",paste(col,collapse=", "),"\n max col number in data:",nrOfCol, sep=""))
+#       }
+#       # also change to names if numbers
+#       if(class(col)!="character"){ 
+#         col=x@.data$colNames[col]
+#       }
+#       # note i have to have cols as strings, as "well", "plate" columns will interfere with numbering
+#       
+#       #         # convert to numbers
+#       #         if(class(col)=="character"){
+#       #           # are all column names valid?
+#       #           if(!all(col%in%x@.data$colNames)) stop("column names given that do not exist")
+#       # #           stop(paste("columns given that do not exist:", paste(col, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
+#       #           col=match(x@.data$colNames,col) # convert to numbers
+#       #         }
+#       #         # TODO: check stuff
+#       #
+#       
+# #       print(col)
+# #       print(names)
+#       
+#       # some checks
+#       if(any(names%in%"")) stop("unspecified argument provided")
+#       if(length(names)!=length(unique(names))) stop("you are only allowed to use arguments once")
+#       if(!all(names%in%append(x@.data$colNames,c("well","plate","level")))) stop(paste("only allowed: ",paste(x@.data$colNames,sep=", "),", well and level",sep=""))
+#       
+#       # check level
+# #       print(names)
+# #       print(x@.data$colNames)
+#       level=suppressWarnings(min(x@.data$colLevelNr[x@.data$colNames%in%names]))
+# #       print(level)
+#       if(level==Inf){ # min() returns Inf! because RRRRRRRrrrr....!!!
+#         if("plate"%in%names){
+# #           level=3
+#           level=1
+#         }else if("well"%in%names){
+# #           level=2
+#           level=1
+#         }else stop("WEIRD!!! i should not have gotten here!!!")
+#       }
+# #       print(level)
+#       if(missing(i)){
+#         col=x@.data$colNames[x@.data$colLevelNr>=level]
+#       }else{
+#         #todo needs better error message
+#         if(min(x@.data$colLevelNr[x@.data$colNames%in%col])<level)stop("level of selections do not match")
+#         level=min(x@.data$colLevelNr[x@.data$colNames%in%col]) # can still be lower
+#       }
+#       if(!is.null(args$level)){
+#         # convert level to nr if char
+#         if(args$level=="character"){
+#           if((length(args$level)>1)  || !all(args$level%in%x@.data$level)) stop("level needs to be 'plate','well' or 'measurement' (or 3, 2 or 1)")
+#           args$level=x@.data$levelNr[x@.data$level==args$level]
+#         }
+#         if( (length(args$level)>1) || (!any(x@.data$levelNr==args$level)) ) stop("level needs to be 'plate','well' or 'measurement' (or 3, 2 or 1)")
+#         if(level>args$level)stop("level parameter is to high for data selection")
+#         level=args$level # can still be lower
+#       }
+#         
+# 
+# 
+# # 
+# #       if(!is.null(args$level)){
+# #         if(is.character(args$level)){ # convert level to nr if char
+# #           if( (length(args$level)>1) || (!any(x@.data$level==args$level)) ) stop("level needs to be 'plate','well' or 'measurement' (or 3, 2 or 1)")
+# #           args$level=x@.data$levelNr[x@.data$level==args$level]
+# #         }
+# #         # check if level given 
+# #         if(min(x@.data$colLevelNr[x@.data$colNames%in%names])>args$level) stop("data requested at a higher level then your selection")
+# # 
+# #       } else {
+# # #         if(min(x@.data$colLevelNr[x@.data$colNames%in%names]))
+# #       }
+#     
+# #       lowestLevel=min()
+# #       if(!missing(i)){
+# #         if(min(x@.data$colLevelNr[x@.data$colNames%in%col])>args$level) stop("data requested at a higher level then your selection")       
+# #         if(min(x@.data$colLevelNr[x@.data$colNames%in%col])>min(x@.data$colLevelNr[x@.data$colNames%in%names]) ) stop("data requested at a higher level then your selection")
+# #       }else{
+# #         # make sure to only return the columns that are higher then then lowest level
+# #         col=x@.data$colNames[x@.data$colLevelNr>=lowestLevel]
+# #       }
+# #       
+#       #for now
+# #       level=args$level # todo make sure its a number :)
+#       mp=x[level=level]
+#       size=x@.data$levelSize[level]
+#       true=rep(T,size)
+#       false=logical(size)
+#       selection=true
+# #       print(selection)
+#       for(i in 1:length(args)){
+#         if(names[i]=="level"){
+#           # already handled above
+# #           print("here???")
+#         }else if(names[i]=="well"){
+# #           print(class(args[[i]]))
+# #           print(args[[i]])
+#           if(class(args[[i]])=="character"){ # A11
+#             coordinates=extractPlateCoordinates(args[[i]]) # A11 ->  A=1 , 11=11 ....
+#             selection=selection&(mp$row%in%coordinates["row"])
+#             selection=selection&(mp$col%in%coordinates["column"])
+#           } else if((class(args[[i]])=="numeric")||(class(args[[i]])=="integer")){ # well numbers
+#             if(level==1){ # measurement level
+#               # todo for is very slow! so change this later!
+#               wellNrs=double(size)
+#               for(j in 1:x@.data$levelSize[2]){# for each well
+#                 wellNrs[getWellsMeasurementIndex(x,j)]=j
+#               }
+#               selection=selection&(wellNrs%in%args[[i]])
+#             } else if(level==2){# well level
+# #               print(paste("---------------",selection))
+#               selection=selection&((1:size)%in%args[[i]])
+# #               print(paste(selection,"---------------"))
+#             }else stop("can't use well selection at plate level")
+#           } else stop("weird well selection")
+#         }else if(names[i]=="plate"){
+#           if(level==1){# measurement level
+#             plateNrs=double(size)
+#             for(j in 1:x@.data$levelSize[3]){# for each plate
+#               plateNrs[getPlatesMeasurementIndex(x,j)]=j
+#             }
+#             selection=selection&(plateNrs%in%args[[i]])
+#           }else if (level==2){# well level
+#             plateNrs=double(size)
+#             for(j in 1:x@.data$levelSize[3]){# for each plate
+#               plateNrs[getPlatesWellIndex(x,j)]=j
+#             }
+#             selection=selection&(plateNrs%in%args[[i]])
+#           }else {# plate level
+#             selection=selection&((1:size)%in%args[[i]])
+#           }
+#           
+#         }else{ # its a col name
+#           selection=selection&(mp[[names[i]]]%in%args[[i]])
+#         }
+# #         print((selection))
+#       }# for each selection column
+#       #
+#       print(col)
+#       print(head(mp[]))
+#       print(mp[selection,col])
+#       return(mp[selection,col])
+#     }else{
+#       # normal mode!
+#       # just level
+#       if(length(args)==1 & !is.null(args$level)){
+#         level=args$level
+#       } else {
+#         stop("invalid args given, only accepts i,j,level")
+#       }
+#     }
+#   }
+#   
+#   # continue normal mode
+# 
+#   #
+#   # data.frame has some special behaviour
+#   if(missing(i) & missing(j)){
+#     # df[] and df[,]
+# #     print("df[] or df[,]")
+#     # return everything
+#     row=NULL
+#     col=1:nrOfCol
+# #     might want to return it in its original form...
+# #     return(x)
+#   } else if(missing(i)){
+#     # df[,1]
+# #     print("df[,1]")
+#     row=NULL
+#     col=j
+#   } else if( ( missing(j) & nargs()==2 ) | ( missing(j) & nargs()==3 & !is.null(level) ) ){
+#     # df[1], df[1,level=...]
+# #     print("df[1] or df[1,level=...]")
+#     # data.frame special case
+#     # should return column instead of row!
+#     row=NULL
+#     col=i
+#   } else if(missing(j)) {
+#     # df[1,]
+# #     print("df[1,]")
+#     row=i
+#     col=1:nrOfCol
+#   } else {
+#     # df[1,2]
+# #     print("df[1,2]")
+#     row=i
+#     col=j
+#   }
+#   
+#   # row logical to number conversion
+#   if(is.logical(row)){
+#     if(length(row)%in%x@.data$levelSize){
+#       if(missing(j)){ # only select column of the right level
+#         # only select cols that belong to that level
+#         lowestLevel=which(length(row)==x@.data$levelSize)
+#         col=col[x@.data$colLevelNr>=lowestLevel] # note that col will contain all cols, so i dont have to match
+#       }
+#       row=(1:length(row))[row]
+#     } else {
+#       stop(paste("row arugment was logical and not of the same length as any of the levels:", paste(x@.data$levelSize)))
+#     }
+#   }
+# 
+# 
+#   # check col
+#   if(!(class(col)=="numeric" | class(col)=="integer" | class(col)=="character") ){
+#     stop(paste("col index should be a number or char, not a: ",class(col)))
+#   }
+# 
+#   if(class(col)=="character" & length(wcol<-unique(col[!is.element(col,x@.data$colNames)]))>0 ) {
+#     stop(paste("columns given that do not exist:", paste(wcol, collapse=", "), "\n valid colnames are:",paste(x@.data$colNames,collapse=", "), sep=""))
+#   }
+#   if((class(col)=="numeric" | class(col)=="integer") & !all(is.element(col,1:nrOfCol))  ) {
+#     stop(paste("column number(s) given that does not exist!\n number(s) given:",paste(col,collapse=", "),"\n max col number in data:",nrOfCol, sep=""))
+#   }
+# 
+#   # todo add col number check..
+# 
+#   # also change to names if numbers
+#   if(class(col)!="character"){ 
+#     col=x@.data$colNames[col]
+#   }
+#   # check lowest level
+#   requestedColLevels=x@.data$colLevel[is.element(x@.data$colNames,col)]
+#   lowestLevel=min(x@.data$levelNr[is.element(x@.data$level,requestedColLevels)])
+# 
+#   if (!is.null(level)){
+#     
+#     highestLevel=max(x@.data$levelNr[is.element(x@.data$level,requestedColLevels)])
+#     
+#     if(class(level)=="character"){
+#       # check if its a valid level name
+#       if(any(is.element(x@.data$level,level))){
+#         lowestLevel=x@.data$levelNr[x@.data$level==level]
+#       } else {
+#         stop(paste("level given not in: ",paste(x@.data$level,collapse=" ")," given level: ",level,sep=""))
+#       }
+#     } else if(class(level)=="numeric"| class(level)=="integer"){
+#       # check if its a valid level
+#       if(any(is.element(x@.data$levelNr,level))){
+#         lowestLevel=level
+#       } else {
+#         stop(paste("level given not in: ",paste(x@.data$levelNr,collapse=" ")," given level: ",level,sep=""))
+#       }
+#     } else {
+#       stop(paste("level is of invalid class expected level name: ",paste(x@.data$level, collapse=" "),"\n or level number: ",paste(x@.data$levelNr,collapse=" "),"\n but got data of class: ",class(level),sep=""))
+#     }    
+#     
+# #     print(highestLevel)
+# #     print(level)
+#     
+#     if(missing(i)){
+#       # df[level=...]
+# #       # return all data at that level anyways
+# #       lowestLevel=level
+#       # make sure to only return the columns that are higher then then lowest level
+#       col=x@.data$colNames[x@.data$colLevelNr>=lowestLevel]
+# #       print(col)
+# #       print("HERE!!!")
+#     }else if (highestLevel<lowestLevel){
+#       stop(paste("data requested at a level higher then the colums allow"))
+#     } else if (T){
+#       
+#     }
+#   }
+#   
+#   
+#   # check row
+#   nrOfRows=x@.data$levelSize[x@.data$levelNr==lowestLevel]
+#   if(!is.null(row)){
+#     if(!(class(row)=="numeric" | class(row)=="integer" | is.logical(row) )){
+#       stop(paste("row index should be a number, not a: ",class(row)))
+#     }  
+# #     if(nrOfRows<max(row)){
+# #       stop(paste("Data only has ",paste(nrOfRows, sep="",collapse=" ")," rows, you asked for row(s):",paste(row, sep="",collapse=" ")))
+# #     }
+# #     print(row)
+#     if(max(row)>nrOfRows){
+#       stop(paste("Asked for row number ",max(row)," while the level only has ",x@.data$levelSize[x@.data$levelNr==lowestLevel]," rows",sep=""))
+#     }
+#     if(length(row)==0){
+#       warning("length of row was 0, select atleast 1 or more rows")
+#       return(NULL)
+#     }
+#     
+#   }
+# #   row=unique(row)
+# 
+# 
+# #   print(paste("returning data at min column level:",x@.data$level[x@.data$levelNr==lowestLevel]))
+# #   print(col)
+#   if(lowestLevel==3){ # plate
+#     if(is.null(row)){
+#       # whole column
+#       return(as.data.frame(x@.data$plate, stringsAsFactors=F)[col])
+#     } else {
+#       # specific rows
+#       return(as.data.frame(x@.data$plate, stringsAsFactors=F)[row,col])
+#     }
+#     
+#   }else if (lowestLevel==2){ # well
+#     # repeat plate for each well
+#     #
+#     # reserve space
+#     returnValue=data.frame(matrix(nrow=if(!is.null(row)){length(row)}else{x@.data$levelSize[x@.data$levelNr==lowestLevel]},ncol=length(col)), stringsAsFactors=F)
+#     colnames(returnValue)=col
+#     for(colnr in 1:length(col)){ # for each column
+#       level=x@.data$colLevel[x@.data$colNames==col[colnr]]
+#       tempData=NULL
+#       if(level=="plate"){
+#         # repeat for each well
+#         for(i in 1:length(x@.data$plate[[1]])){ # an append??? slow!!!
+#           tempData=append(tempData,rep(x@.data$plate[[col[colnr]]][i],count(x@.data$well$plate)[[2]][i]))
+#         }
+# #         tempData=lapply(x@.data$data, function(x)returnValue=append(returnValue,x[[name]]))
+#         tempData=c(tempData,recursive=T)        
+#       }else if(level=="well"){
+#         tempData=x@.data$well[[col[colnr]]]
+#       }else{
+#         stop("WEIRD ERROR !@#!")
+#       }
+#       if(is.null(row)){
+#         # whole column
+#         returnValue[,colnr]=tempData
+#       } else {
+#         # specific rows
+#         returnValue[,colnr]=tempData[row]
+#       }
+#       
+#     }
+#     return(returnValue)
+#     
+#   }else if(lowestLevel==1){ # measurement
+# #     print("here?")
+#   #   print(proc.time())
+#     #
+#     # fetch the requested data
+#     returnValue=data.frame(matrix(nrow=if(!is.null(row)){length(row)}else{nrOfRows},ncol=length(col)),stringsAsFactors = FALSE)
+#     colnames(returnValue)=col
+#     for(colnr in 1:length(col)){ # for each column
+#       # always first fill tempdata with the whole column (at measurement level)
+#       # then do the row select
+#       level=x@.data$colLevel[x@.data$colNames==col[colnr]]
+#       tempData=NULL
+#       if(level=="measurement"){
+#         # get whole column
+#         tempData=x@.data$measurement[[col[colnr]]]
+#       } else if(level=="well"){
+#         # data at top level
+#         #
+#         # data has to be repeated for each measurement
+#         for (i in 1:length(x@.data$well$measurement)){ # for each well
+#           nrOfMeasurement=0
+#           if(!is.na(x@.data$well$measurement[i+1])){
+#             nrOfMeasurement=x@.data$well$measurement[[i+1]]-x@.data$well$measurement[[i]]
+#           }else{
+#             # last well
+#             nrOfMeasurement=length(x@.data$measurement[[1]])-x@.data$well$measurement[[i]]+1
+#           }
+#           tempData=append(tempData,rep(x@.data$well[[col[colnr]]][[i]],nrOfMeasurement))
+#         }
+#       } else if(level=="plate"){
+#         # repeat for eachWell*eachMeasurement
+#         for(i in 1:x@.data$levelSize[3]){ # for each plate
+#           # get the corresponding plate values
+#           tempData=append(tempData,rep(x@.data$plate[[col[colnr]]][[i]],x@.data$measurementsPerPlate[[i]])) # for each measurement
+#         }
+#       } else {
+#         stop("data at unknown level... this error means a coding error as it should have been cought above!")
+#       }
+#   
+#       if(is.null(row)){
+#         # whole column       
+#         returnValue[,colnr]=tempData
+#       } else {
+#         # specific rows
+#         returnValue[,colnr]=tempData[row]
+#       }
+#     }
+#   return(returnValue)
+#   }
+# 
+# })
 
 
 #' [[]]
