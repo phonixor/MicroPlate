@@ -185,6 +185,9 @@ install.package = function(packageName=NULL){
 #' http://stackoverflow.com/questions/1472514/convert-light-frequency-to-rgb
 #' http://www.efg2.com/Lab/ScienceAndEngineering/Spectra.htm
 #' 
+#' @param nm the wavelength in nanometers
+#' @param gamma no idea just ingore
+#' @param intensityMax no idea just ignore
 #' 
 #' @export
 waveLengthToRGB = function(nm,gamma = 0.80,intensityMax = 255){
@@ -255,6 +258,7 @@ waveLengthToRGB = function(nm,gamma = 0.80,intensityMax = 255){
   return(c(red,green,blue))
 }
 
+
 #' rgbToString
 #' 
 #' converts: c(red,green,blue) # decimal numbers
@@ -263,6 +267,8 @@ waveLengthToRGB = function(nm,gamma = 0.80,intensityMax = 255){
 #' so rgbToString(c(255,255,255))
 #' returns "#ffffff"
 #' 
+#' @param rgb the 3 rgb values
+#'  
 #' @export
 rgbToString = function(rgb){
   
@@ -280,7 +286,11 @@ rgbToString = function(rgb){
   return(s)
 }
 
+
 #' waveLengthToRGBString
+#' 
+#' @param nm the wavelength in nanometers
+#' 
 #' @export
 waveLengthToRGBString=function(nm){
   return(rgbToString(waveLengthToRGB(nm)))

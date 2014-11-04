@@ -11,7 +11,7 @@
 #' calculate the avarage blanc
 #' @param mp is the microplate object
 #' @param column the column in which you define what blancs are
-#' @param the indicator in the column, usualy a string like "blanc" 
+#' @param indicator the indicator in the column, usualy a string like "blanc" 
 #' @param newVariable if you dont want the original values column to be overwritten, put a new column name here
 #' 
 #' TODO: check if start at the same time...
@@ -69,6 +69,7 @@ setMethod("removeAvarageBlancPerTime", signature(mp = "MicroPlate"), function( m
     
   }
 })
+
 
 #' plotWithErrorBars
 #' 

@@ -86,9 +86,9 @@ test_that("MicroPlate.R_[]_tests",{
   ### singel column
   # plate
   testData["newColumn"]=1
-  expect_equal(testData[["newColumn"]],1)
+  expect_equal(testData["newColumn"],1)
   testData["newColumn"]=2 # overwrite
-  expect_equal(testData[["newColumn"]],2)
+  expect_equal(testData["newColumn"],2)
   expect_error((testData["newColumn"]=1:24000))# try to add data at wrong level
   testData["newColumn"]=NULL # remove
   suppressWarnings(expect_true(is.null(testData$newColumn))) # does give a warning
@@ -126,7 +126,7 @@ test_that("MicroPlate.R_[]_tests",{
   expect_error((testData[5,"newColumn",level="well"]=5))
   testData=novostar.xls(file)
   testData[5,"newColumn",level="well"]=5
-  expect_equal(testData[[5,"newColumn"]],5)
+  expect_equal(testData[5,"newColumn"],5)
   testData[6,"newColumn",level=2]=50
   expect_error(testData[97,"newColumn"]) # out of range
   expect_error((testData[97,"newColumn"]=5)) # out of range assign
@@ -136,7 +136,7 @@ test_that("MicroPlate.R_[]_tests",{
   testData=novostar.xls(file)
   testData[15,"newColumn",level="measurement"]=5
   testData[18,"newColumn",level=1]=55
-  expect_equal(testData[[18,"newColumn"]],55)
+  expect_equal(testData[18,"newColumn"],55)
   expect_error(testData[24010,"newColumn"]) # out of range
   expect_error((testData[24001,"newColumn"]=5)) # out of range assign
   
@@ -219,10 +219,10 @@ test_that("MicroPlate.R_[]_tests",{
   expect_equal(testData[testData$plateName=="KineticData.xls","plateName"],"KineticData.xls")
   expect_error((testData[testData$plateName=="KineticData.xls"]="plateOfDoom"))# should give error as i do not specify what column 
   testData[testData$plateName=="KineticData.xls","plateName"]="plateOfDoom"
-  expect_equal(testData[["plateName"]],"plateOfDoom")
+  expect_equal(testData["plateName"],"plateOfDoom")
 
   # well
-  expect_warning((testData[testData$row>10,"plateName"]=="KineticData.xls")) # wrong level!... and nothing selected...
+  expect_error((testData[testData$row>10,"plateName"]=="KineticData.xls")) # wrong level!... and nothing selected...
   expect_error((testData[testData$row>2,"plateName"]=="KineticData.xls")) # wrong level!... 
   testData[testData$row>2,"content"]="NEW CONTENT!"
   expect_true(sum(testData$content=="NEW CONTENT!")==72) 
@@ -237,21 +237,21 @@ test_that("MicroPlate.R_[]_tests",{
   ### diffrent level then col selection
   # plate
   testData=novostar.xls(file)
-  expect_true(length(testData[["plateName",level="well"]])==96)
+  expect_true(length(testData["plateName",level="well"])==96)
   expect_error((testData["plateName",level="well"]=1:96))
   expect_error((testData[1:96,"plateName",level="well"]=1:96)) # say i want well and give well level data, but its a plate level column
-  expect_true(length(testData[["plateName",level=1]])==24000)
+  expect_true(length(testData["plateName",level=1])==24000)
   expect_error((testData["plateName",level="measurement"]=1:96))
 
   # well
-  expect_error(testData[["row",level=3]])
-  expect_true(length(testData[["row",level=1]])==24000)
-  expect_error((testData[["row",level="measurement"]]=1:96)) # say i want well but give measurement level
-  expect_error((testData[["row",level="measurement"]]=1:24000))
+  expect_error(testData["row",level=3])
+  expect_true(length(testData["row",level=1])==24000)
+  expect_error((testData["row",level="measurement"]=1:96)) # say i want well but give measurement level
+  expect_error((testData["row",level="measurement"]=1:24000))
 
   # measurement
-  expect_error(testData[["value",level=3]]) # data level lower then requested level
-  expect_error(testData[["value",level=2]]) 
+  expect_error(testData["value",level=3]) # data level lower then requested level
+  expect_error(testData["value",level=2]) 
   
   # restricted column names.. plate measurement etc...
   # plate
@@ -367,15 +367,17 @@ test_that("MicroPlate.R_[]_tests_2nd_mode",{
   expect_error((testData["content",well=10]=1:250))
   expect_error((testData["content",well=10,level="measurement"]=1:250))
   expect_true(all(dim(testData[well=10,level=2])==c(1,4)))
+
+  #   testData[well=10,level=2]=c(1,10,"lalalala") # does not work... should it?
+  #   expect_error(testData[well=100])#out of range ... dunno if i should throw an error or return nothing...
   
-#   expect_error(testData[well=100])#out of range ... dunno if i should throw an error or return nothing...
-  
-  testData[well=10,level=1] # works
-  testData[well=10,level=2] # does not work
-  testData[well=10,level=2]=c(1,10,"lalalala") # does not work... should it?
-  testData[,well=10,level=2]# does not work
-  testData["content",well=10,level=2] # does work!
-  testData[well=10]
+#   testData[well=10]
+#   testData[well=10,level=1] # works
+#   testData[well=10,level=2] # works
+#   testData[well=10,level=2]=c(1,10,"lalalala") # does not work... should it?
+#   testData[,well=10,level=2]# works
+#   testData["content",well=10,level=2] # works
+#   testData[well=10]
   
   
   
