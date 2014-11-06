@@ -1,22 +1,56 @@
+devAskNewPage(ask=F) # i decide where users wait... not plot...
 
-
-#todo figure out demo paths after install!
-
-# test data from Iraes Rabbers, TY!
+### import data
+# test data from: Filipe Branco dos Santos & Parsa Mahallehyousefi - TY!
+# 96 well plate, 250 measurements
 file=paste(path.package("microplate"),"/extdata/demo/project3/layout.xls",sep="")
 mp=readLayoutFile(file)
-
-
 # initial data inspection
-plotPerPlate(mp)
+plotPerPlate(mp) 
+readline("press any key to continue")
 
 ### remove blanc
-# get avarage (TODO per time point)
-averageBlanc=aggregate(value~time, data=mp[mp["basic",level="measurement"]=="blanc",] , mean)
+# plot blanc over time
+plot(mp[c("time","value"),basic="blanc"]) # WTF!
+
+
+
+nonBlancWellNrs=(1:96)[mp$basic=="blanc"]
+plot(xlab=c(min(mp$time),max(mp$value)),ylab=c(min()))
+for(i in nonBlancWellNrs){
+  xy=mp[c("time","value"),well=i]
+  lines(xy,type="l")
+}
+
+
+plot(mp[c("time","value"),basic="blanc",column=1])
+plot(mp[c("time","value"),basic="blanc",row=1])
+
+
+
+firstTimePoint=min(mp$time)
+
+
+
+# plot first time points
+install.package("scatterplot3d")
+selection=mp$time==min(mp$time) # select first time points
+scatterplot3d(x=mp[selection,"row",level=1],y=mp[selection,"column",level=1],z=mp[selection,"value"])
+plot(mp[selection,c("row","value")])
+plot(mp[selection,c("column","value")])
+
+
+
+
+# get blanc per time point
+
+averageBlanc=aggregate(value~time, data=mp[basic="blanc"] , mean)
 plot(averageBlanc)
 # remove blanc from data
 mp$corValue=mp$value-averageBlanc[match(mp$time, averageBlanc$time),2] # remove blanc
 mp$corValue[mp$corValue<0.008]=0.008  # minimal detection limit of platereader ... well least it removes negatives..
+readline("press any key to continue")
+
 
 ### growth curves
 wellSelection=mp$basic!="blanc"

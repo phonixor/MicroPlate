@@ -1,4 +1,4 @@
-# todo figure out demo paths after install!
+devAskNewPage(ask=F) # i decide where users wait... not plot...
 
 ### import data
 # test data from Iraes Rabbers, TY!
@@ -7,6 +7,7 @@ file=paste(path.package("microplate"),"/extdata/demo/project2/project2.ods",sep=
 mp=readLayoutFile(file)
 # show data
 plotPerPlate(mp)
+readline("press any key to continue")
 
 ### remove blanc
 # get avarage per time point
@@ -21,10 +22,13 @@ readline("press any key to continue")
 # next part will take a while
 wellSelection=mp$strain!="blanc"
 result=getGrowthRate(mp,wellSelection, valueColumn = "corValue") # call grofit package
-# mp will now have new values
+# creates a picture for each none blanc well
+# mp will now have new slope related values
+head(mp[level="well"])
+readline("press any key to continue")
 
 ### plot growth overview
-library(gplots)
+install.package("gplots")
 # 
 succinate=mp$Sugar=="succinate"
 glucose=mp$Sugar=="glucose"
@@ -35,9 +39,6 @@ LM3113_succinate_iptg_average=aggregate(grofit.growthRate~IPTG,data=mp[succinate
 LM3113_succinate_iptg_sd=aggregate(grofit.growthRate~IPTG,data=mp[succinate&LM3113,],sd)
 LM3118_succinate_iptg_average=aggregate(grofit.growthRate~IPTG,data=mp[succinate&LM3118,],mean)
 LM3118_succinate_iptg_sd=aggregate(grofit.growthRate~IPTG,data=mp[succinate&LM3118,],sd)
-# control
-LM3118_glucose_iptg_average=aggregate(grofit.growthRate~IPTG,data=mp[glucose&LM3118,],mean)
-LM3118_glucose_iptg_sd=aggregate(grofit.growthRate~IPTG,data=mp[glucose&LM3118,],sd)
 
 xlabelplot<-expression(paste("IPTG concentration (",mu,"M)"))
 ylabelplot<-expression(mu[max] ~ (h^{-1}))
@@ -47,7 +48,13 @@ plotCI(LM3113_succinate_iptg_average[[1]],LM3113_succinate_iptg_average[[2]],uiw
 plotCI(LM3118_succinate_iptg_average[[1]],LM3118_succinate_iptg_average[[2]],uiw=LM3118_succinate_iptg_sd[[2]],liw=LM3118_succinate_iptg_sd[[2]],add=TRUE,col='blue',err="y",gap=0,pch=15,type="l")
 title("Growth on succinate")
 
+readline("press any key to continue")
+
 # plotWithErrorBars(LM3113_succinate_iptg_average[[1]],LM3113_succinate_iptg_average[[2]],LM3113_succinate_iptg_sd[[2]])
+
+# control
+LM3118_glucose_iptg_average=aggregate(grofit.growthRate~IPTG,data=mp[glucose&LM3118,],mean)
+LM3118_glucose_iptg_sd=aggregate(grofit.growthRate~IPTG,data=mp[glucose&LM3118,],sd)
 
 plotCI(LM3118_glucose_iptg_average[[1]],LM3118_glucose_iptg_average[[2]],LM3118_glucose_iptg_sd[[2]],col='black')
 title("Growth on glucose")

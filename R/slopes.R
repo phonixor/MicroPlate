@@ -189,8 +189,8 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNr
   for(i in wellNrs){
     index=index+1
     selection=getWellsMeasurementIndex(self,i)
-    time=self[[timeColumn]][selection]
-    data=self[[valueColumn]][selection]
+    time=self[timeColumn][selection]
+    data=self[valueColumn][selection]
     result=gcFitSpline(time=time, data=data, control=settings)
     results[[index]]=result
     

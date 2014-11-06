@@ -46,8 +46,8 @@ setMethod("removeAvarageBlancPerTime", signature(mp = "MicroPlate"), function( m
     
 #     scatterplot3d(mp[["row",level=1]][firstTimePointSelection],mp[["column",level=1]][firstTimePointSelection],mp$value[firstTimePointSelection],type = "l")
 #     scatterplot3d(mp[["row",level=1]][firstTimePointSelection],mp[["column",level=1]][firstTimePointSelection],mp$value[firstTimePointSelection],type = "l")
-    row=mp[["row",level=1]][firstTimePointSelection]
-    column=mp[["column",level=1]][firstTimePointSelection]
+    row=mp["row",level=1][firstTimePointSelection]
+    column=mp["column",level=1][firstTimePointSelection]
     value=mp$value[firstTimePointSelection]
     persp(row,column,value)
     
@@ -69,6 +69,18 @@ setMethod("removeAvarageBlancPerTime", signature(mp = "MicroPlate"), function( m
     
   }
 })
+
+
+lalala=function(mp){
+  install.package("scatterplot3d")
+  selection=mp$time==min(mp$time)
+  scatterplot3d(x=mp[selection,"row",level=1],y=mp[selection,"column",level=1],z=mp[selection,"value"])
+                
+#                 highlight.3d=TRUE,
+#                 col.axis="blue", col.grid="lightblue",
+#                 main="scatterplot3d - 2", pch=20)
+  
+}
 
 
 #' plotWithErrorBars
