@@ -140,6 +140,15 @@ test_that("MicroPlate.R_[]_tests",{
   expect_error(testData[24010,"newColumn"]) # out of range
   expect_error((testData[24001,"newColumn"]=5)) # out of range assign
   
+  ### just row
+  # TODO increase this section!!!
+  # boolean select
+  testData=novostar.xls(file)
+  expect_true(all(testData[1,]==c(0.2663,0,600,1,1,"Sample X1","KineticData.xls"))) # first row
+  expect_true(all(dim(testData[testData$row==1,])==c(12,4))) # boolean selection
+  
+  
+  
   ### multiple column
   # plate
   testData=novostar.xls(file)

@@ -4,7 +4,7 @@
 
 
 # Read Data
-odsFile=paste(getwd(),"/tests/testdata/project/layout.ods",sep="")
+odsFile=paste(path.package("microplate"),"/extdata/demo/project/layout.ods",sep="")
 mp=readLayoutFile(odsFile)
 
 # initial data inspection

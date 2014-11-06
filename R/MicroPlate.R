@@ -364,7 +364,6 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
   col=NULL
   row=NULL
   
-
 #     print("nr of parameters..")
 #     print(nargs())
 #     print(length(args))
@@ -454,8 +453,8 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
     }
   } else { 
     # col==NULL
+    # level determined by other factors
   }
-  
   
   if(!is.null(args$level)){
     # mp[...level=..]=value
@@ -474,13 +473,33 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
   
   # check row and make it a logical
   if(!is.null(row)){
+    # mp[row,...]
     if(!(class(row)=="numeric" | class(row)=="integer" | class(row)=="logical")){
       stop(paste("row index should be a number or a logical, not a: ",class(row)))
     }
     
     # todo: check length?
     # todo: check selction length?
-    if(is.null(level))stop("can this happen??????????????")
+    if(is.null(level)){
+      # stop("can this happen??????????????") # it can!
+      # mp[row,]
+      if(is.null(col)){
+        # mp[row,]
+        if(class(row)=="logical"){
+          # check if it matches a specific level
+          if(length(row)%in%x@.data$levelSize){
+            level=min(x@.data$levelNr[x@.data$levelSize%in%length(row)])
+          } else {
+            stop(paste("boolean row selection did not match number of rows in any of the levels ",paste(x@.data$levelSize,sep=", ")))
+          }
+        }else{
+          # assume its measurement
+          level=1
+        }
+      }else{
+        stop("can this happen??????????????")
+      }
+    }
     
     if(!is.logical(row)){
       if(max(row)>x@.data$levelSize[level])stop("level and row numbers do not match")
@@ -1313,12 +1332,11 @@ setMethod("$<-", signature(x = "MicroPlate"), function(x, name, value) {
   # check if was an existing colname
   if(!any(x@.data$colNames==name)){
     updateMetaData(x)
-    print(paste("new column:",name," added at level:",level,sep=""))
+#     print(paste("new column:",name," added at level:",level,sep=""))
   }
 
   return(x)
 })
-
 
 
 #' overwrtie colnames

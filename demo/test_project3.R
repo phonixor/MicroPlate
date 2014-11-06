@@ -3,7 +3,7 @@
 #todo figure out demo paths after install!
 
 # test data from Iraes Rabbers, TY!
-file=paste(getwd(),"/tests/testdata/project3/layout.xls",sep="")
+file=paste(path.package("microplate"),"/extdata/demo/project3/layout.xls",sep="")
 mp=readLayoutFile(file)
 
 
@@ -21,8 +21,8 @@ mp$corValue[mp$corValue<0.008]=0.008  # minimal detection limit of platereader .
 ### growth curves
 wellSelection=mp$basic!="blanc"
 result=getGrowthRate(mp,wellSelection, valueColumn = "corValue") # call grofit package
-settings=grofit.control(log.y.gc=F,interactive=F)
-resultsNoLog=getGrowthRate(mp,wellSelection, valueColumn = "corValue", settings = settings)
+# settings=grofit.control(log.y.gc=F,interactive=F)
+# resultsNoLog=getGrowthRate(mp,wellSelection, valueColumn = "corValue", settings = settings)
 
 
 averagePerCondition=aggregate(grofit.growthRate~basic, data=mp[mp["basic"]!="blanc",] , mean)

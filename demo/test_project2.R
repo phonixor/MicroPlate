@@ -1,28 +1,27 @@
 # todo figure out demo paths after install!
 
+### import data
 # test data from Iraes Rabbers, TY!
-file=paste(getwd(),"/tests/testdata/project2/project2.ods",sep="")
+# 1 plate - 96 well - 250 measurements per well
+file=paste(path.package("microplate"),"/extdata/demo/project2/project2.ods",sep="")
 mp=readLayoutFile(file)
-
-
 # show data
 plotPerPlate(mp)
 
 ### remove blanc
-# get avarage (TODO per time point)
-averageBlanc=aggregate(value~time, data=mp[mp["strain",level="measurement"]=="blanc",] , mean)
+# get avarage per time point
+averageBlanc=aggregate(value~time, data=mp[strain="blanc"] , mean)
 plot(averageBlanc)
 mp$corValue=mp$value-averageBlanc[match(mp$time, averageBlanc$time),2] # remove blanc
 mp$corValue[mp$corValue<0.008]=0.008  # minimal detection limit of platereader ... well least it removes negatives..
-# 
-# # take natural logarithm of corOD/corOD(t=0) 
-# f$lncorOD <- log(f$corOD/f$corOD[1,])
+# the corrected values are added to mp under the new colname "corValue"
+readline("press any key to continue")
 
 ### growth curves
 # next part will take a while
-readline("press any key to continue")
 wellSelection=mp$strain!="blanc"
 result=getGrowthRate(mp,wellSelection, valueColumn = "corValue") # call grofit package
+# mp will now have new values
 
 ### plot growth overview
 library(gplots)

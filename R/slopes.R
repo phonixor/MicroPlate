@@ -200,7 +200,7 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNr
     A=result$parameters$A
     mu=result$parameters$mu
     integral=result$parameters$integral
-    plot(result$raw.time,result$raw.data)
+#     plot(result$raw.time,result$raw.data)
     
     
     score=result$spline$crit # is this the score??? need crappier data to test!!
@@ -231,9 +231,9 @@ setMethod("getGrowthRate", signature(self = "MicroPlate"), function(self, wellNr
     #     lines(c(7.13,12.3),c(0,3.045))
     #     lines(x=c(0,50),y=c(0,1))
     
-    lines( c(lambda,(lambda+(A/mu))) , c(0,A) )
+#     lines( c(lambda,(lambda+(A/mu))) , c(0,A) )
     
-    plot(time,data)
+#     plot(time,data)
     
     results[index]
   }
