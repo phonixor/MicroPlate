@@ -6,75 +6,61 @@ devAskNewPage(ask=F) # i decide where users wait... not plot...
 file=paste(path.package("microplate"),"/extdata/demo/project3/layout.xls",sep="")
 mp=readLayoutFile(file)
 # initial data inspection
-plotPerPlate(mp) 
+showWellNrs(mp)
+readline("press any key to continue")
+plotPerPlate(mp)
 readline("press any key to continue")
 
 ### remove blanc
 # plot blanc over time
 plot(mp[c("time","value"),basic="blanc"]) # WTF!
-
-
-
-nonBlancWellNrs=(1:96)[mp$basic=="blanc"]
-plot(xlab=c(min(mp$time),max(mp$value)),ylab=c(min()))
-for(i in nonBlancWellNrs){
-  xy=mp[c("time","value"),well=i]
-  lines(xy,type="l")
-}
-
-
-plot(mp[c("time","value"),basic="blanc",column=1])
-plot(mp[c("time","value"),basic="blanc",row=1])
-
-
-
-firstTimePoint=min(mp$time)
-
-
-
+readline("press any key to continue")
+# ok that was weird
+# lets investigate where this gap comes from
+# is it row based?
+plot(mp[c("time","value"),basic="blanc",column=1] , type="l")
+# ok that looks interestingre 
+readline("press any key to continue")
+# is it col based?
+plot(mp[c("time","value"),basic="blanc",row=1],type="l")
+# apperently not...
+readline("press any key to continue")
+#
+# lets look at the first time points of each well
 # plot first time points
 install.package("scatterplot3d")
 selection=mp$time==min(mp$time) # select first time points
-scatterplot3d(x=mp[selection,"row",level=1],y=mp[selection,"column",level=1],z=mp[selection,"value"])
-plot(mp[selection,c("row","value")])
-plot(mp[selection,c("column","value")])
+origenalPar=par()#next function is not implemented cleanly
+scatterplot3d(x=mp[selection,"row",level=1],y=mp[selection,"column",level=1],z=mp[selection,"value"],xlab = "row",ylab="col",zlab="OD")
+suppressWarnings(par(origenalPar)) # restore pars... this can give warnings for some reason..
+readline("press any key to continue")
+plot(mp[selection,c("row","value")],ylab="OD")
+readline("press any key to continue")
+plot(mp[selection,c("column","value")],ylab = "OD")
+readline("press any key to continue")
+# so apperently 
 
-
-
-
-# get blanc per time point
-
-averageBlanc=aggregate(value~time, data=mp[basic="blanc"] , mean)
-plot(averageBlanc)
-# remove blanc from data
-mp$corValue=mp$value-averageBlanc[match(mp$time, averageBlanc$time),2] # remove blanc
-mp$corValue[mp$corValue<0.008]=0.008  # minimal detection limit of platereader ... well least it removes negatives..
+#looking at a few wells
+plot(mp[c("time","value"),well=14])
+plot(mp[c("time","value"),well=16])
+plot(mp[c("time","value"),well=20])
+readline("press any key to continue")
+# its safe to take atleast the first 5 values
+firstFiveTimePoints=unique(mp$time)[1:5]
+medium=aggregate(value~well,data=mp[time=firstFiveTimePoints],mean)
+aggregate(value~well,data=mp[time=firstFiveTimePoints],sd) # not perfect but not horrible either
+mp$corValue=mp$value-medium$value[mp["well",level=1]] # remove medium
+mp[mp$corValue<0,"corValue"]=0  # remove negative values.. (there are none but still :) )
 readline("press any key to continue")
 
 
 ### growth curves
 wellSelection=mp$basic!="blanc"
 result=getGrowthRate(mp,wellSelection, valueColumn = "corValue") # call grofit package
-# settings=grofit.control(log.y.gc=F,interactive=F)
-# resultsNoLog=getGrowthRate(mp,wellSelection, valueColumn = "corValue", settings = settings)
+readline("press any key to continue")
 
-
+# plot per concentration
 averagePerCondition=aggregate(grofit.growthRate~basic, data=mp[mp["basic"]!="blanc",] , mean)
-plot(averagePerCondition,log="x")
-
-
-
-getSlope(mp,14,25,43)
-getSlope(mp,14,45,80)
-
-slopeGraph(mp,14)
-
-slopeGraph(mp,14,5)
-slopeGraph(mp,14,7)
-slopeGraph(mp,14,10)
-slopeGraph(mp,14,20)
-
-slopeGraph(mp,15)
-
-
+plot(averagePerCondition,log="x",xlab="concentration of x in mM",ylab="growthRate") 
+# a clear indication that i probably did not have proper values for my layout file
 

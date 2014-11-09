@@ -63,6 +63,19 @@ setMethod("lettersToNumber", signature(listOfStrings="character"), function( lis
   return(total)
 })
 
+#' resetPar
+#'
+#' if plots do weird stuff, call this function 
+#'
+#' @export
+resetPar <- function() {
+  dev.new()
+  op <- par(no.readonly = TRUE)
+  dev.off()
+  op
+  T
+}
+
 
 #' numberToLetters
 #' 

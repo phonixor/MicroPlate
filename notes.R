@@ -1,5 +1,21 @@
 
 
+
+getSlope(mp,14,25,43)
+getSlope(mp,14,45,80)
+
+slopeGraph(mp,14)
+
+slopeGraph(mp,14,5)
+slopeGraph(mp,14,7)
+slopeGraph(mp,14,10)
+slopeGraph(mp,14,20)
+
+slopeGraph(mp,15)
+
+
+
+
 test=function(...){
   args=list(...)
   print(args)

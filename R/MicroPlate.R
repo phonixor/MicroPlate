@@ -118,7 +118,7 @@ setMethod("initialize", "MicroPlate", function(.Object){
   #
   # need to get a way to get to the right level.... and back???
   # rownames are ignored...
-  .Object@.data$reservedNames=c("plate","well","measurement")
+  .Object@.data$reservedNames=c("plate","measurement") # well was in here... but its a lot less important now anyways...
   
   return(.Object)
 })
@@ -292,6 +292,7 @@ setMethod("updateMetaData", signature(self = "MicroPlate"), function(self){
   self@.data$level=append(self@.data$level,"well")
   self@.data$levelNr=append(self@.data$levelNr,2)
   self@.data$levelSize=append(self@.data$levelSize,length(self@.data$well[[1]]))
+  self@.data$well$well=1:self@.data$levelSize[2]# add/update well column
   self@.data$colNames=append(self@.data$colNames,names(self@.data$well)[!is.element(names(self@.data$well),c("measurement","plate"))])  
   self@.data$colLevel=append(self@.data$colLevel,rep("well",length(self@.data$well)-2)) # ignore col plate and measurement
   self@.data$colLevelNr=append(self@.data$colLevelNr,rep(2,length(self@.data$well)-2))
@@ -1447,7 +1448,7 @@ setMethod("print", signature(x = "MicroPlate"), function(x) {
 setGeneric("plotPerWell", function(self) standardGeneric("plotPerWell")) 
 #' @rdname plotPerWell
 setMethod("plotPerWell", signature(self = "MicroPlate"), function(self){
-#   origenalPar=par() # backup plotting pars
+  origenalPar=par() # backup plotting pars
   nrOfWells=self@.data$levelSize[2]
     
   for(i in 1:nrOfWells){
@@ -1474,9 +1475,9 @@ setMethod("plotPerWell", signature(self = "MicroPlate"), function(self){
 #   }
 # 
 #   par(origenalPar) # restore pars...
+  suppressWarnings(par(origenalPar)) # restore pars... this can give warnings for some reason..
 
-
-
+#   resetPar()
   return(self)
 })
 
@@ -1486,14 +1487,16 @@ setMethod("plotPerWell", signature(self = "MicroPlate"), function(self){
 #' @description
 #' TODO: add huge amounts of checks and stuff
 #' todo: what if not on measurement level?
-#' todo: other column selection
+#' todo: multiple wavelengths
 #' 
 #' @param self the MicroPlate object
+#' @param x the name of the x col, needs to be at measurement level for now
+#' @param y the name of the y col, needs to be at measurement level for now
 #' 
 #' @export
-setGeneric("plotPerPlate", function(self) standardGeneric("plotPerPlate")) 
+setGeneric("plotPerPlate", function(self, x="time",y="value") standardGeneric("plotPerPlate")) 
 #' @rdname plotPerPlate
-setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
+setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self, x="time",y="value"){
 #   dev.new()#dont use rstudio window
   origenalPar=par() # backup plotting pars
   nrOfPlates=self@.data$levelSize[3]
@@ -1527,8 +1530,8 @@ setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
 
     lastMeasurementNr=lastMeasurementNr+self@.data$measurementsPerPlate[plateNr]
     index=firstMeasurementNr:lastMeasurementNr
-    xlim=c(min(self@.data$measurement$time[index]),max(self@.data$measurement$time[index]))
-    ylim=c(min(self@.data$measurement$value[index]),max(self@.data$measurement$value[index]))
+    xlim=c(min(self@.data$measurement[[x]][index]),max(self@.data$measurement[[x]][index]))
+    ylim=c(min(self@.data$measurement[[y]][index]),max(self@.data$measurement[[y]][index]))
 
 #     print(paste("index: ",firstMeasurementNr,":",lastMeasurementNr,sep=""))
 #     print(paste("xlim:",xlim,"ylim",ylim,sep=" "))
@@ -1538,8 +1541,8 @@ setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
     for(i in wells){
       selection=getWellsMeasurementIndex(self,i)
 #       print(selection)
-      time=self@.data$measurement$time[selection]
-      value=self@.data$measurement$value[selection]
+      time=self@.data$measurement[[x]][selection]
+      value=self@.data$measurement[[y]][selection]
       plot(x=time,y=value,xlim=xlim,ylim=ylim, type="l")
 #       plot(x=time,y=value,main=self@.data$well$content[[i]]) 
     }#well
@@ -1549,6 +1552,7 @@ setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self){
   suppressWarnings(par(origenalPar)) # restore pars... this can give warnings for some reason..
 #   return(self)
 #   return()
+#   resetPar()
 })
 
 
@@ -1862,6 +1866,8 @@ setMethod("getPlatesWellIndex", signature(mp = "MicroPlate"), function(mp, plate
 #' @export
 #' @import shape
 showWellNrs=function(mp){
+  origenalPar=par() # backup plotting pars
+  
   firstWellNumber=0
   lastWellNumber=0
   
@@ -1913,6 +1919,8 @@ showWellNrs=function(mp){
       text(mp@.data$well$column[wellNr],nrOfRows-mp@.data$well$row[wellNr],wellNr,cex=0.7)
     }
   }
+  suppressWarnings(par(origenalPar)) # restore pars... this can give warnings for some reason..
+#   resetPar()
 }
 
 

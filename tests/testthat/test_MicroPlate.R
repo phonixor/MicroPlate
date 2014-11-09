@@ -47,7 +47,7 @@ test_that("MicroPlate.R_basic_tests",{
   
   ### dim
   #TODO level support?
-  expect_true(all(dim(testData)==c(24000,7)))
+  expect_true(all(dim(testData)==c(24000,8)))
 
   ### instance tests
   # change in one instance effectes the other
@@ -144,8 +144,8 @@ test_that("MicroPlate.R_[]_tests",{
   # TODO increase this section!!!
   # boolean select
   testData=novostar.xls(file)
-  expect_true(all(testData[1,]==c(0.2663,0,600,1,1,"Sample X1","KineticData.xls"))) # first row
-  expect_true(all(dim(testData[testData$row==1,])==c(12,4))) # boolean selection
+  expect_true(all(testData[1,]==c(0.2663,0,600,1,1,"Sample X1",1,"KineticData.xls"))) # first row
+  expect_true(all(dim(testData[testData$row==1,])==c(12,5))) # boolean selection
   
   
   
@@ -153,11 +153,11 @@ test_that("MicroPlate.R_[]_tests",{
   # plate
   testData=novostar.xls(file)
   testData$newColumn=1
-  testData[7:8]=matrix(1,1,2) # change 
-  expect_true(all(testData[7:8]==c(1,1)))
-  testData[7:8]=1:2 # change 
-  expect_true(all(testData[7:8]==1:2))
-  expect_error((testData[7:8]=1)) # you cant overwrite a block of data...
+  testData[8:9]=matrix(1,1,2) # change 
+  expect_true(all(testData[8:9]==c(1,1)))
+  testData[8:9]=1:2 # change 
+  expect_true(all(testData[8:9]==1:2))
+  expect_error((testData[8:9]=1)) # you cant overwrite a block of data...
   testData[c("plateName","evenNewerColumn")]=10:11 # 50% new!
   expect_true(all(testData[c("plateName","evenNewerColumn")]==10:11))
 #   testData[c("lalala","lalalala")]=10:11# 100% new!  # TODO MAKE THIS WORK!!
@@ -204,9 +204,9 @@ test_that("MicroPlate.R_[]_tests",{
   testData=novostar.xls(file)
   testData=merge(testData,testData,removeOther = F)
   testData["newPlateData"]=1:2
-  expect_true(all(testData[1:2,7:8][,2]==1:2))
-  testData[1:2,7:8]=matrix(5,2,2)
-  expect_true(all(testData[1:2,7:8]==5))
+  expect_true(all(testData[1:2,8:9][,2]==1:2))
+  testData[1:2,8:9]=matrix(5,2,2)
+  expect_true(all(testData[1:2,8:9]==5))
 
   # well
   testData=novostar.xls(file)
@@ -266,7 +266,7 @@ test_that("MicroPlate.R_[]_tests",{
   # plate
   expect_error((testData["plate"]=1))
   expect_error((testData["measurement"]=1))
-  expect_error((testData["well"]=1))
+#   expect_error((testData["well"]=1)) # might need to change this
   
 
 #   # test reading [
@@ -368,14 +368,14 @@ test_that("MicroPlate.R_[]_tests_2nd_mode",{
   testData=novostar.xls(file)
   
   ### well=
-  expect_true(all(dim(testData[well=10])==c(250,7)))
+  expect_true(all(dim(testData[well=10])==c(250,8)))
   expect_true(all(testData[well=10]==testData[well="A10"]))
-  expect_true(all(dim(testData[well=12:80])==c(17250 ,7)))
+  expect_true(all(dim(testData[well=12:80])==c(17250 ,8)))
   testData["content",well=10]="COOKIES!!!"
   expect_equal(testData["content",well=10],"COOKIES!!!")
   expect_error((testData["content",well=10]=1:250))
   expect_error((testData["content",well=10,level="measurement"]=1:250))
-  expect_true(all(dim(testData[well=10,level=2])==c(1,4)))
+  expect_true(all(dim(testData[well=10,level=2])==c(1,5)))
 
   #   testData[well=10,level=2]=c(1,10,"lalalala") # does not work... should it?
   #   expect_error(testData[well=100])#out of range ... dunno if i should throw an error or return nothing...
