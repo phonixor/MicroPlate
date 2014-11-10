@@ -37,7 +37,7 @@ test_that("readLayoutFile.R_basic_tests",{
   # test data first then add layout
 #   kdata="/../testdata/project/KineticData.xls"
 #   parser="..."
-  
+#   addLayoutDataToMicroPlate()
   # test multiple sheet layoutfiles
   
   

@@ -135,6 +135,9 @@ setMethod("initialize", "MicroPlate", function(.Object){
 #' @param other the other MicroPlate object
 #' @param removeOther default behaviour is to remove the other/2nd microplate given, put FALSE to stop this.
 #' 
+#' todo: make it possible to merge to plates which have the same column name at different levels. (make them all the lowest level)
+#' 
+#' 
 #' @export
 setGeneric("merge", function(self,other,removeOther=TRUE) standardGeneric("merge"))
 #' @rdname merge
