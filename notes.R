@@ -1,6 +1,13 @@
 
 
 
+
+
+
+
+
+
+
 # test data from: Filipe Branco dos Santos & Parsa Mahallehyousefi - TY!
 # 96 well plate, 250 measurements
 file=paste(path.package("microplate"),"/extdata/demo/project3/layout.xls",sep="")
@@ -16,7 +23,17 @@ suppressWarnings(par(origenalPar)) # restore pars... this can give warnings for 
 
 
 
+testData=NULL
+testData$measurement=1:10
+testData$Type=sample(1:3,10,replace=T)
+testData=data.frame(testData)
 
+with(testData, testData[Type == 2, "measurement"])
+
+
+
+system.time(replicate(10000,with(testData, testData[Type == 2, "measurement"])))
+system.time(replicate(10000,testData[testData$Type==2,"measurement"]))
 
 
 
