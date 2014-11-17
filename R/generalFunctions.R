@@ -185,7 +185,9 @@ install.package = function(packageName=NULL){
   if(gdata %in% rownames(installed.packages()) == FALSE) {
 #     message(paste("installing package:",sep=""))
     lib=.libPaths()[[1]]
-    install.packages(gdata,lib=lib) 
+    install.packages(gdata,lib=lib) # works in RStudio
+#     test RStudio Hack
+#     utils::install.packages(gdata,lib=lib) # build works, but check fails????
   }
   library(gdata,character.only = T)
 }

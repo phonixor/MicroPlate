@@ -1,6 +1,26 @@
 
 
 
+# test data from: Filipe Branco dos Santos & Parsa Mahallehyousefi - TY!
+# 96 well plate, 250 measurements
+file=paste(path.package("microplate"),"/extdata/demo/project3/layout.xls",sep="")
+mp=readLayoutFile(file)
+
+
+install.package("scatterplot3d")
+selection=mp$time==min(mp$time) # select first time points
+origenalPar=par()#next function is not implemented cleanly
+scatterplot3d(x=mp[selection,"row",level=1],y=mp[selection,"column",level=1],z=mp[selection,"value"],xlab = "row",ylab="col",zlab="OD")
+suppressWarnings(par(origenalPar)) # restore pars... this can give warnings for some reason..
+
+
+
+
+
+
+
+
+
 getSlope(mp,14,25,43)
 getSlope(mp,14,45,80)
 
