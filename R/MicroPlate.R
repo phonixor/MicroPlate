@@ -54,9 +54,6 @@ library(plyr)
 #   <environment: 0x537d728>
 #
 #
-# DONE: change data$levelNr from 3,2,1 to 1,2,3... 
-# TODO:this would allow me to remove code... ~~ partially done
-#
 
 
 #
@@ -68,9 +65,7 @@ library(plyr)
 #' all behaviour to acces the .data is overwritten to work with it...
 #' this means that once you have created an instance of a class you can copy it 
 #' and the data is still stored at only 1 location
-#' 
-#' columns 
-#' columns with list are recorded in their own lists
+#'  
 #' 
 #' 
 #' @export
@@ -1686,100 +1681,6 @@ setMethod("dim", signature(x = "MicroPlate"), function(x){
 })
 
 
-#' getGrowthRateOLD
-#' @rdname getGrowthRateOLD
-#' @description
-#' uses the grofit package to determine growth rate / doubling time???
-#' currently just returns the grofit results
-#' 
-#' TODO:
-#' default it uses time, value
-#' and it separetes it based on wavelength 
-#' 
-#' what if multiple wavelengths?
-#' 
-#' @param self the MicroPlate object
-#' @param wellNrs logical selection or well numbers - missing is all
-#' @param timeColumn column with time, the time point in all selected wells need to be equeal
-#' @param valueColumn column with the OD values
-#' @param experimentIdentifierColumn a column name of the microplate, gcFit needs this 
-#' @param additionalInformationColumn a column name of the microplate, gcFit needs this 
-#' @param concentrationOfSubstrateColumn a column name of the microplate, gcFit needs this 
-#' @param settings parameters passed to the grofit package see \code{\link[grofit]{grofit.control}}:
-#' 
-#' 
-#' @export
-#' @import grofit
-setGeneric("getGrowthRateOLD", function(self, wellNrs, timeColumn="time", valueColumn="value", experimentIdentifierColumn=NULL, additionalInformationColumn=NULL, concentrationOfSubstrateColumn=NULL, settings=NULL) standardGeneric("getGrowthRateOLD"))
-#' @rdname getGrowthRateOLD
-setMethod("getGrowthRateOLD", signature(self = "MicroPlate"), function(self, wellNrs, timeColumn="time", valueColumn="value", experimentIdentifierColumn=NULL, additionalInformationColumn=NULL, concentrationOfSubstrateColumn=NULL, settings=NULL){
-  # gcFit wants
-  # time
-  # data=data.frame with
-  # 1. column, character as an experiment identifier
-  # 2. column: character, additional information about respecting experiment
-  # 3. column: concentration of substrate of a compound under which the experiment is obtained
-  # 4.-(n+3). column: growth data corresponding to the time points in time.
-  
-  # $model.type
-  # [1] "logistic"     "richards"     "gompertz"     "gompertz.exp"
-
-  # maybe just do a gcSplineFit thingy for each well... that way i dont require as much stuff
-  if(is.null(settings)){
-    message("no settings provided using defaults: nboot.gc=100,interactive=F,suppress.messages=T,model.type=c('gompertz')")
-    settings=grofit.control(nboot.gc=100,interactive=F,suppress.messages=T,model.type=c("gompertz"))
-  }
-  
-  
-  ### check input
-  # wellNrs
-  if(is.logical(wellNrs)){
-    if(length(wellNrs)==self@.data$levelSize[2]){
-      wellNrs=(1:self@.data$levelSize[2])[wellNrs]
-    }else{
-      stop(paste("nr of wells: ",self@.data$levelSize[2] ," your selection: ",length(wellNrs), sep=""))
-    }
-  }
-  # columnSelectors
-  # todo: maybe remove additional columns... and do other grofit matches
-  columns=c(timeColumn,valueColumn,experimentIdentifierColumn,additionalInformationColumn,concentrationOfSubstrateColumn)
-  if(is.character(columns)){
-    if(!all(self@.data$colnames %in% self@.data$colNames)){
-      stop("not all columns exist")
-    }
-  }
-  # todo: add column level checks
-  # TODO: error not all wells have same time points... 
-  # todo: support for multiple wavelengths
-  
-  print(wellNrs)
-  nrOfWells=length(wellNrs)
-  nrOfTimePoints=length(getWellsMeasurementIndex(self,wellNrs[1]))# assume all wells have the same number of time points
-  
-  
-  
-  time=matrix(0,nrow = nrOfWells, ncol = nrOfTimePoints) 
-  data=data.frame(matrix(0,nrow = nrOfWells, ncol = nrOfTimePoints+3))
-  data[,1]=self@.data$well[[experimentIdentifierColumn]][wellNrs]
-  data[,2]=self@.data$well[[additionalInformationColumn]][wellNrs]
-  data[,3]=self@.data$well[[concentrationOfSubstrateColumn]][wellNrs]
-  index=0
-  for(i in wellNrs){# for each well
-    index=index+1
-    data[index,(4:(nrOfTimePoints+3))]=self@.data$measurement[[valueColumn]][getWellsMeasurementIndex(mp,i)]
-    time[index,1:nrOfTimePoints]=self@.data$measurement[[timeColumn]][getWellsMeasurementIndex(mp,i)]
-  }
-  # head(data)
-  
-  
-  result=gcFit(time=time, data=data, control=settings)
-  
-  # todo plot things?
-  
-  
-  return(result)
-})
-
 
 #' getWellsMeasurementIndex
 #' @rdname getWellsMeasurementIndex
@@ -1860,8 +1761,7 @@ setMethod("getPlatesWellIndex", signature(mp = "MicroPlate"), function(mp, plate
 #' plots the plates and shows the well nr...
 #' color is based on OD if present else its green
 #' 
-#' todo: change to white to bg
-#' todo: check wavelength properly
+#' todo: check wavelength properly per well
 #' todo: decide if multiple wavelengths (multiple plots)
 #' todo: decide if i need to change maxOD per plate(as it is now) or global... 
 #' todo: test for bigger other than 96 well plates. 
