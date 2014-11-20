@@ -23,7 +23,7 @@ test_that("readLayoutFile.R_basic_tests",{
   expect_true(  all(dim(ods)==c(24000,13))  )
   
   # test merge
-  ods=merge(ods,xls) # note that by default the 2nd microplate will be added to the first, and the 2nd will then be deleted
+  ods=merge(ods,xls) # note that by default the 2nd MicroPlate will be added to the first, and the 2nd will then be deleted
   expect_false(exists("xls"))
   expect_true(all(dim(ods[level=3])==c(2,4)))
   expect_true(all(dim(ods[level=2])==c(192,10)))

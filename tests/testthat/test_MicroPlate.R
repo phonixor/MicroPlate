@@ -1,5 +1,5 @@
 # load the package
-library(microplate)
+library(MicroPlate)
 library(testthat)
 library(plyr)
 #
@@ -344,10 +344,10 @@ test_that("MicroPlate.R_ stress/compare tests",{
   # its probably a bad idea to keep this in the stress test
   # ... stress unit test sounds like a silly idea in general..
   
-  # file=paste(getwd(),"/tests/testdata/parsers/novostar.xls/KineticData.xls",sep="")
-  file=paste(getwd(),"/../testdata/parsers/novostar.xls/KineticData.xls",sep="")
-  testData=novostar.xls(file)
-  
+#   # file=paste(getwd(),"/tests/testdata/parsers/novostar.xls/KineticData.xls",sep="")
+#   file=paste(getwd(),"/../testdata/parsers/novostar.xls/KineticData.xls",sep="")
+#   testData=novostar.xls(file)
+#   
   
   
   ### OLD

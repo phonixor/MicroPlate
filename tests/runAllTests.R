@@ -1,7 +1,7 @@
 
 library(testthat)
 print("running all tests")
-test_check("microplate") # this works with check() it does not work by ctrl+enter :(
+test_check("MicroPlate") # this works with check() it does not work by ctrl+enter :(
 
 # testPath=paste(getwd(),"/tests/testthat/",sep="")
 # codePath=paste(getwd(),"/R/",sep="")

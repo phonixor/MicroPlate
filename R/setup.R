@@ -46,7 +46,7 @@ setup = function(){
   # check the current OS/Environment to determine which packages are used to load
   # 
   message("************************")
-  message("*** microplate setup ***")
+  message("*** MicroPlate setup ***")
   message("************************")
   #
   # ODS
@@ -56,7 +56,7 @@ setup = function(){
   .readODSWorksForODS<<-tryCatch({
     install.package("readODS")
     
-    file=paste(path.package("microplate"),"/extdata/test.ods",sep="")
+    file=paste(path.package("MicroPlate"),"/extdata/test.ods",sep="")
     read.ods(file)
     
     message(" + readODS package works for ODS files")
@@ -79,7 +79,7 @@ setup = function(){
   .gdataWorksForXLSX<<-tryCatch({
     install.package("gdata")
     
-    file=paste(path.package("microplate"),"/extdata/test.xlsx",sep="")
+    file=paste(path.package("MicroPlate"),"/extdata/test.xlsx",sep="")
     
     # warnings are still thrown even in a try catch... FUCKING R!
     gdata::read.xls(file, stringsAsFactors=FALSE, header=FALSE)
@@ -100,7 +100,7 @@ setup = function(){
   .xlsxWorksForXLSX<<-tryCatch({
     install.package("xlsx")
     
-    file=paste(path.package("microplate"),"/extdata/test.xlsx",sep="")
+    file=paste(path.package("MicroPlate"),"/extdata/test.xlsx",sep="")
     xlsx::read.xlsx(file, sheetIndex=1, stringsAsFactors=FALSE, header=FALSE)
     
     message(" + xlsx works for .xlsx files on this system.")
@@ -114,7 +114,7 @@ setup = function(){
   .openxlsxWorksForXLSX<<-tryCatch({
     install.package("openxlsx")
     
-    file=paste(path.package("microplate"),"/extdata/test.xlsx",sep="")
+    file=paste(path.package("MicroPlate"),"/extdata/test.xlsx",sep="")
     openxlsx::read.xlsx(file,colNames=F)
     
     message(" + openxlsx works for .xlsx files on this system.")
@@ -137,7 +137,7 @@ setup = function(){
   .gdataWorksForXLS<<-tryCatch({
     install.package("gdata")
     
-    file=paste(path.package("microplate"),"/extdata/test.xls",sep="")
+    file=paste(path.package("MicroPlate"),"/extdata/test.xls",sep="")
     gdata::read.xls(file, stringsAsFactors=FALSE, header=FALSE)
     
     message(" + gdata works for .xls files on this system.")
@@ -151,7 +151,7 @@ setup = function(){
   .xlsxWorksForXLS<<-tryCatch({
     install.package("xlsx")
     
-    file=paste(path.package("microplate"),"/extdata/test.xls",sep="")
+    file=paste(path.package("MicroPlate"),"/extdata/test.xls",sep="")
     xlsx::read.xlsx(file, sheetIndex=1, stringsAsFactors=FALSE, header=FALSE)
     
     message(" + xlsx works for .xls files on this system.")
@@ -166,7 +166,7 @@ setup = function(){
     warning("no packages work on your system for .xls files, packages tried: gdata, xlsx")
   }
   message("*********************************")
-  message("*** finished microplate setup ***")
+  message("*** finished MicroPlate setup ***")
   message("*********************************")
   message("results:")
   # ODS

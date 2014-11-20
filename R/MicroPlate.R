@@ -1,4 +1,6 @@
-#
+# this is the main file for interacting with microplate object
+# they are created by parsers
+# 
 # Data stores everything!
 # hopefully on different levels...
 # 
@@ -300,8 +302,12 @@ setMethod("updateMetaData", signature(self = "MicroPlate"), function(self){
   self@.data$colLevelNr=append(self@.data$colLevelNr,rep(3,length(self@.data$plate)))
   # wellsPerPlate
   self@.data$wellsPerPlate=plyr::count(self@.data$well$plate)[[2]]
-  # measurementsPerPlate
   
+  # measurementsPerWell
+  self@.data$measurementsPerWell= ( c(self@.data$well$measurement[-1],(self@.data$levelSize[1]+1)) - self@.data$well$measurement )
+  
+  
+  # measurementsPerPlate
   currentWellNr=1
   nextWellNr=1
   self@.data$measurementsPerPlate=NULL
@@ -551,57 +557,51 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
     returnValue=data.frame(matrix(nrow=x@.data$levelSize[level],ncol=length(bothCol)), stringsAsFactors=F)
     colnames(returnValue)=bothCol
     for(colnr in 1:length(bothCol)){ # for each column
-      tempData=NULL
       if(x@.data$colLevel[x@.data$colNames==bothCol[colnr]]=="plate"){
-        # repeat for each well
-        for(i in 1:length(x@.data$plate[[1]])){ # an append??? slow!!!
-          tempData=append(tempData,rep(x@.data$plate[[bothCol[colnr]]][i],count(x@.data$well$plate)[[2]][i]))
+        start=1
+        end=0
+        for(i in 1:length(x@.data$plate[[1]])){ # for each plate
+          # repeat the plate information for each well
+          end=end+x@.data$wellsPerPlate[i]
+          returnValue[start:end,colnr]=x@.data$plate[[bothCol[colnr]]]
+          start=end+1
         }
-#         tempData=lapply(x@.data$data, function(x)returnValue=append(returnValue,x[[name]]))
-        tempData=c(tempData,recursive=T)        
       }else if(x@.data$colLevel[x@.data$colNames==bothCol[colnr]]=="well"){
-        tempData=x@.data$well[[bothCol[colnr]]]
+        returnValue[colnr]=x@.data$well[[bothCol[colnr]]]
       }else{
         stop("WEIRD ERROR !@#!")
       }
-      returnValue[,colnr]=tempData
     }
   }else if(level==1){ # measurement
     #
     # fetch the requested data
+    
+    wellToMeasurement=rep(1:x@.data$levelSize[2],x@.data$measurementsPerWell)
+    
     returnValue=data.frame(matrix(nrow=x@.data$levelSize[level],ncol=length(bothCol)),stringsAsFactors = FALSE)
     colnames(returnValue)=bothCol
     for(colnr in 1:length(bothCol)){ # for each column
       # always first fill tempdata with the whole column (at measurement level)
       # then do the row select
-      tempData=NULL
       if(x@.data$colLevel[x@.data$colNames==bothCol[colnr]]=="measurement"){
         # get whole column
-        tempData=x@.data$measurement[[bothCol[colnr]]]
+        returnValue[colnr]=x@.data$measurement[[bothCol[colnr]]]
       } else if(x@.data$colLevel[x@.data$colNames==bothCol[colnr]]=="well"){
         # data at top level
         #
-        # data has to be repeated for each measurement
-        for (i in 1:length(x@.data$well$measurement)){ # for each well
-          nrOfMeasurement=0
-          if(!is.na(x@.data$well$measurement[i+1])){
-            nrOfMeasurement=x@.data$well$measurement[[i+1]]-x@.data$well$measurement[[i]]
-          }else{
-            # last well
-            nrOfMeasurement=length(x@.data$measurement[[1]])-x@.data$well$measurement[[i]]+1
-          }
-          tempData=append(tempData,rep(x@.data$well[[bothCol[colnr]]][[i]],nrOfMeasurement))
-        }
+        returnValue[colnr]=x@.data$well[[bothCol[colnr]]][wellToMeasurement]
       } else if(x@.data$colLevel[x@.data$colNames==bothCol[colnr]]=="plate"){
         # repeat for eachWell*eachMeasurement
+        end=0
         for(i in 1:x@.data$levelSize[3]){ # for each plate
           # get the corresponding plate values
-          tempData=append(tempData,rep(x@.data$plate[[bothCol[colnr]]][[i]],x@.data$measurementsPerPlate[[i]])) # for each measurement
+          start=x@.data$firstMeasurmentRowNrPerPlate[i]
+          end=end+x@.data$measurementsPerPlate[i]
+          returnValue[start:end,colnr]=x@.data$plate[[bothCol[colnr]]][[i]]
         }
       } else {
         stop("data at unknown level... this error means a coding error as it should have been cought above!")
       }
-      returnValue[,colnr]=tempData
     }
   }
   

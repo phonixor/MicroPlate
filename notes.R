@@ -1,10 +1,33 @@
 
 
+test=data.frame(x=ceiling((1:100)/10))
+test$y=1:10
+test$value=test$y+1
+test
+
+
+testlm=lm(value~x+y,test)
+testlm
 
 
 
 
 
+file=paste(getwd(),"/tests/testdata/parsers/novostar.xls/KineticData.xls",sep="")
+# file=paste(getwd(),"/../testdata/parsers/novostar.xls/KineticData.xls",sep="")
+testData=novostar.xls(file)
+merge(testData,testData,removeOther = F)
+tdf=testData[]
+
+system.time(testData[]) # old: 0.08 // new: 0.48 0.22 // 0.03-0.04
+system.time(tdf) # 0
+
+system.time(replicate(100,testData[])) # old: 8- 10 // new: 14-17 // 5
+system.time(replicate(100,tdf[])) #0.01 - 0 
+
+system.time(replicate(100,testData[level=2])) # old: 0.22 // new: 0.22 // 0.08
+
+system.time(replicate(100,testData[level=3])) # old: 0.03 // new: 0.03
 
 
 
@@ -30,10 +53,9 @@ testData=data.frame(testData)
 
 with(testData, testData[Type == 2, "measurement"])
 
-
-
 system.time(replicate(10000,with(testData, testData[Type == 2, "measurement"])))
 system.time(replicate(10000,testData[testData$Type==2,"measurement"]))
+
 
 
 

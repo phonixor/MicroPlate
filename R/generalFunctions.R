@@ -81,7 +81,7 @@ resetPar <- function() {
 #' 
 #' @keywords internal
 #' @description
-#' converts numbers to microplate row names and Excel & ODS column names
+#' converts numbers to MicroPlate row names and Excel & ODS column names
 #' 
 #' @param listOfNumbers the numbers you want to convert to chars
 #' @details

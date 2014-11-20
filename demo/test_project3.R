@@ -3,7 +3,7 @@ devAskNewPage(ask=F) # i decide where users wait... not plot...
 ### import data
 # test data from: Filipe Branco dos Santos & Parsa Mahallehyousefi - TY!
 # 96 well plate, 250 measurements
-file=paste(path.package("microplate"),"/extdata/demo/project3/layout.xls",sep="")
+file=paste(path.package("MicroPlate"),"/extdata/demo/project3/layout.xls",sep="")
 mp=readLayoutFile(file)
 # initial data inspection
 showWellNrs(mp)

@@ -31,7 +31,7 @@
   temperature=table[[2]]
   data=table[3:ncol(table)]
   
-  # create a proper microplate object
+  # create a proper MicroPlate object
   l=list()
   
   m=list()
