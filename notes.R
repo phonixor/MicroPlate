@@ -1,3 +1,252 @@
+###########################################################
+# my own growth rate...
+file=paste(getwd(),"/tests/testdata/layout-Gal.xls",sep="")
+mp=readLayoutFile(file)
+file=paste(path.package("MicroPlate"),"/extdata/demo/project3/layout.xls",sep="")
+mp=readLayoutFile(file)
+
+firstFiveTimePoints=unique(mp$time)[1:5]
+medium=aggregate(value~well,data=mp[time=firstFiveTimePoints],mean)
+aggregate(value~well,data=mp[time=firstFiveTimePoints],sd) # not perfect but not horrible either
+mp$corValue=mp$value-medium$value[mp["well",level=1]] # remove medium
+mp[mp$corValue<=0,"corValue"]=0.0001  # remove negative values.. (there are none but still :) )
+
+# min(mp["corValue",well=14])
+# max(mp["corValue",well=14])
+
+getGrowthRate(values=mp["corValue",well=14],time=mp["time",well=14])
+
+test=getGrowthRate(values=mp["corValue",well=14],time=mp["time",well=14],nrOfTimePointsForSlope = "10%")
+
+wellSelection=mp$basic!="blanc"
+result=getGrowthRates(mp,wellSelection, valueColumn = "corValue",nrOfTimePointsForSlope = "10%") # call grofit package
+
+max(test[,"r2"], na.rm=TRUE)
+max(test[,"slope"], na.rm=TRUE)
+
+test
+
+head(test)
+
+test2=test
+lalala=sort(test[,"slope"],decreasing=T, na.last=T ,index.return=T)
+lalala=sort(test[,"slope"],decreasing=T, index.return=T)
+length(lalala$ix)
+
+
+
+# test2=data.frame(test2)
+sort(test2,)
+
+
+getSlope(x=mp["time",well=14],y=mp["corValue",well=14])
+
+
+
+
+
+
+
+#######################################################
+# import data:
+file=paste(getwd(),"/tests/testdata/layout-Gal.xls",sep="")
+mp=readLayoutFile(file)
+
+plotPerPlate(mp)
+# plot blancs:
+plot(mp[c("time","value"),basic="blanc"])
+
+#
+install.package("scatterplot3d")
+selection=mp$time==min(mp$time) # select first time points
+origenalPar=par()#next function is not implemented cleanly
+scatterplot3d(x=mp[selection,"column",level=1],y=mp[selection,"row",level=1],z=mp[selection,"value"],xlab = "column",ylab="row",zlab="OD")
+suppressWarnings(par(origenalPar)) # restore pars... this can give warnings for some reason..
+
+
+# plot blanc rows
+plot(mp[c("time","value"),row=c(1,8)],type="l")
+plot(mp[c("time","value"),row=c(1)],type="l")
+plot(mp[c("time","value"),row=c(8)],type="l")
+plot(mp[c("time","value"),column=c(1,12)],type="l")
+plot(mp[c("time","value"),column=c(1)],type="l")
+plot(mp[c("time","value"),column=c(12)],type="l")
+# very weird time behaviour
+
+linearFitFirstTimePoints=lm(value~row+column,data = mp[c("row","column","value"),time=0])
+linearFitFirstTimePoints$coefficients
+
+test=mp[c("row","column","value"),time=0]
+test$corValue=test$value-linearFitFirstTimePoints$fitted.values
+test
+
+origenalPar=par()#next function is not implemented cleanly
+scatterplot3d(test[c("row","column","corValue")],xlab = "column",ylab="row",zlab="OD")
+suppressWarnings(par(origenalPar)) # restore pars... this can give warnings for some reason..
+
+
+# ok this is the same as
+linearFitFirstTimePoints$fitted.values
+linearFitFirstTimePoints$coefficients[1]+(mp["row",level=1]*linearFitFirstTimePoints$coefficients[2])+(mp["column",level=1]*linearFitFirstTimePoints$coefficients[3])
+
+mp$corValue=mp$value-(linearFitFirstTimePoints$coefficients[1]+(mp["row",level=1]*linearFitFirstTimePoints$coefficients[2])+(mp["column",level=1]*linearFitFirstTimePoints$coefficients[3]))
+
+plot(mp[c("time","value"),basic="blanc"])
+plot(mp[c("time","corValue"),basic="blanc"])
+########## no a perfect match yet...
+
+
+lfftp=lm(value~row+column,data = mp[c("row","column","value"),time=(unique(mp$time)[1:40])])
+lfftp$coefficients
+mp$corValue=mp$value-(lfftp$coefficients[1]+(mp["row",level=1]*lfftp$coefficients[2])+(mp["column",level=1]*lfftp$coefficients[3]))
+
+plot(mp[c("time","value"),basic="blanc"])
+plot(mp[c("time","corValue"),basic="blanc"])
+
+
+
+#########################################################
+test grofit log
+
+resetPar()
+
+# file=paste(path.package("MicroPlate"),"/extdata/demo/project/KineticData.xls",sep="")
+# mp=novostar.xls(file)
+file=paste(path.package("MicroPlate"),"/extdata/demo/project3/layout.xls",sep="")
+mp=readLayoutFile(file)
+
+#get the avarage first
+medium=aggregate(value~well,mp[c("well","value"),time=(unique(mp$time)[1:5])],mean)
+medium
+mp$corValue=mp$value-medium$value[mp["well",level=1]] # remove medium
+mp[mp$corValue<0,"corValue"]=0.0001  # remove negative values.. (there are none but still :) ) also no 0 else log will die
+
+
+# wellSelection=mp$basic!="blanc"
+# result=getGrowthRate(mp,wellSelection, valueColumn = "corValue") # call grofit package
+# 
+# mp$corValue2=log(mp$corValue)
+# settings=grofit.control(log.y.gc=F,interactive=F,)
+# result2=getGrowthRate(mp,wellSelection, valueColumn = "corValue2",settings=settings ) # call grofit package
+# 
+# 
+
+mp$corValue2=log(mp$corValue)
+mp$corValue2
+
+plot(mp[c("time","value"),well=14])
+plot(mp[c("time","corValue"),well=14])
+plot(mp[c("time","corValue2"),well=14])
+
+getSlope(mp,wellNr = 14,start=5,stop=40,valueName ="corValue") # this works.... now kill grofit...
+
+settings=grofit.control(log.y.gc=T,log.x.gc=F,interactive=F, clean.bootstrap=F,fit.opt="s")
+result=gcFitSpline(time=mp["time",well=14], data=mp["corValue2",well=14], control=settings)
+plot(result)
+
+x <- 1:30
+y <- 1/(1+exp(0.5*(15-x)))+rnorm(30)/20
+y[y<0]=0.000001
+y=log(y)
+
+TestRun <- gcFitSpline(x,y)
+plot(TestRun)
+lines(x,y)
+
+
+
+
+# # mp["corValue",well=14]
+# # log(mp["corValue",well=14])
+# 
+# 
+# 
+# settings2=grofit.control(log.y.gc=F,interactive=F,)
+# result2=gcFitSpline(time=mp["time",well=14], data=mp["corValue2",well=14], control=settings2)
+# # result2
+# 
+# settings=grofit.control(log.y.gc=T,interactive=F,)
+# result=gcFitSpline(time=mp["time",well=14], data=mp["corValue",well=14], control=settings)
+# # result
+# 
+# result$parameters$mu
+# result2$parameters$mu
+
+
+getSlope(mp,wellNr = 14)
+
+
+result$fit.data
+result2$fit.data
+result[]
+result2[]
+
+
+all(result$fit.data==result2$fit.data)
+
+
+mp["corValue2",well=14]
+length(mp["corValue2",well=14])
+length(mp["time",well=14])
+
+
+
+
+# http://www2.nau.edu/~gaud/bio326/class/popul/lesson2-2-1.htm
+
+
+lambda=result$parameters$lambda
+A=result$parameters$A
+mu=result$parameters$mu
+integral=result$parameters$integral
+#     plot(result$raw.time,result$raw.data)
+
+
+score=result$spline$crit # is this the score??? need crappier data to test!!
+# $spline$cv.crit might be score... else need to do the model fit for score...
+print(score)
+
+self@.data$well[[yieldName]][i]=A
+self@.data$well[[growthRateName]][i]=mu
+self@.data$well[[lagPhaseTimeName]][i]=lambda
+self@.data$well[[grofitFitScroreName]][i]=score
+#     lines(c(0,60),c(0,1))
+#     print(paste("",lambda,A,mu,integral))
+#     xcor=c(lambda,lambda+5)
+#     xpoint=(integral*A)
+#     print(xpoint)
+#     lines(c(lambda,xpoint),c(0,A))
+#     ycor=c(0,A*5)
+#     print(paste(paste(xcor),paste(ycor)))
+#     print(result$parametersLowess$lambda)
+#     lines(xcor,ycor)
+#     xcor=c(7.13,12.13)
+#     ycor=c(0,3.045)
+#     lines(xcor, ycor)
+#     lines(c(7.13,12.3),c(0,3.045))
+#     lines(c(7.13,12.3),c(0,0.6))
+#     lines(c(0,60),c(0,0.6))
+#     lines(c(lambda,(lambda+50)),c(0,(A*50)))
+#     lines(c(7.13,12.3),c(0,3.045))
+#     lines(x=c(0,50),y=c(0,1))
+
+#     lines( c(lambda,(lambda+(A/mu))) , c(0,A) )
+
+#     plot(time,data)
+
+
+
+
+
+
+
+
+
+
+
+
+#########################################################
+
 
 
 test=data.frame(x=ceiling((1:100)/10))

@@ -30,7 +30,7 @@ readline("press any key to continue")
 # plot first time points
 install.package("scatterplot3d")
 selection=mp$time==min(mp$time) # select first time points
-origenalPar=par()#next function is not implemented cleanly
+origenalPar=par(no.readonly = T)#next function is not implemented cleanly
 scatterplot3d(x=mp[selection,"row",level=1],y=mp[selection,"column",level=1],z=mp[selection,"value"],xlab = "row",ylab="col",zlab="OD")
 suppressWarnings(par(origenalPar)) # restore pars... this can give warnings for some reason..
 readline("press any key to continue")
@@ -50,17 +50,24 @@ firstFiveTimePoints=unique(mp$time)[1:5]
 medium=aggregate(value~well,data=mp[time=firstFiveTimePoints],mean)
 aggregate(value~well,data=mp[time=firstFiveTimePoints],sd) # not perfect but not horrible either
 mp$corValue=mp$value-medium$value[mp["well",level=1]] # remove medium
-mp[mp$corValue<0,"corValue"]=0  # remove negative values.. (there are none but still :) )
+mp[mp$corValue<=0,"corValue"]=0.0001  # remove negative values.. (there are none but still :) )
 readline("press any key to continue")
 
 
 ### growth curves
 wellSelection=mp$basic!="blanc"
-result=getGrowthRate(mp,wellSelection, valueColumn = "corValue") # call grofit package
+result=getGrowthRates(mp,wellSelection, valueColumn = "corValue",nrOfTimePointsForSlope = "10%") # call grofit package
+
+mp$doublingTime=log(2)/mp$growthRate # doublingTime
+mp[level=2]
+
 readline("press any key to continue")
 
 # plot per concentration
-averagePerCondition=aggregate(grofit.growthRate~basic, data=mp[mp["basic"]!="blanc",] , mean)
-plot(averagePerCondition,log="x",xlab="concentration of x in mM",ylab="growthRate") 
+averagePerCondition=aggregate(growthRate~basic, data=mp[mp["basic"]!="blanc",] , mean)
+plot(averagePerCondition,log="x",xlab="initial nr of cells of x in mM",ylab="growthRate (min)") 
+averagePerCondition=aggregate(doublingTime~basic, data=mp[mp["basic"]!="blanc",] , mean)
+plot(averagePerCondition,log="x",xlab="initial nr of cells of x in mM",ylab="doublingTime (min)") 
+
 # a clear indication that i probably did not have proper values for my layout file
 

@@ -3,7 +3,7 @@ devAskNewPage(ask=F) # i decide where users wait... not plot...
 ### import data
 # test data from Iraes Rabbers, TY!
 # 1 plate - 96 well - 250 measurements per well
-file=paste(path.package("microplate"),"/extdata/demo/project2/project2.ods",sep="")
+file=paste(path.package("MicroPlate"),"/extdata/demo/project2/project2.ods",sep="")
 mp=readLayoutFile(file)
 # show data
 plotPerPlate(mp)

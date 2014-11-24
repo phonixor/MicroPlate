@@ -263,12 +263,12 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
 #' @description
 #' ...
 #' 
-#' add layout data to last plate in microplate
+#' add layout data to last plate in MicroPlate
 #' 
 #' TODO add better support for multipleplate
 #' 
 #' 
-#' @param self the microplate you want to add things to
+#' @param self the MicroPlate you want to add things to
 #' @param layoutData the data from a layout file you want to add
 #' 
 #'  
@@ -286,7 +286,7 @@ setMethod("addLayoutDataToMicroPlate", signature(self="MicroPlate"), function(se
   #
   
   if(length(index)!=self@.data$wellsPerPlate[self@.data$levelSize[3]]){
-    stop("Layout and microplate sizes are not the same")
+    stop("Layout and MicroPlate sizes are not the same")
   }
   # add the data
   #data[names(data)!="plate"]

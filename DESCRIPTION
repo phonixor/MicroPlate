@@ -5,7 +5,7 @@ Version: 0.2
 Date: 2014-11-11
 Author: Gerrit-Jan Schutten
 Maintainer: Gerrit-Jan Schutten <phonixor@gmail.com>
-Description: Import plate reader data to a microplate object, you can add extra
+Description: Import plate reader data to a MicroPlate object, you can add extra
     well info using special layout files. Easy data manipulation and data.frame
     conversion.
 Contact: https://github.com/phonixor/MicroPlate/

@@ -9,7 +9,7 @@
 #' @description
 #' 
 #' calculate the avarage blanc
-#' @param mp is the microplate object
+#' @param mp is the MicroPlate object
 #' @param column the column in which you define what blancs are
 #' @param indicator the indicator in the column, usualy a string like "blanc" 
 #' @param newVariable if you dont want the original values column to be overwritten, put a new column name here

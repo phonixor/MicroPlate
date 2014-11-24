@@ -1,4 +1,4 @@
-# this is the main file for interacting with microplate object
+# this is the main file for interacting with MicroPlate object
 # they are created by parsers
 # 
 # Data stores everything!
@@ -20,7 +20,7 @@
 # ok... maybe make the data lockable???
 # 
 # more TODO:
-# tab integration... microplate$ should display the list of colnames in rstudio if possible...
+# tab integration... MicroPlate$ should display the list of colnames in rstudio if possible...
 #
 # overwritting/defining +/-*operators
 # https://stat.ethz.ch/pipermail/r-help/2011-March/273554.html
@@ -57,7 +57,7 @@
 #
 #' MicroPlate
 #' 
-#' This class stores microplate data
+#' This class stores MicroPlate data
 #' 
 #' for memory reasons everything is to be stored in an enviroment .data
 #' all behaviour to acces the .data is overwritten to work with it...
@@ -126,7 +126,7 @@ setMethod("initialize", "MicroPlate", function(.Object){
 #' 
 #' @param self the MicroPlate object
 #' @param other the other MicroPlate object
-#' @param removeOther default behaviour is to remove the other/2nd microplate given, put FALSE to stop this.
+#' @param removeOther default behaviour is to remove the other/2nd MicroPlate given, put FALSE to stop this.
 #' 
 #' todo: make it possible to merge to plates which have the same column name at different levels. (make them all the lowest level)
 #' 
@@ -268,7 +268,7 @@ setMethod("merge", signature(self = "MicroPlate", other="MicroPlate"), function(
 #' measurement=1, well=2, plate=3
 #' 
 #' 
-#' @param self the microplate object
+#' @param self the MicroPlate object
 #' 
 #' 
 #' @export
@@ -385,7 +385,7 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
   } else if(missing(j) & (nargs()-length(args))==2  )  {
     # mp[1]<-
     # print("mp[1]")
-    # the 2 are: the microplate,the column
+    # the 2 are: the MicroPlate,the column
     # data.frame special case
     # should return column instead of row!
     row=NULL
@@ -756,7 +756,7 @@ setMethod("removeColumn", signature(self = "MicroPlate" ), function(self, colNam
   if(class(col)!="character"){
     # check if its a valid column number
     if(max(col)>length(self@.data$colNames)){
-      stop(paste("microplate only has ", length(self@.data$colNames) ," columns, asked for column ", max(col), sep="",collapse=""))
+      stop(paste("MicroPlate only has ", length(self@.data$colNames) ," columns, asked for column ", max(col), sep="",collapse=""))
     }
     col=self@.data$colNames[col]
   }
@@ -864,7 +864,7 @@ setMethod("[<-", signature(x = "MicroPlate", i = "ANY", j = "ANY",value="ANY"), 
   } else if(missing(j) & (nargs()-length(args))==3  )  {
     # mp[1]<-
     # print("mp[1]")
-    # the 3 are: the microplate,the column,the value
+    # the 3 are: the MicroPlate,the column,the value
     # data.frame special case
     # should return column instead of row!
     row=NULL
@@ -1442,7 +1442,7 @@ setMethod("print", signature(x = "MicroPlate"), function(x) {
 setGeneric("plotPerWell", function(self) standardGeneric("plotPerWell")) 
 #' @rdname plotPerWell
 setMethod("plotPerWell", signature(self = "MicroPlate"), function(self){
-  origenalPar=par() # backup plotting pars
+  origenalPar=par(no.readonly=T) # backup plotting pars
   nrOfWells=self@.data$levelSize[2]
     
   for(i in 1:nrOfWells){
@@ -1492,7 +1492,7 @@ setGeneric("plotPerPlate", function(self, x="time",y="value") standardGeneric("p
 #' @rdname plotPerPlate
 setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self, x="time",y="value"){
 #   dev.new()#dont use rstudio window
-  origenalPar=par() # backup plotting pars
+  origenalPar=par(no.readonly=T) # backup plotting pars
   nrOfPlates=self@.data$levelSize[3]
   nrOfWells=self@.data$levelSize[2]
   
@@ -1550,7 +1550,7 @@ setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self, x="time
 })
 
 
-# #' microplate apply
+# #' MicroPlate apply
 # #' MPApply
 # #' @@rdname MPApply
 # #' @@description 
@@ -1640,7 +1640,7 @@ setMethod("plotPerPlate", signature(self = "MicroPlate"), function(self, x="time
 #' copy
 #' @rdname copy
 #' @description
-#' make a copy of the microplate data instance
+#' make a copy of the MicroPlate data instance
 #' this function is used to get around the default behaviour
 #' 
 #' @param self the MicroPlate object
@@ -1662,7 +1662,7 @@ setMethod("copy", signature(self = "MicroPlate"), function(self){
 #' dim
 #' @rdname dim
 #' @description
-#' return the diminsions of the microplate
+#' return the diminsions of the MicroPlate
 #' 
 #' @param x the MicroPlate object
 #' 
@@ -1685,7 +1685,7 @@ setMethod("dim", signature(x = "MicroPlate"), function(x){
 #' 
 #' NEEDS A BETTER NAME
 #' 
-#' @param self the microplate object
+#' @param self the MicroPlate object
 #' @param wellNr the well you want the measurement row numbers from
 #'  
 #' @export
@@ -1715,7 +1715,7 @@ setMethod("getWellsMeasurementIndex", signature(self = "MicroPlate"), function(s
 #' 
 #' NEEDS A BETTER NAME
 #' 
-#' @param mp the microplate object
+#' @param mp the MicroPlate object
 #' @param plateNr the plate you want the measurement row numbers from
 #'  
 #' @export
@@ -1734,7 +1734,7 @@ setMethod("getPlatesMeasurementIndex", signature(mp = "MicroPlate"), function(mp
 #' 
 #' NEEDS A BETTER NAME
 #' 
-#' @param mp the microplate object
+#' @param mp the MicroPlate object
 #' @param plateNr the plate you want the measurement row numbers from
 #'  
 #' @export
@@ -1765,7 +1765,7 @@ setMethod("getPlatesWellIndex", signature(mp = "MicroPlate"), function(mp, plate
 #' @export
 #' @import shape
 showWellNrs=function(mp){
-  origenalPar=par() # backup plotting pars
+  origenalPar=par(no.readonly=T) # backup plotting pars
   
   firstWellNumber=0
   lastWellNumber=0
