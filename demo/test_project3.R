@@ -57,8 +57,6 @@ readline("press any key to continue")
 ### growth curves
 wellSelection=mp$basic!="blanc"
 result=getGrowthRates(mp,wellSelection, valueColumn = "corValue",nrOfTimePointsForSlope = "10%") # call grofit package
-
-mp$doublingTime=log(2)/mp$growthRate # doublingTime
 mp[level=2]
 
 readline("press any key to continue")

@@ -133,26 +133,43 @@ library(foreign)
 #   print(dim(xls))
 #   print(xls)
 #   print("cookies")
-  
 
-#   print(xls[5,1])
-  if(xls[5,1]!="Well\nRow"){
-    stop("data not found!")
+  # stupid xls parsers can't handle empty rows... so i have to compensate for that
+  currentRow=1
+  for(i in 1:20){
+    currentRow=currentRow+1
+    # this row should be on 9
+    if(xls[currentRow,1]=="Well\nRow") break # header row
+    if(i==20) stop("data not found!")
   }
-  
+# 
+#   print(xls[9,1])
+#   if(xls[9,1]!="Well\nRow"){
+#     stop("data not found!")
+#   }
+#   
   # get headers
-  header=xls[5,]
+  header=xls[currentRow,]
   
+  col=4:dim(xls)[2]
+
 #   print(header)
   time=NULL
   waveLength=NULL
   for(i in 4:length(header)){
+    #note that first 3 columns contain: wellRow,WellCol, Content
 #     "Raw Data (600)\n1 - 0 h  " 
 #     "Raw Data (600)\n2 - 0 h 10 min "	
 #     "Raw Data (600)\n3 - 0 h 20 min "
 #     print(header[i])
 #     print(typeof(header[i]))
-  
+    if(header[i]=="") {
+      #this can happen if it is less then 8 columns in that case the file is wider then the amount of columns
+      #change col accordingly
+      col=4:(i-1)
+      break
+    }
+    
     temp=gsub("\n"," ",header[i])
     temp=strsplit(temp," ")[[1]]
     temptime=0
@@ -178,22 +195,24 @@ library(foreign)
     }
     time=append(time,temptime)
   }
+
+  # data section
+  
   
 
   l=list()
   m=list()
-  nrOfMeasurements=(dim(xls)[1]-5)*(dim(xls)[2]-3)
-  
+  nrOfMeasurements=(dim(xls)[1]-currentRow)*(length(col))
   m$value=numeric(nrOfMeasurements)
   m$time=numeric(nrOfMeasurements)
   m$waveLength=numeric(nrOfMeasurements)
-  col=4:dim(xls)[2]
+  
 
   measurementIndex=1
   nextMeasurementIndex=1
-  nrOfDataCols=dim(xls)[2]-3
-  
-  dataRows=6:dim(xls)[1]
+  nrOfDataCols=length(col)
+  currentRow=currentRow+1 # increase from header to first data
+  dataRows=currentRow:dim(xls)[1]
   for(row in dataRows){ # for each row
     measurementIndex=nextMeasurementIndex
     nextMeasurementIndex=measurementIndex+nrOfDataCols

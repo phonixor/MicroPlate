@@ -1,3 +1,215 @@
+
+
+
+##### SOME BAR PLOT STUFF ###########
+# http://www.ats.ucla.edu/stat/r/faq/barplotplus.htm
+
+hsb2 <- read.table('http://www.ats.ucla.edu/stat/r/faq/hsb2.csv', header=T, sep=",")
+attach(hsb2)
+sesmeans  <- tapply(math, ses, mean)
+sesmeans
+
+barplot(sesmeans, main = "Math by SES", xlab = "SES", ylab = "Mean Math Score", 
+        ylim = c(0, 60), names.arg = c("Low", "Mid", "High"))
+femaleses = tapply(math, list(as.factor(ses), as.factor(female)), mean)
+femaleses
+
+par(mfrow = c(1,1))
+barplot(femaleses, beside = TRUE,, main = "Math by SES and gender", 
+        col = c("red", "green", "blue"),
+        xlab = "Gender", names = c("Male", "Female"), 
+        ylab = "Mean Math Score", legend = c("Low", "Medium", "High"), 
+        args.legend = list(title = "SES", x = "topright", cex = .7), ylim = c(0, 90))
+
+bp <- barplot(femaleses, beside = TRUE, main = "Math by SES and gender", 
+              col = c("lightblue", "mistyrose", "lavender"),
+              xlab = "Gender", names = c("Male", "Female"), 
+              ylab = "Mean Math Score", legend = c("Low", "Medium", "High"), 
+              args.legend = list(title = "SES", x = "topright", cex = .7), ylim = c(0, 90))
+
+text(bp, 0, round(femaleses, 1),cex=1,pos=3) 
+
+
+barplot(femaleses,beside=TRUE)
+
+
+
+##################################
+
+file=paste(path.package("MicroPlate"),"/extdata/demo/project4/18-11-2014 CDMPC+Gal+-AHM on 25mM glu or gal-PART 2.xls",sep="")
+read.sheet(file,sheet=1)
+
+xlsx::read.xlsx(file=file,sheetIndex = 1,header=FALSE) # column missing.... FUCK YOU!!! PIECE OF CRAP!!!!! wait it was an empty 1... eeeugh...
+# GOD DAMN WASTE OF MY TIME!!!!
+
+
+gdata::read.xls(xls=file,sheet=1)
+gdata::read.xls(xls=file,sheet=1, na.strings="...") # doesnt do anything usefull
+gdata::read.xls(xls=file,sheet=1,blank.lines.skip=F) # it is just ignored :(
+gdata::read.xls(xls=file,sheet=1,colClasses="character") # turns NA into "" useful :)
+
+
+
+############ fuck this package!!!!
+file=paste(path.package("MicroPlate"),"/extdata/demo/project4/parsaData.xlsx",sep="")
+
+file=paste(path.package("MicroPlate"),"/extdata/demo/project4/layout.xls",sep="")
+
+xlsx::read.xlsx(file=file,sheetIndex = 1,skipEmptyRows=FALSE) # skipEmptyRows becomes a silly column.... pffft...
+
+xlsx::read.xlsx(file=file,sheetIndex = 1,header=FALSE)# skips empty rows... but rest is goooooood... but slow...
+
+
+test=xlsx::read.xlsx(file=file,sheetIndex = 1,header=FALSE,startRow = 1) # does this work??
+test[1:10,1:10]# nope first row is ignored :P
+
+
+
+
+
+
+
+
+
+
+##### xlsx2 is a piece of CRAP!!!!
+
+
+file=paste(path.package("MicroPlate"),"/extdata/demo/project4/parsaData.xlsx",sep="")
+
+file=paste(path.package("MicroPlate"),"/extdata/demo/project4/layout.xls",sep="")
+
+
+read.sheet(file =file, sheet=1)
+
+
+
+
+
+
+
+
+
+test=read.sheet(file =file, sheet=1)
+test
+dim(test)
+
+
+
+
+
+test=read.sheet(file =file, sheet=1:2)
+
+
+read.sheet(file =file, sheet=2)
+read.sheet(file =file, sheet=3)
+
+
+xlsx::read.xlsx2(file, sheetIndex=2, stringsAsFactors=FALSE, header=FALSE) # only gives back first column
+xlsx::read.xlsx2(file, sheetIndex=2, colIndex=1:13,stringsAsFactors=FALSE, header=FALSE) # works... but how do i know columns???
+#what if
+xlsx::read.xlsx2(file, sheetIndex=2, colIndex=1:50,stringsAsFactors=FALSE, header=FALSE) # ok it makes empty cols... eeugh...
+# cant do max xls row thingy... cause it can get huge....
+
+
+xlsx::read.xlsx2(file, sheetIndex=2, stringsAsFactors=FALSE, header=FALSE,colClasses="character") # colclasses does not add the missing cols...character or NA
+
+
+
+
+
+
+sheet=2
+xlsx::read.xlsx2(file, sheetIndex=sheet, stringsAsFactors=FALSE, header=FALSE)
+
+
+
+
+
+print("here!!!!")
+print(paste("rows in sheet:",xlsx::getRows(xlsx::loadWorkbook(file))))
+#   xlsx::getRows(xlsx::loadWorkbook(file))
+#   sheet=xlsx::loadWorkbook(file)
+#   xlsx::getSheets(xlsx::loadWorkbook(file))
+xlsx::read.xlsx(file, sheetIndex=1,rowIndex=1:10000000,header=FALSE)
+xlsx::read.xlsx(file, sheetIndex=1,header=FALSE)
+
+
+system.time(xlsx::read.xlsx(file, sheetIndex=1,header=FALSE)) # ~ 30 ish
+system.time(xlsx::read.xlsx(file, sheetIndex=1,rowIndex=1:10000000,header=FALSE))# killed it after 500ish
+system.time(xlsx::read.xlsx(file, sheetIndex=1,rowIndex=1:100,header=FALSE))# 37.52
+
+
+test=xlsx::read.xlsx(file, sheetIndex=1,header=FALSE)
+test
+
+
+
+
+system.time(xlsx::read.xlsx2(file, sheetIndex=1,startRow=3,header=FALSE))
+
+
+test2=xlsx::read.xlsx2(file,sheetIndex=1,header=FALSE)
+
+dim(test2)
+
+
+
+
+# xlsx::getRows(xlsx::loadWorkbook(file))
+
+file=paste(path.package("MicroPlate"),"/extdata/demo/project4/parsaData.xlsx",sep="")
+xlsx::loadWorkbook(file)
+xlsx::loadWorkbook(file)
+
+sheet=xlsx::getSheets(xlsx::loadWorkbook(file))[[1]]
+sheet
+
+xlsx::readColumns(sheet=sheet)
+
+
+
+
+
+sheet$getFirstRowNum()# return first row number... starts with 0 (cause its java...)
+sheet$getLastRowNum() #... you can guess
+sheet$getLeftCol() # 0... 240.... no clue...
+sheet$getTopRow() # always 0???
+sheet$isSelected()
+sheet$createTable()
+sheet$getRepeatingColumns()
+sheet$getPhysicalNumberOfRows() # 101... so all none empty rows
+
+
+
+iterator=sheet$iterator() # not useful
+
+rbind()#might do wonders...
+
+
+
+
+getRanges(xlsx::loadWorkbook(file))
+
+xlsx::read.xlsx2(file,sheetIndex=1,header=FALSE)
+
+xlsx::read.xlsx2(file,sheetIndex=1,startRow=1,header=FALSE)
+xlsx::read.xlsx2(file,sheetIndex=1,startRow=3,header=FALSE)
+xlsx::read.xlsx2(file,sheetIndex=1,colIndex = 1:1000,header=FALSE)
+
+####
+
+file=paste(path.package("MicroPlate"),"/extdata/demo/project4/parsaData.xlsx",sep="")
+sheet=xlsx::getSheets(xlsx::loadWorkbook(file))[[1]]
+firstRow=sheet$getFirstRowNum()+1
+endRow=sheet$getLastRowNum()+1
+startColumn=sheet$getLeftCol()
+xlsx::readRows(sheet=sheet,startRow=firstRow,endRow=endRow,startColumn=1) # mmmh weird error
+
+xlsx::getRows(sheet=sheet) # HELL NO!!!!
+
+
+
 ###########################################################
 # my own growth rate...
 file=paste(getwd(),"/tests/testdata/layout-Gal.xls",sep="")
@@ -19,7 +231,11 @@ getGrowthRate(values=mp["corValue",well=14],time=mp["time",well=14])
 test=getGrowthRate(values=mp["corValue",well=14],time=mp["time",well=14],nrOfTimePointsForSlope = "10%")
 
 wellSelection=mp$basic!="blanc"
-result=getGrowthRates(mp,wellSelection, valueColumn = "corValue",nrOfTimePointsForSlope = "10%") # call grofit package
+result=getGrowthRates(mp,wellSelection, valueColumn = "corValue",nrOfTimePointsForSlope = "10%") 
+mp$doublingTime=log(2)/mp$growthRate # doublingTime
+mp[level=2]
+
+
 
 max(test[,"r2"], na.rm=TRUE)
 max(test[,"slope"], na.rm=TRUE)
@@ -106,6 +322,61 @@ plot(mp[c("time","corValue"),basic="blanc"])
 
 
 #########################################################
+
+
+
+
+silly backup:
+  #' xlsxInterface
+  #' 
+  #' TODO: XLSX2 sometimes ignores columns!!!! BIG BUG!
+  #' 
+  #' TODO figure out how to read stuff out of getSheet...
+  #'        so i dont parse everything for each sheet...
+  #' TODO: 10M row max for now... either that or empty rows are deleted...
+  #' 
+  #' @param file the spreadsheet file .xls or .xlsx
+#' @param sheet the sheet or sheets you want from the spreadsheet
+#' 
+#' @export
+xlsxInterface=function(file=NULL,sheet=NULL){
+  print("using XLSX")
+  # if no sheet is given return all sheets
+  # read.xlsx2 is much faster... but needs to start with a none empty row for some reason....
+  # we just add those in again before giving it back.
+  
+  sheets=xlsx::getSheets(xlsx::loadWorkbook(file))
+  
+  if(is.null(sheet)){
+    sheet=1:length(sheets)
+  }else if (length(sheet)==1){
+    # only 1 sheet, return it as a df not as a list of df
+    firstRow=sheets[[sheet]]$getFirstRowNum()+1 # note the +1... cause java starts with 0, but if you ask it starts with 1.... its silly!
+    #     print(firstRow)
+    df=xlsx::read.xlsx2(file, sheetIndex=sheet, startRow=firstRow, stringsAsFactors=FALSE, header=FALSE)
+    emptyRows=matrix("",(firstRow-1),dim(df)[2])
+    colnames(emptyRows)=colnames(df)
+    df=rbind(emptyRows,df)
+    return(df)
+  }
+  returnValue=list()
+  index=0 # sheet does not have to start with 1, so we need an other counter
+  for(i in sheet){
+    index=index+1 
+    firstRow=sheets[[i]]$getFirstRowNum()+1 # note the +1... cause java starts with 0, but if you ask it starts with 1.... its silly!
+    df=xlsx::read.xlsx2(file, sheetIndex=i, startRow=firstRow, stringsAsFactors=FALSE, header=FALSE)
+    emptyRows=matrix("",(firstRow-1),dim(df)[2])
+    colnames(emptyRows)=colnames(df)
+    df=rbind(emptyRows,df)
+    returnValue[[index]]=df
+  }
+  return(returnValue)
+}
+
+
+
+
+#############################################################
 test grofit log
 
 resetPar()

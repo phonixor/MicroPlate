@@ -13,7 +13,6 @@ Depends:
     foreign,
     gtools,
     plyr,
-    grofit,
     methods,
     shape
 License: GPL-3

@@ -68,7 +68,7 @@
 #' 
 #' @export
 #' @include generalFunctions.R setup.R
-#' @import methods gtools plyr grofit 
+#' @import methods gtools plyr 
 MicroPlate=setClass(
   Class = "MicroPlate", 
 #   contains = "data.frame", # S3 S4 conflicts??? it kinda doesnt work :P
@@ -528,7 +528,7 @@ setMethod("[", signature(x = "MicroPlate", i = "ANY", j = "ANY"), function(x, i 
     # check if names
     if(any(argsNames%in%"")) stop("unspecified argument provided")
     if(length(argsNames)!=length(unique(argsNames))) stop("you are only allowed to use arguments once")
-    if(!all(argsNames%in%append(x@.data$colNames,c("well","plate","level")))) stop(paste("only allowed: ",paste(x@.data$colNames,sep=", "),", well and level",sep=""))
+    if(!all(argsNames%in%append(x@.data$colNames,c("well","plate","level")))) stop(paste("only allowed: ",paste(x@.data$colNames,sep=", ",collapse = ", "),", well and level",sep=""))
   
   
   }

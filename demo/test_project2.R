@@ -21,7 +21,7 @@ readline("press any key to continue")
 ### growth curves
 # next part will take a while
 wellSelection=mp$strain!="blanc"
-result=getGrowthRate(mp,wellSelection, valueColumn = "corValue") # call grofit package
+result=getGrowthRates(mp,wellSelection, timeColumn="time", valueColumn = "corValue",nrOfTimePointsForSlope = "8%") # call grofit package
 # creates a picture for each none blanc well
 # mp will now have new slope related values
 head(mp[level="well"])
@@ -35,10 +35,10 @@ glucose=mp$Sugar=="glucose"
 LM3113=mp$strain=="LM3113"
 LM3118=mp$strain=="LM3118"
   
-LM3113_succinate_iptg_average=aggregate(grofit.growthRate~IPTG,data=mp[succinate&LM3113,],mean)
-LM3113_succinate_iptg_sd=aggregate(grofit.growthRate~IPTG,data=mp[succinate&LM3113,],sd)
-LM3118_succinate_iptg_average=aggregate(grofit.growthRate~IPTG,data=mp[succinate&LM3118,],mean)
-LM3118_succinate_iptg_sd=aggregate(grofit.growthRate~IPTG,data=mp[succinate&LM3118,],sd)
+LM3113_succinate_iptg_average=aggregate(growthRate~IPTG,data=mp[succinate&LM3113,],mean)
+LM3113_succinate_iptg_sd=aggregate(growthRate~IPTG,data=mp[succinate&LM3113,],sd)
+LM3118_succinate_iptg_average=aggregate(growthRate~IPTG,data=mp[succinate&LM3118,],mean)
+LM3118_succinate_iptg_sd=aggregate(growthRate~IPTG,data=mp[succinate&LM3118,],sd)
 
 xlabelplot<-expression(paste("IPTG concentration (",mu,"M)"))
 ylabelplot<-expression(mu[max] ~ (h^{-1}))
@@ -53,8 +53,8 @@ readline("press any key to continue")
 # plotWithErrorBars(LM3113_succinate_iptg_average[[1]],LM3113_succinate_iptg_average[[2]],LM3113_succinate_iptg_sd[[2]])
 
 # control
-LM3118_glucose_iptg_average=aggregate(grofit.growthRate~IPTG,data=mp[glucose&LM3118,],mean)
-LM3118_glucose_iptg_sd=aggregate(grofit.growthRate~IPTG,data=mp[glucose&LM3118,],sd)
+LM3118_glucose_iptg_average=aggregate(growthRate~IPTG,data=mp[glucose&LM3118,],mean)
+LM3118_glucose_iptg_sd=aggregate(growthRate~IPTG,data=mp[glucose&LM3118,],sd)
 
 plotCI(LM3118_glucose_iptg_average[[1]],LM3118_glucose_iptg_average[[2]],LM3118_glucose_iptg_sd[[2]],col='black')
 title("Growth on glucose")

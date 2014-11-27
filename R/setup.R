@@ -229,7 +229,7 @@ read.sheet = function(file=NULL, sheet=NULL){
   
   splitedFile=unlist(strsplit(file,split = ".",fixed=TRUE))
   extention=casefold(splitedFile[length(splitedFile)], upper = FALSE)
-  
+#   print(paste("extention:",extention))
   if(extention=="ods"){
     if(.readODSWorksForODS){
       return(readODS::read.ods(file))
@@ -251,7 +251,8 @@ read.sheet = function(file=NULL, sheet=NULL){
     } else if(.xlsxWorksForXLSX){
       return(xlsxInterface(file,sheet))
     } else if(.openxlsxWorksForXLSX){
-      return(openxlsx::read.xlsx(file,colNames=F))
+      print("using openxlsx")
+      return(openxlsx::read.xlsx(file,colNames=F,skipEmptyRows=FALSE))
     } else {
       stop("no valid xlsx parser")
     }
@@ -264,6 +265,8 @@ read.sheet = function(file=NULL, sheet=NULL){
 
 #' gdataInterface
 #' 
+#' read xls or xlsx files using the gdata package
+#' 
 #' @param file the spreadsheet file .ods, .xls or .xlsx
 #' @param sheet the sheet or sheets you want from the spreadsheet
 #' 
@@ -274,13 +277,13 @@ gdataInterface=function(file=NULL,sheet=NULL){
     sheet=1:sheetCount(file)
   }else if (length(sheet)==1){
     # only 1 sheet, return it as a df not as a list of df
-    return(gdata::read.xls(file, sheet=sheet, stringsAsFactors=FALSE, header=FALSE))
+    return(gdata::read.xls(file, sheet=sheet, stringsAsFactors=FALSE, header=FALSE,colClasses="character"))
   }      
   returnValue=list()
   index=0 # sheet does not have to start with 1, so we need an other counter
   for(i in sheet){
     index=index+1 
-    returnValue[[index]]=gdata::read.xls(file, sheet=i, stringsAsFactors=FALSE, header=FALSE)
+    returnValue[[index]]=gdata::read.xls(file, sheet=i, stringsAsFactors=FALSE, header=FALSE,colClasses="character")
   }
   return(returnValue)
 }
@@ -288,7 +291,7 @@ gdataInterface=function(file=NULL,sheet=NULL){
 
 #' xlsxInterface
 #' 
-#' 
+#' TODO: get around the bugs!!!
 #' TODO figure out how to read stuff out of getSheet...
 #'        so i dont parse everything for each sheet...
 #' 
@@ -297,6 +300,9 @@ gdataInterface=function(file=NULL,sheet=NULL){
 #' 
 #' @export
 xlsxInterface=function(file=NULL,sheet=NULL){
+  warning("You are now using the XLSX package, which doesnt always work properly")
+  warning("It is highly adviced to install PERL for the gdata package.")
+  warning("Which also makes importing XLS/XLSX files a lot faster")
   # if no sheet is given return all sheets
   if(is.null(sheet)){
     sheet=1:length(xlsx::getSheets(xlsx::loadWorkbook(file)))#oooh yeah!!!

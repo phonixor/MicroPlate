@@ -66,6 +66,8 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
 
     nrOfRows=dim(sheet)[1] # rows of the sheet, not of the plate
     nrOfColumns=dim(sheet)[2] # cols of the sheet = cols of the plate
+#     print(paste("nrOfRows:",nrOfRows,"nrOfColumns:",nrOfColumns))
+    
     
     data=NULL
 #     data$plate=list()
@@ -183,7 +185,7 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
       # asume that its in the A=1, B=2 etc format
       cols=lettersToNumber(cols)
       if(any(is.na(cols))){
-        error("unsupported column names, use letters or numbers")
+        stop("unsupported column names, use letters or numbers")
       }
     }
    
@@ -212,8 +214,11 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
 #     print(data)
 #     print(data$plate)
 #     print("_________________")
+   
     print("data parsed...")
-    
+#     print(paste("layout has rows:",length(data$row),"columns:",length(data$column)))
+#     print(unique(data$row))
+#     print(unique(data$column))
     # smartbind data or something...
     if(firstPlate){
       firstPlate=FALSE
@@ -229,7 +234,7 @@ setMethod("readLayoutFile", signature(), function(file=NULL, existingMicroPlate=
         existingMicroPlate=eval(parse(text=paste(parser,"('",dirname(file),"/",dataFile,"')",sep="")))
       } else {
         # add layout to existing plate
-        if(existingPlate@.data$levelSize[3]!=1){
+        if(existingMicroPlate@.data$levelSize[3]!=1){
           stop("only allowed to add layout data to single plates at a time")
         }
       }
@@ -286,7 +291,7 @@ setMethod("addLayoutDataToMicroPlate", signature(self="MicroPlate"), function(se
   #
   
   if(length(index)!=self@.data$wellsPerPlate[self@.data$levelSize[3]]){
-    stop("Layout and MicroPlate sizes are not the same")
+    stop( paste("Layout and MicroPlate sizes are not the same layout:",length(index),"MicroPlate:",self@.data$wellsPerPlate[self@.data$levelSize[3]]) )
   }
   # add the data
   #data[names(data)!="plate"]
