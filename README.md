@@ -15,7 +15,7 @@ the data is imported in a native data format with 3 levels
 - Measurement
 to save memory this object stores its data in its own environment, and is thus not copied if assigned to an other variable (a copy function does exist).
 
-it has an interface to the grofit package to easily determine growth rates.
+it has tools to easily determine growth rates / doubling times.
 
 it has some build in plot functions
 
