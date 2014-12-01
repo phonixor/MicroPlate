@@ -1,4 +1,83 @@
 
+head(mp[c("wellNr","combinedMediumCondition","corValue","corTime")])
+
+reshape(mp[c("combinedMediumCondition","corValue","corTime")],direction="wide", idvar="wellNr", timevar="combinedMediumCondition")
+reshape(mp[c("combinedMediumCondition","corValue","corTime")],direction="wide", idvar="combinedMediumCondition")
+reshape(mp[c("combinedMediumCondition","corValue","corTime")],direction="wide", idvar="combinedMediumCondition")
+
+
+
+
+
+
+#######################
+#  exponential stuff  #
+#######################
+plot(1:100,1:100,ylim=c(0,10),type="n")
+for(i in ((1:10)/1000) ){
+  lines( 1:100, i*exp(1)^((1:100)/10) ,type = "l") 
+}
+
+plot(1:100,1:100,ylim=c(0,10),type="n")
+for(i in ((1:10)/100) ){
+  lines( 1:100, exp(1)^((1:100)*i) ,type = "l") 
+}
+
+plot(1:100, exp(1)^((1:100)/10), ylim=c(0,10) )
+
+
+
+2*x=exp(1)
+x=exp(1)/2
+x
+
+exp(1)^log(2)
+
+log(2)
+
+2^10
+
+
+(exp(1)^log(2))^10
+exp(1)^(log(2)*10)
+
+
+
+
+#####################
+data=tapply(mp$growthRate, list(mp$row, mp$column), mean)
+data
+
+
+colnames(mp)
+reshape(mp[c("well","value","time")],direction="wide", idvar="well", timevar="time") # this works!
+# reshape(mp[],direction="wide", idvar="well", timevar="time") # nope
+
+reshape(mp[c("well","value","time")],direction="wide", idvar="well", timevar="time")
+unique(mp$time)
+
+
+
+Indometh
+
+head(Indometh)
+
+
+
+
+# reshape(Indometh, v.names = "Subject", idvar = "conc", timevar = "time", direction = "wide")
+
+
+
+summary(Indometh)
+
+wide <- reshape(Indometh, v.names = "conc", idvar = "Subject",
+                timevar = "time", direction = "wide")
+wide
+
+
+getGrowthRateBetween(values=mp["corValue",well=38], time=mp["time",well=38], start=165, end=190) # fits the straight part
+
 
 
 ##### SOME BAR PLOT STUFF ###########

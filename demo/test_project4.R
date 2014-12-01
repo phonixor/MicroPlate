@@ -225,6 +225,7 @@ legend("topright", legend=c("galactose","glucose"),fill=colFunc(2),bty="n")
 
 
 # lets display them per condition
+# growthRate
 mp$combinedMediumCondition=paste(mp$premedium,mp$medium,sep="_")
 data=tapply(mp$slope, list(mp$startingCells, mp$combinedMediumCondition), mean)
 data
@@ -238,12 +239,47 @@ text(bp, 0, round(data,3),pos = 3 ,cex=.5)
 title("growthRate")
 
 
-#
-# display of graphs per condition
-plot(mp[c("corTime","corValue"),medium="galactose",premedium="galactose",corTime=timeSelection,wellNr=nonBlanc],col="blue")
-points(mp[c("corTime","corValue"),medium="galactose",premedium="galactose+AHM",corTime=timeSelection,wellNr=nonBlanc],col="red")
-points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose",corTime=timeSelection,wellNr=nonBlanc],col="green")
-points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose+AHM",corTime=timeSelection,wellNr=nonBlanc],col="purple")
+
+
+# lets display them per condition
+# timeZero
+mp$combinedMediumCondition=paste(mp$premedium,mp$medium,sep="_")
+data=tapply(mp$timeZero, list(mp$startingCells, mp$combinedMediumCondition), mean)
+data
+data=data[4:9,]
+data
+# bp=barplot(data, beside=T,col=colFunc(6))
+bp=barplot(data, beside=T,col=colFunc(6),names.arg=c("galactose\ngalactose","galactose\nglucose","galactose+AHM\ngalactose","galactose+AHM\nglucose"))
+legend("topright", legend=rownames(data),fill=colFunc(6),bty="n",title="nr of starting cells")
+# text(bp, 0, rownames(data),pos = 3 ,cex=.5) 
+text(bp, 0, round(data,3),pos = 3 ,cex=.5) 
+title("timeZero")
+# its not lag time... but its close...
+# it is effected by the growth rate, since those slopes are longer
+
+
+
+
+
+
+colnames(mp)
+colFunc=colorRampPalette(c("blue", "yellow"))
+col=colFunc(4)
+col
+unique(mp$combinedMediumCondition)
+plot(mp[c("corTime","corValue"),combinedMediumCondition="galactose_glucose",corTime=timeSelection],col=col[[1]])
+points(mp[c("corTime","corValue"),combinedMediumCondition="galactose_galactose",corTime=timeSelection],col=col[[2]])
+points(mp[c("corTime","corValue"),combinedMediumCondition="galactose+AHM_glucose",corTime=timeSelection],col=col[[3]])
+points(mp[c("corTime","corValue"),combinedMediumCondition="galactose+AHM_galactose",corTime=timeSelection],col=col[[4]])
+legend("topleft",legend=unique(mp$combinedMediumCondition),fill=colFunc(4))
+
+
+# #
+# # display of graphs per condition
+# plot(mp[c("corTime","corValue"),medium="galactose",premedium="galactose",corTime=timeSelection,wellNr=nonBlanc],col="blue")
+# points(mp[c("corTime","corValue"),medium="galactose",premedium="galactose+AHM",corTime=timeSelection,wellNr=nonBlanc],col="red")
+# points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose",corTime=timeSelection,wellNr=nonBlanc],col="green")
+# points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose+AHM",corTime=timeSelection,wellNr=nonBlanc],col="purple")
 
 plot(mp[c("corTime","corValue"),medium="galactose",premedium="galactose",corTime=timeSelection,wellNr=nonBlanc,startingCells=100],col="blue")
 points(mp[c("corTime","corValue"),medium="galactose",premedium="galactose",corTime=timeSelection,wellNr=nonBlanc,startingCells=500],col="red")
@@ -263,12 +299,12 @@ points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose",corTime
 
 
 
+startingCells=100
+plot(mp[c("corTime","corValue"),combinedMediumCondition="galactose_glucose",corTime=timeSelection,wellNr=nonBlanc,startingCells=startingCells],col=col[[1]])
+points(mp[c("corTime","corValue"),combinedMediumCondition="galactose_galactose",corTime=timeSelection,wellNr=nonBlanc,startingCells=startingCells],col=col[[2]])
+points(mp[c("corTime","corValue"),combinedMediumCondition="galactose+AHM_glucose",corTime=timeSelection,wellNr=nonBlanc,startingCells=startingCells],col=col[[3]])
+points(mp[c("corTime","corValue"),combinedMediumCondition="galactose+AHM_galactose",corTime=timeSelection,wellNr=nonBlanc,startingCells=startingCells],col=col[[4]])
+legend("topleft",legend=unique(mp$combinedMediumCondition),fill=colFunc(4))
+title(startingCells)
 
 mp[level=2]
-mp[c("wellNr","medium","slope")]
-
-
-nonBlanc
-
-results
-
