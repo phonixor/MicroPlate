@@ -246,6 +246,135 @@ getGrowthRate=function(values,time,logYValues=T,nrOfTimePointsForSlope="10%",plo
 }
 
 
+#' getGrowthRateBasedOnLogOnly
+#' 
+#' This function takes a time series and calculates slopes over the time series
+#' and returns the max...
+#'  
+#' @param values - y
+#' @param time - x
+#' @param nrOfTimePointsForSlope - the window size, a nr or fraction or string ending with the percent sybol (not allowed in docs???? so cant give example :P)
+#' @param minR2 - minimum r^2 for the slope, basically what error do you allow...
+#' @param plot - boolean if it needs to plot the results default = TRUE
+#' @param plotTitle - title of the plot... useful to identify
+#' 
+#' todo: decide if i do anything with r^2
+#' todo add logYValues=F path..
+#' todo deside what todo if minr2 gives no results.... (no clue what happends now :p)
+#' 
+#' 
+#' @export
+getGrowthRateBasedOnLogOnly=function(values,time,nrOfTimePointsForSlope="10%",minR2=0.95,plot=T,plotTitle="growthRate"){
+  originalNrOfTimePointsForSlope=nrOfTimePointsForSlope # backup
+  if(length(time)!=length(values))stop("lenght time and values do not match")
+  if(any(is.infinite(values)))stop("Inf, not allowed")
+  if(any(is.nan(values)))stop("NaN, not allowed")
+  if(any(is.na(values)))stop("NA, not allowed")
+  nrOFTimePoints=length(time)
+  logValues=log(values)
+  if(any(is.infinite(values)))stop("Inf, probably due to log(0)?")
+  if(any(is.nan(values)))stop("NaN, not allowed")
+  if(any(is.na(values)))stop("NA, not allowed")
+  
+  
+  # nrOfTimePointsForSlope
+  # either whole thing is a number or % based
+  # xxx%, xxx, xx,x
+  if(is.character(nrOfTimePointsForSlope)){
+    # string
+    if(substring(nrOfTimePointsForSlope,first=nchar(nrOfTimePointsForSlope),last=nchar(nrOfTimePointsForSlope))=="%"){
+      # xxx%
+      nrOfTimePointsForSlope=substring(nrOfTimePointsForSlope,1,nchar(nrOfTimePointsForSlope)-1)
+      if(givesWarning(as.double(nrOfTimePointsForSlope))) stop("not a valid number")
+      nrOfTimePointsForSlope=as.double(nrOfTimePointsForSlope)
+      nrOfTimePointsForSlope=ceiling(nrOFTimePoints*(nrOfTimePointsForSlope/100))
+      if(nrOfTimePointsForSlope<5){
+        message(paste("nrOfTimePointsForSlope:",originalNrOfTimePointsForSlope," would result in less then 5 points, set to 5 points."))
+        nrOfTimePointsForSlope=5
+      }
+    }else{
+      if(givesWarning(as.double(nrOfTimePointsForSlope))) stop("not a valid number")
+      nrOfTimePointsForSlope=as.double(nrOfTimePointsForSlope)
+      if(nrOfTimePointsForSlope<1){nrOfTimePointsForSlope=ceiling(nrOFTimePoints*(nrOfTimePointsForSlope/100))}
+    }
+  }else if(is.numeric(nrOfTimePointsForSlope)){
+    # number
+    # if smaller then one... it is assumee t
+    if(nrOfTimePointsForSlope<1){
+      if(nrOfTimePointsForSlope<1){
+        nrOfTimePointsForSlope=ceiling(nrOFTimePoints*(nrOfTimePointsForSlope/100))
+        if(nrOfTimePointsForSlope<5){
+          message(paste("nrOfTimePointsForSlope:",originalNrOfTimePointsForSlope," would result in less then 5 points, set to 5 points."))
+          nrOfTimePointsForSlope=5
+        }
+      }
+    }
+  }else stop("nrOfTimePointsForSlope needs to be either string or number")
+  # do some checks.
+  if(as.integer(nrOfTimePointsForSlope)!=nrOfTimePointsForSlope) stop("nrOfTimePointsForSlope needs to be a whole number, or < 1")
+  if(nrOfTimePointsForSlope>nrOFTimePoints)stop("more timepoint used then ")
+  if(nrOfTimePointsForSlope<5)stop("less then 5 time points selected") # might add a smart modus... cause now the defaults needs 50 time points...
+  
+  #   print(paste("nrOfTimePointsForSlope=",nrOfTimePointsForSlope))
+  
+  
+  
+  # get the slopes
+  # always uses the originalValues to determine slope location...
+  slopes=matrix(data = NA,nrow =(nrOFTimePoints-nrOfTimePointsForSlope),ncol=4 )
+  colnames(slopes)=c("slope","base","r2","index")
+  slopes[,4]=1:dim(slopes)[1]
+  for(i in 1:(nrOFTimePoints-nrOfTimePointsForSlope)){
+    selection=i:(i+nrOfTimePointsForSlope)
+    slope=getSlope(x=time[selection],y=logValues[selection],suppressWarnings=T)
+    slopes[i,1:3]=slope
+  }
+  
+#   print(slopes)
+  
+  # get rid of crappy slopes
+  slopes=slopes[slopes[,3]>=minR2,]
+  
+  # get the max slope
+  sortedIndex=sort(slopes[,1],decreasing=T,index.return=T) 
+#   print(sortedIndex)
+  logBestIndex=slopes[[sortedIndex$ix[1],4]]
+#   print(dim(slopes))
+#   print(logBestIndex)
+  logBest=slopes[sortedIndex$ix[1],1:3]
+  logBest=c(logBest, doublingTime=(log(2)/logBest[1]),timeZero=time[logBestIndex])
+  
+  if(plot){
+    origenalPar=par(no.readonly=T) # backup plotting pars
+    par(mar=c(5,4,4,5)+.1)
+    plot(time,values,col="blue")
+    title(plotTitle)
+    
+    # plot growthrate
+    lines(time, (values[logBestIndex]*(exp(1)^(logBest[1]*(time-logBest[5]) ))),lwd=2)
+    
+    # 2 plots in 1 graph
+    # http://stackoverflow.com/questions/6142944/how-can-i-plot-with-2-different-y-axes-in-r
+    # or: http://robjhyndman.com/hyndsight/r-graph-with-two-y-axes/
+    par(new=TRUE)
+    # plot log
+    plot(time,logValues,col="red",xaxt="n",yaxt="n",xlab="",ylab="")
+    # plot log range
+    abline(v=time[logBestIndex],col="red")
+    abline(v=time[(logBestIndex+nrOfTimePointsForSlope)],col="red")
+    lines(time,((logBest[1]*time)+logBest[2]),col="red")
+    axis(4)
+    mtext("logValues",side=4,line=3)
+    legend("bottomright",col=c("blue","red","black"),lty=1,legend=c("originalValues","logValues","N(t)=N(0)e^rt"))
+    par(origenalPar)
+  }
+  return(logBest)
+}
+
+
+
+
+
 #' getSlope
 #' 
 #' calculates the slope in a time series, using the same formula as excel uses

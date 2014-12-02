@@ -155,7 +155,8 @@ colnames(results)=c("wellNr","slope","base","r2","doublingTime","timeZero")
 results
 index=1
 for(wellNr in nonBlanc){
-  result=getGrowthRate(values=mp["corValue", corTime=timeSelection,wellNr=wellNr],time=timeSelection, nrOfTimePointsForSlope = "5%",plotTitle=paste("well:",wellNr))
+#   result=getGrowthRate(values=mp["corValue", corTime=timeSelection,wellNr=wellNr],time=timeSelection, nrOfTimePointsForSlope = "5%",plotTitle=paste("well:",wellNr))
+  result=getGrowthRateBasedOnLogOnly(values=mp["corValue", corTime=timeSelection,wellNr=wellNr],time=timeSelection, nrOfTimePointsForSlope = "6%",minR2=0.96,plotTitle=paste("well:",wellNr))
 #   print(result)
   results[index,2:6]=result
   index=index+1
@@ -232,7 +233,7 @@ data
 data=data[4:9,]
 data
 # bp=barplot(data, beside=T,col=colFunc(6))
-bp=barplot(data, beside=T,col=colFunc(6),names.arg=c("galactose\ngalactose","galactose\nglucose","galactose+AHM\ngalactose","galactose+AHM\nglucose"))
+bp=barplot(data, beside=T,col=colFunc(6),names.arg=c("galactose\ngalactose","galactose\nglucose","galactose+AHM\ngalactose","galactose+AHM\nglucose"),ylim=c(0,1.1))
 legend("topleft", legend=rownames(data),fill=colFunc(6),bty="n",title="nr of starting cells")
 # text(bp, 0, rownames(data),pos = 3 ,cex=.5) 
 text(bp, 0, round(data,3),pos = 3 ,cex=.5) 
@@ -259,9 +260,6 @@ title("timeZero")
 
 
 
-
-
-
 colnames(mp)
 colFunc=colorRampPalette(c("blue", "yellow"))
 col=colFunc(4)
@@ -274,37 +272,79 @@ points(mp[c("corTime","corValue"),combinedMediumCondition="galactose+AHM_galacto
 legend("topleft",legend=unique(mp$combinedMediumCondition),fill=colFunc(4))
 
 
-# #
-# # display of graphs per condition
+
+# plot per condition
+# color starting cells different
+unique(mp$combinedMediumCondition) # show options
+combinedMediumCondition="galactose_glucose" # make selection
+colFunc=colorRampPalette(c("blue", "yellow"))
+col=colFunc(length(unique(mp$startingCells)))
+startingCells=sort(unique(mp$startingCells))
+plot(mp[c("corTime","corValue"),combinedMediumCondition=combinedMediumCondition],type="n") # empty plot
+for(i in 1:length(startingCells)){
+  points(mp[c("corTime","corValue"),startingCells=startingCells[i],combinedMediumCondition=combinedMediumCondition,corTime=timeSelection],col=col[i])
+}
+legend("topleft",legend=startingCells,fill=col,title = "nr of starting cells")
+title(combinedMediumCondition)
+
+
+
+startingCells=100
+col=colFunc(4)
+plot(mp[c("corTime","corValue"),combinedMediumCondition="galactose_glucose",corTime=timeSelection,startingCells=startingCells],col=col[[1]])
+points(mp[c("corTime","corValue"),combinedMediumCondition="galactose_galactose",corTime=timeSelection,startingCells=startingCells],col=col[[2]])
+points(mp[c("corTime","corValue"),combinedMediumCondition="galactose+AHM_glucose",corTime=timeSelection,startingCells=startingCells],col=col[[3]])
+points(mp[c("corTime","corValue"),combinedMediumCondition="galactose+AHM_galactose",corTime=timeSelection,startingCells=startingCells],col=col[[4]])
+legend("topleft",legend=unique(mp$combinedMediumCondition),fill=colFunc(4))
+title(startingCells)
+
+mp[level=2]
+
+
+# counting empty wells
+nonBlanc=unique(mp[mp$startingCells!=0,"wellNr"])
+emptyNess=aggregate(corValue~wellNr+combinedMediumCondition+startingCells,data=mp[corTime=timeSelection,wellNr=nonBlanc],max)
+emptyNess
+emptyNess$startingCells!=0
+emptyNess$empty=emptyNess$corValue<0.2
+emptyNess$all=1
+emptyNess
+# count(emptyNess,vars =c("combinedMediumCondition","startingCells") )
+overView=aggregate(empty~combinedMediumCondition+startingCells,emptyNess,sum)
+overView$all=aggregate(all~combinedMediumCondition+startingCells,emptyNess,sum)$all
+overView
+
+overView=aggregate(empty~combinedMediumCondition,emptyNess,sum)
+overView$all=aggregate(all~combinedMediumCondition,emptyNess,sum)$all
+overView
+
+
+
+############################################################################################
+################################      OLD SECTION     ######################################
+############################################################################################
+# # display of graphs per condition OLD
 # plot(mp[c("corTime","corValue"),medium="galactose",premedium="galactose",corTime=timeSelection,wellNr=nonBlanc],col="blue")
 # points(mp[c("corTime","corValue"),medium="galactose",premedium="galactose+AHM",corTime=timeSelection,wellNr=nonBlanc],col="red")
 # points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose",corTime=timeSelection,wellNr=nonBlanc],col="green")
 # points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose+AHM",corTime=timeSelection,wellNr=nonBlanc],col="purple")
 
-plot(mp[c("corTime","corValue"),medium="galactose",premedium="galactose",corTime=timeSelection,wellNr=nonBlanc,startingCells=100],col="blue")
-points(mp[c("corTime","corValue"),medium="galactose",premedium="galactose",corTime=timeSelection,wellNr=nonBlanc,startingCells=500],col="red")
-points(mp[c("corTime","corValue"),medium="galactose",premedium="galactose",corTime=timeSelection,wellNr=nonBlanc,startingCells=1000],col="green")
+plot(mp[c("corTime","corValue"),medium="galactose",premedium="galactose",corTime=timeSelection,startingCells=100],col="blue")
+points(mp[c("corTime","corValue"),medium="galactose",premedium="galactose",corTime=timeSelection,startingCells=500],col="red")
+points(mp[c("corTime","corValue"),medium="galactose",premedium="galactose",corTime=timeSelection,startingCells=1000],col="green")
 
-plot(mp[c("corTime","corValue"),medium="galactose",premedium="galactose+AHM",corTime=timeSelection,wellNr=nonBlanc,startingCells=100],col="blue")
-points(mp[c("corTime","corValue"),medium="galactose",premedium="galactose+AHM",corTime=timeSelection,wellNr=nonBlanc,startingCells=500],col="red")
-points(mp[c("corTime","corValue"),medium="galactose",premedium="galactose+AHM",corTime=timeSelection,wellNr=nonBlanc,startingCells=1000],col="green")
+plot(mp[c("corTime","corValue"),medium="galactose",premedium="galactose+AHM",corTime=timeSelection,startingCells=100],col="blue")
+points(mp[c("corTime","corValue"),medium="galactose",premedium="galactose+AHM",corTime=timeSelection,startingCells=500],col="red")
+points(mp[c("corTime","corValue"),medium="galactose",premedium="galactose+AHM",corTime=timeSelection,startingCells=1000],col="green")
 
-plot(mp[c("corTime","corValue"),medium="glucose",premedium="galactose+AHM",corTime=timeSelection,wellNr=nonBlanc,startingCells=100],col="blue")
-points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose+AHM",corTime=timeSelection,wellNr=nonBlanc,startingCells=500],col="red")
-points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose+AHM",corTime=timeSelection,wellNr=nonBlanc,startingCells=1000],col="green")
+plot(mp[c("corTime","corValue"),medium="glucose",premedium="galactose+AHM",corTime=timeSelection,startingCells=100],col="blue")
+points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose+AHM",corTime=timeSelection,startingCells=500],col="red")
+points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose+AHM",corTime=timeSelection,startingCells=1000],col="green")
 
-plot(mp[c("corTime","corValue"),medium="glucose",premedium="galactose",corTime=timeSelection,wellNr=nonBlanc,startingCells=100],col="blue")
-points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose",corTime=timeSelection,wellNr=nonBlanc,startingCells=500],col="red")
-points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose",corTime=timeSelection,wellNr=nonBlanc,startingCells=1000],col="green")
+plot(mp[c("corTime","corValue"),medium="glucose",premedium="galactose",corTime=timeSelection,startingCells=100],col="blue")
+points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose",corTime=timeSelection,startingCells=500],col="red")
+points(mp[c("corTime","corValue"),medium="glucose",premedium="galactose",corTime=timeSelection,startingCells=1000],col="green")
 
 
 
-startingCells=100
-plot(mp[c("corTime","corValue"),combinedMediumCondition="galactose_glucose",corTime=timeSelection,wellNr=nonBlanc,startingCells=startingCells],col=col[[1]])
-points(mp[c("corTime","corValue"),combinedMediumCondition="galactose_galactose",corTime=timeSelection,wellNr=nonBlanc,startingCells=startingCells],col=col[[2]])
-points(mp[c("corTime","corValue"),combinedMediumCondition="galactose+AHM_glucose",corTime=timeSelection,wellNr=nonBlanc,startingCells=startingCells],col=col[[3]])
-points(mp[c("corTime","corValue"),combinedMediumCondition="galactose+AHM_galactose",corTime=timeSelection,wellNr=nonBlanc,startingCells=startingCells],col=col[[4]])
-legend("topleft",legend=unique(mp$combinedMediumCondition),fill=colFunc(4))
-title(startingCells)
 
-mp[level=2]
