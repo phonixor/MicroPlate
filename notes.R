@@ -13,15 +13,23 @@ reshape(mp[c("combinedMediumCondition","corValue","corTime")],direction="wide", 
 #######################
 #  exponential stuff  #
 #######################
-plot(1:100,1:100,ylim=c(0,10),type="n")
+plot(1:100,1:100,ylim=c(0,10),type="n",xlab="x",ylab="y")
 for(i in ((1:10)/1000) ){
   lines( 1:100, i*exp(1)^((1:100)/10) ,type = "l") 
 }
+text(2,9, adj=0,parse(text='N(t) == N(0)*e^(t*mu/10)'))
+text(2,8, adj=0,expression(paste(text="Changing N(0) from 1/1000 to 1/100")) )
 
-plot(1:100,1:100,ylim=c(0,10),type="n")
+
+
+plot(1:100,1:100,ylim=c(0,10),type="n",xlab="x",ylab="y")
 for(i in ((1:10)/100) ){
   lines( 1:100, exp(1)^((1:100)*i) ,type = "l") 
 }
+text(2,9, adj=0,parse(text='N(t) == N(0)*e^(t*mu)'))
+text(2,0.5, adj=0,expression(paste(text="Changing ",mu," from 1/100 to 1/10")) )
+
+
 
 plot(1:100, exp(1)^((1:100)/10), ylim=c(0,10) )
 
@@ -42,6 +50,47 @@ log(2)
 exp(1)^(log(2)*10)
 
 
+
+
+
+
+parse(text="Changing *mu* from 1/1000 to 1/100")
+
+
+expression(paste("test=2",mu))
+
+tmu=expression(paste("t",mu))
+
+
+plot(1:100,1:100,ylim=c(0,10),type="n",xlab="x",ylab="y")
+text(2,9, adj=0,expression(paste("N(t)=N(0)e"^tmu)))
+
+plot(1:100,1:100,ylim=c(0,10),type="n",xlab="x",ylab="y")
+text(2,9, adj=0,tmu)
+
+
+plot(rnorm(30), xlab = expression(paste("4"^"th")))
+
+plot(rnorm(30), xlab = expression(paste("e"^"t",mu)))
+
+plot(rnorm(30), xlab =parse(text='t*mu')) # yeaaah final
+plot(rnorm(30), xlab =parse(text='e^t*mu')) # awww
+plot(rnorm(30), xlab =parse(text='e^t'))
+plot(rnorm(30), xlab =parse(text='e^(t*mu)')) # awww yeah!!!
+plot(rnorm(30), xlab =parse(text='N(t) = N(0)*e^(t*mu)'))
+
+parse(text='N(t) = N(0)*e^(t*mu)')
+
+
+
+
+
+labelsX=parse(text=paste(abs(seq(-100, -50, 10)), "^o ", "*W", sep=""))
+labelsY=parse(text=paste(seq(50,100,10), "^o ", "*N", sep=""))
+plot(-100:-50, 50:100, type="n", xlab="", ylab="", axes=FALSE)
+axis(1, seq(-100, -50, 10), labels=labelsX)
+axis(2, seq(50, 100, 10), labels=labelsY)
+box()
 
 
 #####################

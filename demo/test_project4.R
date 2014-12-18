@@ -47,7 +47,7 @@ plot(mp[c("corTime","value"),startingCells=0,corTime=timeSelection]) # much bett
 firstXTimePoints=mp$corTime%in%unique(mp$corTime)[1:20] # select first time points rows...
 install.package("scatterplot3d")
 origenalPar=par(no.readonly = T)#next function is not implemented cleanly
-scatterplot3d(x=mp[firstXTimePoints,"column",level=1],y=mp[firstXTimePoints,"row",level=1],z=mp[firstXTimePoints,"value"],xlab = "row",ylab="col",zlab="OD")
+scatterplot3d(x=mp[firstXTimePoints,"column",level=1],y=mp[firstXTimePoints,"row",level=1],z=mp[firstXTimePoints,"value"],xlab = "col",ylab="row",zlab="OD")
 scatterplot3d(x=mp[firstXTimePoints,"row",level=1],y=mp[firstXTimePoints,"column",level=1],z=mp[firstXTimePoints,"value"],xlab = "row",ylab="col",zlab="OD") # different angle
 par(origenalPar)
 # this makes you question the plate reader....
@@ -92,6 +92,7 @@ par(origenalPar)
 blankValues=mp[c("corValue"),startingCells=0,corTime=timeSelection]
 plot(mp[c("corTime","corValue"),startingCells=0,corTime=timeSelection,medium="galactose"],col="blue",ylim =c( min(blankValues), max(blankValues) ) )
 points(mp[c("corTime","corValue"),startingCells=0,corTime=timeSelection,medium="glucose"],col="red")
+legend("topright",legend=c("galactose","glucose"),fill = c("blue","red"))
 # there is stil a small medium effect...
 #
 # now you have to decide if you count that as a result or as a bias...
@@ -103,6 +104,7 @@ mp$corValue=mp$corValue-mediumEffect$corValue[match(mp["medium",level=1],mediumE
 # lets check
 plot(mp[c("corTime","corValue"),startingCells=0,corTime=timeSelection,medium="galactose"],col="blue",ylim =c( min(blankValues), max(blankValues) ) )
 points(mp[c("corTime","corValue"),startingCells=0,corTime=timeSelection,medium="glucose"],col="red")
+legend("topright",legend=c("galactose","glucose"),fill = c("blue","red"))
 #
 # ok from this:
 plot(mp[c("corTime","value"),corTime=timeSelection])

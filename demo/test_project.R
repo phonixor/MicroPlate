@@ -9,6 +9,7 @@ mp=readLayoutFile(odsFile)
 
 # initial data inspection
 plotPerPlate(mp)
+showWellNrs(mp)
 
 ### remove blanc
 # get avarage (TODO per time point)

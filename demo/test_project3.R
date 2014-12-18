@@ -61,11 +61,40 @@ mp[level=2]
 
 readline("press any key to continue")
 
-# plot per concentration
+plot per concentration
 averagePerCondition=aggregate(growthRate~basic, data=mp[mp["basic"]!="blanc",] , mean)
-plot(averagePerCondition,log="x",xlab="initial nr of cells of x in mM",ylab="growthRate (min)") 
+plot(averagePerCondition,log="x",xlab="initial nr of cells of x in mM",ylab="growthRate (min)",ylim=c(0,max(averagePerCondition$growthRate))) 
 averagePerCondition=aggregate(doublingTime~basic, data=mp[mp["basic"]!="blanc",] , mean)
-plot(averagePerCondition,log="x",xlab="initial nr of cells of x in mM",ylab="doublingTime (min)") 
+plot(averagePerCondition,log="x",xlab="initial nr of cells of x in mM",ylab="doublingTime (min)",ylim=c(0,max(averagePerCondition$doublingTime))) 
+# averagePerCondition=aggregate(timeZero~basic, data=mp[mp["basic"]!="blanc",] , mean)
+# plot(averagePerCondition,log="x",xlab="initial nr of cells of x in mM",ylab="timeZero (min)",ylim=c(0,max(averagePerCondition$timeZero))) 
 
 # a clear indication that i probably did not have proper values for my layout file
 
+averagePerCondition=aggregate(doublingTime~basic, data=mp[mp["basic"]!="blanc",] , mean)
+averagePerCondition$basic=as.numeric(averagePerCondition$basic) # its was string
+averagePerCondition$basic
+sorted=sort(averagePerCondition$basic,index.return=T) #  and it is sorted weirdy
+averagePerCondition=averagePerCondition[sorted$ix,]
+averagePerCondition #better
+
+colFunc=colorRampPalette(c("white", "lightgreen"))
+bp=barplot(averagePerCondition$doublingTime, beside=T,col=colFunc(length(averagePerCondition$doublingTime)),names.arg=averagePerCondition$basic,ylab="doublingTime in min",xlab="nr of starting cells" )
+title("doublingTime")
+
+
+
+averagePerCondition=aggregate(timeZero~basic, data=mp[mp["basic"]!="blanc",] , mean)
+averagePerCondition$basic=as.numeric(averagePerCondition$basic) # its was string
+averagePerCondition$basic
+sorted=sort(averagePerCondition$basic,index.return=T) #  and it is sorted weirdy
+averagePerCondition=averagePerCondition[sorted$ix,]
+averagePerCondition #better
+
+colFunc=colorRampPalette(c("white", "lightgreen"))
+bp=barplot(averagePerCondition$timeZero, beside=T,col=colFunc(length(averagePerCondition$timeZero)),names.arg=averagePerCondition$basic,ylab="timeZeor in min",xlab="nr of starting cells" )
+title("timeZero")
+# WTF is with this... is the layout file correct???
+
+plot(mp[c("time","corValue")])
+colnames(mp)
