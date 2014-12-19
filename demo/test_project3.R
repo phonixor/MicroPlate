@@ -61,7 +61,7 @@ mp[level=2]
 
 readline("press any key to continue")
 
-plot per concentration
+#plot per concentration
 averagePerCondition=aggregate(growthRate~basic, data=mp[mp["basic"]!="blanc",] , mean)
 plot(averagePerCondition,log="x",xlab="initial nr of cells of x in mM",ylab="growthRate (min)",ylim=c(0,max(averagePerCondition$growthRate))) 
 averagePerCondition=aggregate(doublingTime~basic, data=mp[mp["basic"]!="blanc",] , mean)
@@ -98,3 +98,4 @@ title("timeZero")
 
 plot(mp[c("time","corValue")])
 colnames(mp)
+
